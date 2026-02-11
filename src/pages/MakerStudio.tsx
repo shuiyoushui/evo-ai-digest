@@ -273,7 +273,8 @@ const MakerStudio = () => {
               {[
                 { name: "OPC 注册", desc: "一站式开放平台企业认证与注册服务" },
                 { name: "项目融资", desc: "对接优质投资机构，助力项目融资加速" },
-                { name: "项目开发服务", desc: "提供专业的技术外包与定制开发支持" },
+                { name: "大模型服务", desc: "大模型接入、微调训练及私有化部署服务" },
+                { name: "云计算服务", desc: "弹性云资源、GPU算力及基础设施托管服务" },
               ].map((svc) => (
                 <Card key={svc.name} className="bg-card border-border">
                   <CardContent className="p-4 flex items-center justify-between">
