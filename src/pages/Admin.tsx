@@ -9,9 +9,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { LayoutDashboard, FileText, Megaphone, Settings, X, Plus, Eye, ThumbsUp, Clock, MessageCircle } from "lucide-react";
+import { LayoutDashboard, FileText, Megaphone, Settings, X, Plus, Eye, ThumbsUp, Clock, MessageCircle, Save, Image } from "lucide-react";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { mockInquiries } from "@/data/mockData";
+import { defaultBannerSlides, type BannerSlide } from "@/components/home/HomeBanner";
+import { toast } from "sonner";
 
 const sidebarItems = [
   { id: "overview", label: "数据总览", icon: LayoutDashboard },
@@ -49,12 +51,21 @@ const Admin = () => {
   const [cats, setCats] = useState(["AI Agents", "效率工具", "图像生成", "开发者工具", "写作", "营销"]);
   const [newCat, setNewCat] = useState("");
   const [weights, setWeights] = useState({ upvotes: 40, views: 25, comments: 20, decay: 15 });
+  const [bannerSlides, setBannerSlides] = useState<BannerSlide[]>(defaultBannerSlides);
 
   const addCategory = () => {
     if (newCat.trim() && !cats.includes(newCat.trim())) {
       setCats([...cats, newCat.trim()]);
       setNewCat("");
     }
+  };
+
+  const updateBanner = (index: number, field: keyof BannerSlide, value: string | boolean) => {
+    setBannerSlides((prev) => prev.map((s, i) => i === index ? { ...s, [field]: value } : s));
+  };
+
+  const handleSaveBanners = () => {
+    toast.success("Banner配置已保存", { description: "首页轮播图将在下次刷新时更新" });
   };
 
   return (
@@ -130,12 +141,11 @@ const Admin = () => {
             </div>
           )}
 
-          {/* ADS MANAGEMENT - Updated */}
+          {/* ADS MANAGEMENT */}
           {activeTab === "ads" && (
             <div className="space-y-6 animate-fade-in">
               <h2 className="text-lg font-bold text-foreground">广告管理</h2>
 
-              {/* KPI Cards */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Card className="bg-card border-border">
                   <CardContent className="p-5 text-center">
@@ -179,7 +189,6 @@ const Admin = () => {
                 </Card>
               </div>
 
-              {/* Data Table */}
               <Card className="bg-card border-border">
                 <CardHeader className="pb-2"><CardTitle className="text-sm">近期咨询记录</CardTitle></CardHeader>
                 <Table>
@@ -209,6 +218,56 @@ const Admin = () => {
           {activeTab === "config" && (
             <div className="space-y-6 animate-fade-in">
               <h2 className="text-lg font-bold text-foreground">系统配置</h2>
+
+              {/* Banner Config - NEW */}
+              <Card className="bg-card border-border">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-2">
+                    <Image className="h-4 w-4 text-primary" />
+                    <CardTitle className="text-sm">首页Banner配置</CardTitle>
+                  </div>
+                  <CardDescription className="text-xs">管理首页轮播图的展示内容和状态</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {bannerSlides.map((slide, i) => (
+                    <div key={slide.id} className="flex items-start gap-4 p-3 rounded-lg bg-secondary/40 border border-border/30">
+                      {/* Thumbnail preview */}
+                      <div className={`h-14 w-20 rounded-md bg-gradient-to-br ${slide.gradient} flex items-center justify-center shrink-0`}>
+                        <span className="text-[10px] text-white/80 font-medium">预览</span>
+                      </div>
+                      <div className="flex-1 space-y-2 min-w-0">
+                        <div className="space-y-1">
+                          <label className="text-[10px] text-muted-foreground">标题</label>
+                          <Input
+                            value={slide.title}
+                            onChange={(e) => updateBanner(i, "title", e.target.value)}
+                            className="bg-secondary h-8 text-xs"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] text-muted-foreground">链接地址</label>
+                          <Input
+                            value={slide.link}
+                            onChange={(e) => updateBanner(i, "link", e.target.value)}
+                            className="bg-secondary h-8 text-xs font-mono"
+                            placeholder="https://..."
+                          />
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-center gap-1 shrink-0 pt-1">
+                        <label className="text-[10px] text-muted-foreground">启用</label>
+                        <Switch
+                          checked={slide.active}
+                          onCheckedChange={(v) => updateBanner(i, "active", v)}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                  <Button onClick={handleSaveBanners} size="sm" className="gap-1.5 bg-primary">
+                    <Save className="h-3.5 w-3.5" /> 保存配置
+                  </Button>
+                </CardContent>
+              </Card>
 
               <Card className="bg-card border-border">
                 <CardHeader className="pb-3"><CardTitle className="text-sm">功能开关</CardTitle><CardDescription className="text-xs">控制平台功能模块的启用状态</CardDescription></CardHeader>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronUp, ExternalLink, CheckCircle, Share2, Eye, MessageCircle, Reply } from "lucide-react";
+import { ChevronUp, ExternalLink, CheckCircle, Share2, Eye, MessageCircle, Reply, Rocket } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,9 +13,10 @@ interface ProductDetailProps {
   product: Product | null;
   open: boolean;
   onClose: () => void;
+  onPromote?: (productId: string) => void;
 }
 
-export function ProductDetail({ product, open, onClose }: ProductDetailProps) {
+export function ProductDetail({ product, open, onClose, onPromote }: ProductDetailProps) {
   const [upvoted, setUpvoted] = useState(false);
   const [count, setCount] = useState(0);
   const [shareOpen, setShareOpen] = useState(false);
@@ -53,7 +54,7 @@ export function ProductDetail({ product, open, onClose }: ProductDetailProps) {
                 </div>
               </div>
             </DialogHeader>
-            <div className="flex items-center gap-2 mt-4">
+            <div className="flex items-center gap-2 mt-4 flex-wrap">
               <Button onClick={handleUpvote} className={`gap-1.5 ${upvoted ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground hover:bg-secondary/80"}`}>
                 <ChevronUp className="h-4 w-4" /> {currentCount}
               </Button>
@@ -61,6 +62,17 @@ export function ProductDetail({ product, open, onClose }: ProductDetailProps) {
                 <a href={product.website} target="_blank" rel="noopener noreferrer" className="gap-1.5">
                   访问官网 <ExternalLink className="h-3 w-3" />
                 </a>
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5 border-primary/40 text-primary hover:bg-primary/10"
+                onClick={() => {
+                  onClose();
+                  onPromote?.(product.id);
+                }}
+              >
+                <Rocket className="h-3.5 w-3.5" /> 推广此项目
               </Button>
               <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setShareOpen(true)}>
                 <Share2 className="h-3.5 w-3.5" /> 分享

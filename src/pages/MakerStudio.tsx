@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { TopNav } from "@/components/layout/TopNav";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
@@ -10,8 +11,8 @@ import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Link2, Zap, Monitor, Target, FileText, ExternalLink, Send, ChevronDown } from "lucide-react";
-import { categories } from "@/data/mockData";
+import { Link2, Zap, LayoutTemplate, Megaphone, Feather, Globe, Send, ChevronDown } from "lucide-react";
+import { categories, products } from "@/data/mockData";
 import { toast } from "sonner";
 import {
   DropdownMenu,
@@ -23,24 +24,44 @@ import {
 type Step = "url" | "analyzing" | "form";
 
 const promotionServices = [
-  { id: "display", title: "CSDN展示广告", desc: "在CSDN资源内投放Banner展示广告", icon: Monitor, color: "text-blue-400" },
-  { id: "channel", title: "CSDN频道精准", desc: "在特定技术频道进行精准定向广告投放", icon: Target, color: "text-green-400" },
-  { id: "non-standard", title: "CSDN非标合作", desc: "软文推广、公众号推送、达人内容合作", icon: FileText, color: "text-amber-400" },
-  { id: "external", title: "站外付费流量", desc: "在CSDN资源外的商业投放推广", icon: ExternalLink, color: "text-purple-400" },
+  { id: "display", title: "CSDN 展示广告", desc: "首页及侧边栏Banner广告投放", icon: LayoutTemplate, color: "text-blue-400" },
+  { id: "channel", title: "CSDN 频道广告", desc: "特定技术频道精准曝光（如 Python、AI）", icon: Megaphone, color: "text-emerald-400" },
+  { id: "non-standard", title: "CSDN 非标推广", desc: "软文推广、公众号推送、达人内容合作", icon: Feather, color: "text-amber-400" },
+  { id: "external", title: "第三方付费流量", desc: "CSDN 资源外的商业投放推广（外部媒体）", icon: Globe, color: "text-purple-400" },
 ];
 
 const mockProjects = [
   { id: "p1", name: "我的AI助手" },
   { id: "p2", name: "代码审查Bot" },
   { id: "p3", name: "智能翻译工具" },
+  // Also include real product names so deep-linking works
+  ...products.map((p) => ({ id: p.id, name: p.name })),
 ];
 
+// Deduplicate by name
+const uniqueProjects = mockProjects.filter((p, i, arr) => arr.findIndex((x) => x.name === p.name) === i);
+
 const MakerStudio = () => {
+  const [searchParams] = useSearchParams();
   const [step, setStep] = useState<Step>("url");
   const [url, setUrl] = useState("");
-  const [selectedProject, setSelectedProject] = useState(mockProjects[0]);
+  const [activeTab, setActiveTab] = useState("submit");
+  const [selectedProject, setSelectedProject] = useState(uniqueProjects[0]);
   const [inquiryOpen, setInquiryOpen] = useState(false);
   const [inquiryService, setInquiryService] = useState("");
+
+  // Handle deep-link from PDP "Boost" button
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    const projectName = searchParams.get("project");
+    if (tab === "promotion") {
+      setActiveTab("promotion");
+      if (projectName) {
+        const found = uniqueProjects.find((p) => p.name === projectName);
+        if (found) setSelectedProject(found);
+      }
+    }
+  }, [searchParams]);
 
   const handleAnalyze = () => {
     if (!url) return;
@@ -65,13 +86,13 @@ const MakerStudio = () => {
     <div className="min-h-screen bg-background">
       <TopNav />
       <div className="max-w-4xl mx-auto px-4 py-8">
-        <Tabs defaultValue="submit">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="bg-secondary mb-6">
             <TabsTrigger value="submit">智能提交</TabsTrigger>
             <TabsTrigger value="promotion">推广中心</TabsTrigger>
           </TabsList>
 
-          {/* SUBMIT TAB - keep existing */}
+          {/* SUBMIT TAB */}
           <TabsContent value="submit">
             {step === "url" && (
               <div className="flex flex-col items-center justify-center min-h-[50vh] animate-fade-in">
@@ -124,7 +145,7 @@ const MakerStudio = () => {
             )}
           </TabsContent>
 
-          {/* PROMOTION TAB - New */}
+          {/* PROMOTION TAB */}
           <TabsContent value="promotion" className="space-y-6 animate-fade-in">
             {/* Project Selector */}
             <div className="flex items-center gap-3">
@@ -135,8 +156,8 @@ const MakerStudio = () => {
                     {selectedProject.name} <ChevronDown className="h-3.5 w-3.5" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="bg-popover border-border z-50">
-                  {mockProjects.map((proj) => (
+                <DropdownMenuContent className="bg-popover border-border z-50 max-h-60 overflow-y-auto">
+                  {uniqueProjects.map((proj) => (
                     <DropdownMenuItem key={proj.id} onClick={() => setSelectedProject(proj)} className="text-sm cursor-pointer">
                       {proj.name}
                     </DropdownMenuItem>
@@ -175,6 +196,7 @@ const MakerStudio = () => {
             <DialogTitle className="text-base">提交咨询 - {inquiryService}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 mt-2">
+            <div className="text-xs text-muted-foreground">推广项目: <span className="text-foreground font-medium">{selectedProject.name}</span></div>
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">联系人</label>
               <Input placeholder="您的姓名" className="bg-secondary" />
