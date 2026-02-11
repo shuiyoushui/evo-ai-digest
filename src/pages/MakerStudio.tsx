@@ -11,34 +11,37 @@ import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Link2, Zap, LayoutTemplate, Megaphone, Feather, Globe, Send, ChevronDown } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
+  Link2, Zap, LayoutTemplate, Megaphone, Feather, Globe, Send, ChevronDown,
+  Plane, Eye, Pencil, Trash2, ExternalLink,
+} from "lucide-react";
 import { categories, products } from "@/data/mockData";
 import { toast } from "sonner";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
 type Step = "url" | "analyzing" | "form";
 
 const promotionServices = [
-  { id: "display", title: "CSDN 展示广告", desc: "首页及侧边栏Banner广告投放", icon: LayoutTemplate, color: "text-blue-400" },
-  { id: "channel", title: "CSDN 频道广告", desc: "特定技术频道精准曝光（如 Python、AI）", icon: Megaphone, color: "text-emerald-400" },
-  { id: "non-standard", title: "CSDN 非标推广", desc: "软文推广、公众号推送、达人内容合作", icon: Feather, color: "text-amber-400" },
-  { id: "external", title: "第三方付费流量", desc: "CSDN 资源外的商业投放推广（外部媒体）", icon: Globe, color: "text-purple-400" },
+  { id: "display", title: "CSDN 展示广告", desc: "首页及侧边栏Banner广告投放", icon: LayoutTemplate, color: "text-blue-400", hot: false },
+  { id: "channel", title: "CSDN 用户通道广告", desc: "特定技术频道精准曝光（如 Python、AI）", icon: Megaphone, color: "text-emerald-400", hot: false },
+  { id: "non-standard", title: "CSDN 非标推广", desc: "软文推广、公众号推送、达人内容合作", icon: Feather, color: "text-amber-400", hot: false },
+  { id: "domestic", title: "国内其他平台付费推广", desc: "CSDN 资源外的国内商业投放推广", icon: Globe, color: "text-purple-400", hot: false },
+  { id: "overseas", title: "海外推广", desc: "Product Hunt、Hacker News 及全球媒体投放推广", icon: Plane, color: "text-rose-400", hot: true },
 ];
 
 const mockProjects = [
-  { id: "p1", name: "我的AI助手" },
-  { id: "p2", name: "代码审查Bot" },
-  { id: "p3", name: "智能翻译工具" },
-  // Also include real product names so deep-linking works
-  ...products.map((p) => ({ id: p.id, name: p.name })),
+  { id: "p1", name: "我的AI助手", slogan: "你的智能工作伙伴", status: "已上线", date: "2024-03-15" },
+  { id: "p2", name: "代码审查Bot", slogan: "AI自动代码审查", status: "审核中", date: "2024-03-10" },
+  { id: "p3", name: "智能翻译工具", slogan: "多语言实时翻译", status: "已上线", date: "2024-02-20" },
+  ...products.slice(0, 3).map((p) => ({ id: p.id, name: p.name, slogan: p.slogan, status: "已上线", date: p.launchDate })),
 ];
 
-// Deduplicate by name
 const uniqueProjects = mockProjects.filter((p, i, arr) => arr.findIndex((x) => x.name === p.name) === i);
 
 const MakerStudio = () => {
@@ -49,8 +52,10 @@ const MakerStudio = () => {
   const [selectedProject, setSelectedProject] = useState(uniqueProjects[0]);
   const [inquiryOpen, setInquiryOpen] = useState(false);
   const [inquiryService, setInquiryService] = useState("");
+  const [myProjects, setMyProjects] = useState(uniqueProjects);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editingProject, setEditingProject] = useState<typeof uniqueProjects[0] | null>(null);
 
-  // Handle deep-link from PDP "Boost" button
   useEffect(() => {
     const tab = searchParams.get("tab");
     const projectName = searchParams.get("project");
@@ -74,6 +79,23 @@ const MakerStudio = () => {
     toast.success("咨询请求已发送给CSDN管理员", { description: "我们将在1-2个工作日内联系您" });
   };
 
+  const handleDeleteProject = (id: string) => {
+    setMyProjects((prev) => prev.filter((p) => p.id !== id));
+    toast.success("项目已删除");
+  };
+
+  const handleEditProject = (proj: typeof uniqueProjects[0]) => {
+    setEditingProject({ ...proj });
+    setEditOpen(true);
+  };
+
+  const handleSaveEdit = () => {
+    if (!editingProject) return;
+    setMyProjects((prev) => prev.map((p) => p.id === editingProject.id ? editingProject : p));
+    setEditOpen(false);
+    toast.success("项目信息已更新");
+  };
+
   const radarItems = [
     { label: "技术实力", value: 80 },
     { label: "产品设计", value: 70 },
@@ -89,6 +111,7 @@ const MakerStudio = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="bg-secondary mb-6">
             <TabsTrigger value="submit">智能提交</TabsTrigger>
+            <TabsTrigger value="projects">我的项目</TabsTrigger>
             <TabsTrigger value="promotion">推广中心</TabsTrigger>
           </TabsList>
 
@@ -145,9 +168,60 @@ const MakerStudio = () => {
             )}
           </TabsContent>
 
+          {/* MY PROJECTS TAB */}
+          <TabsContent value="projects" className="animate-fade-in">
+            <h3 className="text-lg font-bold text-foreground mb-4">我的项目</h3>
+            {myProjects.length === 0 ? (
+              <div className="text-center py-16 text-muted-foreground text-sm">暂无项目，去提交一个吧</div>
+            ) : (
+              <div className="space-y-3">
+                {myProjects.map((proj) => (
+                  <Card key={proj.id} className="bg-card border-border">
+                    <CardContent className="p-4 flex items-center gap-4">
+                      <div className="h-11 w-11 rounded-xl bg-secondary flex items-center justify-center font-bold text-sm shrink-0 border border-border/40">
+                        {proj.name.slice(0, 2)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-sm font-semibold text-foreground truncate">{proj.name}</h4>
+                        <p className="text-xs text-muted-foreground truncate">{proj.slogan}</p>
+                      </div>
+                      <Badge variant={proj.status === "已上线" ? "default" : "secondary"} className="text-[10px] shrink-0">
+                        {proj.status}
+                      </Badge>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Button variant="ghost" size="icon" className="h-8 w-8" title="查看">
+                          <Eye className="h-3.5 w-3.5 text-muted-foreground" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" title="编辑" onClick={() => handleEditProject(proj)}>
+                          <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8" title="删除">
+                              <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent className="bg-card border-border">
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>确认删除</AlertDialogTitle>
+                              <AlertDialogDescription>确定要删除「{proj.name}」吗？此操作不可恢复。</AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>取消</AlertDialogCancel>
+                              <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => handleDeleteProject(proj.id)}>删除</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
           {/* PROMOTION TAB */}
           <TabsContent value="promotion" className="space-y-6 animate-fade-in">
-            {/* Project Selector */}
             <div className="flex items-center gap-3">
               <span className="text-xs text-muted-foreground">当前项目:</span>
               <DropdownMenu>
@@ -171,7 +245,10 @@ const MakerStudio = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {promotionServices.map((svc) => (
-                <Card key={svc.id} className="bg-card border-border hover-lift cursor-pointer group" onClick={() => { setInquiryService(svc.title); setInquiryOpen(true); }}>
+                <Card key={svc.id} className={`bg-card border-border hover-lift cursor-pointer group relative ${svc.hot ? "ring-1 ring-rose-500/30" : ""}`} onClick={() => { setInquiryService(svc.title); setInquiryOpen(true); }}>
+                  {svc.hot && (
+                    <Badge className="absolute -top-2 right-3 bg-rose-500 text-white text-[10px] px-2 py-0.5">Hot</Badge>
+                  )}
                   <CardHeader className="pb-2">
                     <svc.icon className={`h-6 w-6 ${svc.color} mb-2`} />
                     <CardTitle className="text-sm group-hover:text-primary transition-colors">{svc.title}</CardTitle>
@@ -226,6 +303,35 @@ const MakerStudio = () => {
               <Send className="h-3.5 w-3.5" /> 发送给管理员
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Project Dialog */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="bg-card border-border max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-base">编辑项目</DialogTitle>
+          </DialogHeader>
+          {editingProject && (
+            <div className="space-y-4 mt-2">
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">产品名称</label>
+                <Input value={editingProject.name} onChange={(e) => setEditingProject({ ...editingProject, name: e.target.value })} className="bg-secondary" />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">一句话介绍</label>
+                <Input value={editingProject.slogan} onChange={(e) => setEditingProject({ ...editingProject, slogan: e.target.value })} className="bg-secondary" />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">官网链接</label>
+                <Input placeholder="https://..." className="bg-secondary" />
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setEditOpen(false)}>取消</Button>
+                <Button className="bg-primary" onClick={handleSaveEdit}>保存</Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>

@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { LayoutDashboard, FileText, Megaphone, Settings, X, Plus, Eye, ThumbsUp, Clock, MessageCircle, Save, Image } from "lucide-react";
+import { LayoutDashboard, FileText, Megaphone, Settings, X, Plus, Eye, ThumbsUp, Clock, MessageCircle, Save, Image, Upload } from "lucide-react";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { mockInquiries } from "@/data/mockData";
 import { defaultBannerSlides, type BannerSlide } from "@/components/home/HomeBanner";
@@ -38,13 +38,20 @@ const categoryInquiryData = [
 ];
 
 const serviceTypeData = [
-  { name: "展示广告", value: 40, fill: "hsl(238, 83%, 67%)" },
-  { name: "频道精准", value: 25, fill: "hsl(142, 71%, 45%)" },
-  { name: "非标合作", value: 20, fill: "hsl(38, 92%, 50%)" },
-  { name: "站外流量", value: 15, fill: "hsl(262, 83%, 58%)" },
+  { name: "展示广告", value: 30 },
+  { name: "用户通道", value: 22 },
+  { name: "非标推广", value: 18 },
+  { name: "国内付费", value: 16 },
+  { name: "海外推广", value: 14 },
 ];
 
-const PIE_COLORS = ["hsl(238, 83%, 67%)", "hsl(142, 71%, 45%)", "hsl(38, 92%, 50%)", "hsl(262, 83%, 58%)"];
+const PIE_COLORS = [
+  "hsl(230, 90%, 60%)",
+  "hsl(142, 71%, 45%)",
+  "hsl(38, 92%, 50%)",
+  "hsl(262, 83%, 58%)",
+  "hsl(350, 80%, 55%)",
+];
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState("overview");
@@ -64,8 +71,8 @@ const Admin = () => {
     setBannerSlides((prev) => prev.map((s, i) => i === index ? { ...s, [field]: value } : s));
   };
 
-  const handleSaveBanners = () => {
-    toast.success("Banner配置已保存", { description: "首页轮播图将在下次刷新时更新" });
+  const handleSaveConfig = () => {
+    toast.success("系统配置已保存", { description: "所有更改将在下次刷新时生效" });
   };
 
   return (
@@ -92,7 +99,7 @@ const Admin = () => {
           </Tabs>
         </div>
 
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-6 pb-24">
           {/* OVERVIEW */}
           {activeTab === "overview" && (
             <div className="space-y-6 animate-fade-in">
@@ -160,13 +167,13 @@ const Admin = () => {
                       <BarChart data={categoryInquiryData} layout="vertical" margin={{ left: 0, right: 8, top: 0, bottom: 0 }}>
                         <XAxis type="number" hide />
                         <YAxis type="category" dataKey="name" width={60} tick={{ fontSize: 11, fill: "hsl(240, 5%, 55%)" }} axisLine={false} tickLine={false} />
-                        <Bar dataKey="value" fill="hsl(238, 83%, 67%)" radius={[0, 4, 4, 0]} barSize={14} />
+                        <Bar dataKey="value" fill="hsl(230, 90%, 60%)" radius={[0, 4, 4, 0]} barSize={14} />
                       </BarChart>
                     </ResponsiveContainer>
                   </CardContent>
                 </Card>
                 <Card className="bg-card border-border">
-                  <CardHeader className="pb-2 pt-4 px-4"><CardTitle className="text-xs text-muted-foreground font-normal">按服务类型</CardTitle></CardHeader>
+                  <CardHeader className="pb-2 pt-4 px-4"><CardTitle className="text-xs text-muted-foreground font-normal">按服务类型（5类）</CardTitle></CardHeader>
                   <CardContent className="px-4 pb-4 flex items-center justify-center">
                     <ResponsiveContainer width="100%" height={140}>
                       <PieChart>
@@ -219,7 +226,7 @@ const Admin = () => {
             <div className="space-y-6 animate-fade-in">
               <h2 className="text-lg font-bold text-foreground">系统配置</h2>
 
-              {/* Banner Config - NEW */}
+              {/* Banner Config */}
               <Card className="bg-card border-border">
                 <CardHeader className="pb-3">
                   <div className="flex items-center gap-2">
@@ -231,9 +238,10 @@ const Admin = () => {
                 <CardContent className="space-y-4">
                   {bannerSlides.map((slide, i) => (
                     <div key={slide.id} className="flex items-start gap-4 p-3 rounded-lg bg-secondary/40 border border-border/30">
-                      {/* Thumbnail preview */}
-                      <div className={`h-14 w-20 rounded-md bg-gradient-to-br ${slide.gradient} flex items-center justify-center shrink-0`}>
-                        <span className="text-[10px] text-white/80 font-medium">预览</span>
+                      {/* File upload zone instead of plain thumbnail */}
+                      <div className={`h-20 w-28 rounded-lg border-2 border-dashed border-border/60 bg-gradient-to-br ${slide.gradient} flex flex-col items-center justify-center shrink-0 cursor-pointer hover:border-primary/50 transition-colors group`}>
+                        <Upload className="h-4 w-4 text-white/60 group-hover:text-white/90 transition-colors" />
+                        <span className="text-[9px] text-white/60 mt-1 group-hover:text-white/90">点击上传图片</span>
                       </div>
                       <div className="flex-1 space-y-2 min-w-0">
                         <div className="space-y-1">
@@ -263,9 +271,6 @@ const Admin = () => {
                       </div>
                     </div>
                   ))}
-                  <Button onClick={handleSaveBanners} size="sm" className="gap-1.5 bg-primary">
-                    <Save className="h-3.5 w-3.5" /> 保存配置
-                  </Button>
                 </CardContent>
               </Card>
 
@@ -339,6 +344,18 @@ const Admin = () => {
           )}
         </main>
       </div>
+
+      {/* Sticky footer for Config page */}
+      {activeTab === "config" && (
+        <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-background/90 backdrop-blur-md">
+          <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-end gap-3">
+            <Button variant="ghost" className="text-sm">取消</Button>
+            <Button className="bg-primary text-sm gap-1.5" onClick={handleSaveConfig}>
+              <Save className="h-3.5 w-3.5" /> 保存配置
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
