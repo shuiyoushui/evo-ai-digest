@@ -53,13 +53,15 @@ const Index = () => {
       <div className="hero-glow h-48 -mt-1 pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-6 -mt-32 relative z-10">
-        {/* Full-width Banner Carousel */}
-        <HomeBanner />
-
+        {/* 2-column layout: Sidebar stays full-height on left */}
         <div className="flex gap-8">
           <CategorySidebar selected={selectedCategory} onSelect={setSelectedCategory} />
 
+          {/* Right column: Banner + Content */}
           <main className="flex-1 min-w-0 pb-16">
+            {/* Banner Carousel inside right column */}
+            <HomeBanner />
+
             <HeroBanner onProductClick={setSelectedProduct} />
 
             <Tabs defaultValue="hot" className="mb-4">
