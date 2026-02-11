@@ -86,8 +86,8 @@ export default {
           to: { opacity: "1", transform: "translateX(0)" },
         },
         "pulse-glow": {
-          "0%, 100%": { boxShadow: "0 0 8px hsl(238 83% 67% / 0.2)" },
-          "50%": { boxShadow: "0 0 20px hsl(238 83% 67% / 0.4)" },
+          "0%, 100%": { boxShadow: "0 0 8px hsl(230 90% 60% / 0.2)" },
+          "50%": { boxShadow: "0 0 20px hsl(230 90% 60% / 0.4)" },
         },
       },
       animation: {
