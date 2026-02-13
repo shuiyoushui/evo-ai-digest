@@ -11,13 +11,14 @@ import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
   Link2, Zap, LayoutTemplate, Megaphone, Feather, Globe, Send, ChevronDown,
-  Plane, Eye, Pencil, Trash2, ExternalLink,
+  Plane, Eye, Pencil, Trash2, FileEdit, ArrowRight, Sparkles, Users, Building2, Link, Github,
 } from "lucide-react";
 import { categories, products } from "@/data/mockData";
 import { toast } from "sonner";
@@ -25,7 +26,51 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-type Step = "url" | "analyzing" | "form";
+type SubmitStep = "choose" | "analyzing" | "form";
+
+// Simulated admin config
+const adminConfig = {
+  showTeamRadar: true,
+  showFunding: true,
+};
+
+// Mock AI-prefilled data
+const mockAIData = {
+  name: "我的AI产品",
+  slogan: "用AI重新定义工作方式",
+  category: "productivity",
+  tags: ["AI助手", "效率", "自动化"],
+  description: "这是一款基于大语言模型的AI产品，致力于帮助用户通过智能化工具提升日常工作效率。核心功能包括智能问答、文档分析和任务自动化。",
+  website: "",
+  github: "",
+  founderName: "张三",
+  founderTitle: "CEO & Co-founder",
+  companyName: "AI科技有限公司",
+  companyFounded: "2024",
+  companyLocation: "北京",
+  companyFunding: "种子轮",
+  companyBio: "一家专注于AI应用的初创公司",
+  radarItems: [
+    { label: "技术实力", value: 80 },
+    { label: "产品设计", value: 70 },
+    { label: "市场能力", value: 60 },
+    { label: "团队背景", value: 85 },
+    { label: "用户口碑", value: 75 },
+  ],
+};
+
+const emptyFormData = {
+  name: "", slogan: "", category: "", tags: [] as string[], description: "",
+  website: "", github: "", founderName: "", founderTitle: "", companyName: "",
+  companyFounded: "", companyLocation: "", companyFunding: "", companyBio: "",
+  radarItems: [
+    { label: "技术实力", value: 50 },
+    { label: "产品设计", value: 50 },
+    { label: "市场能力", value: 50 },
+    { label: "团队背景", value: 50 },
+    { label: "用户口碑", value: 50 },
+  ],
+};
 
 const promotionServices = [
   { id: "display", title: "CSDN 展示广告", desc: "首页及侧边栏Banner广告投放", icon: LayoutTemplate, color: "text-blue-400", hot: false },
@@ -46,7 +91,7 @@ const uniqueProjects = mockProjects.filter((p, i, arr) => arr.findIndex((x) => x
 
 const MakerStudio = () => {
   const [searchParams] = useSearchParams();
-  const [step, setStep] = useState<Step>("url");
+  const [submitStep, setSubmitStep] = useState<SubmitStep>("choose");
   const [url, setUrl] = useState("");
   const [activeTab, setActiveTab] = useState("submit");
   const [selectedProject, setSelectedProject] = useState(uniqueProjects[0]);
@@ -55,6 +100,9 @@ const MakerStudio = () => {
   const [myProjects, setMyProjects] = useState(uniqueProjects);
   const [editOpen, setEditOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<typeof uniqueProjects[0] | null>(null);
+  const [formData, setFormData] = useState(emptyFormData);
+  const [newTag, setNewTag] = useState("");
+  const [isAIMode, setIsAIMode] = useState(false);
 
   useEffect(() => {
     const tab = searchParams.get("tab");
@@ -68,10 +116,20 @@ const MakerStudio = () => {
     }
   }, [searchParams]);
 
-  const handleAnalyze = () => {
+  const handleAIAnalyze = () => {
     if (!url) return;
-    setStep("analyzing");
-    setTimeout(() => setStep("form"), 2500);
+    setIsAIMode(true);
+    setSubmitStep("analyzing");
+    setTimeout(() => {
+      setFormData({ ...mockAIData, website: url });
+      setSubmitStep("form");
+    }, 2500);
+  };
+
+  const handleManualEntry = () => {
+    setIsAIMode(false);
+    setFormData(emptyFormData);
+    setSubmitStep("form");
   };
 
   const handleSubmitInquiry = () => {
@@ -96,13 +154,23 @@ const MakerStudio = () => {
     toast.success("项目信息已更新");
   };
 
-  const radarItems = [
-    { label: "技术实力", value: 80 },
-    { label: "产品设计", value: 70 },
-    { label: "市场能力", value: 60 },
-    { label: "团队背景", value: 85 },
-    { label: "用户口碑", value: 75 },
-  ];
+  const handleAddTag = () => {
+    if (newTag.trim() && !formData.tags.includes(newTag.trim())) {
+      setFormData({ ...formData, tags: [...formData.tags, newTag.trim()] });
+      setNewTag("");
+    }
+  };
+
+  const handleRemoveTag = (tag: string) => {
+    setFormData({ ...formData, tags: formData.tags.filter((t) => t !== tag) });
+  };
+
+  const handleSubmitProduct = () => {
+    toast.success("产品已提交审核", { description: "我们将在1-2个工作日内完成审核" });
+    setSubmitStep("choose");
+    setFormData(emptyFormData);
+    setUrl("");
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -118,20 +186,71 @@ const MakerStudio = () => {
 
           {/* SUBMIT TAB */}
           <TabsContent value="submit">
-            {step === "url" && (
-              <div className="flex flex-col items-center justify-center min-h-[50vh] animate-fade-in">
-                <h1 className="text-2xl font-bold text-foreground mb-2">提交你的AI产品</h1>
-                <p className="text-muted-foreground text-sm mb-8">粘贴链接，AI自动分析并填充信息</p>
-                <div className="w-full max-w-lg flex gap-2">
-                  <div className="relative flex-1">
-                    <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input placeholder="粘贴产品URL或GitHub仓库链接..." className="pl-9 h-12 bg-secondary border-border text-base" value={url} onChange={(e) => setUrl(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleAnalyze()} />
-                  </div>
-                  <Button onClick={handleAnalyze} className="h-12 px-6 gap-2 bg-primary"><Zap className="h-4 w-4" /> AI分析</Button>
+            {/* Step 1: Choose submission method */}
+            {submitStep === "choose" && (
+              <div className="animate-fade-in">
+                <div className="text-center mb-8">
+                  <h1 className="text-2xl font-bold text-foreground mb-2">提交你的AI产品</h1>
+                  <p className="text-muted-foreground text-sm">选择你偏好的提交方式</p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-2xl mx-auto">
+                  {/* Option A: Smart AI Import */}
+                  <Card className="bg-card border-border hover:border-primary/50 transition-all cursor-pointer group relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <CardHeader className="pb-3 relative">
+                      <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center mb-3">
+                        <Sparkles className="h-6 w-6 text-primary" />
+                      </div>
+                      <CardTitle className="text-base">⚡️ 智能AI导入</CardTitle>
+                      <CardDescription className="text-xs">粘贴URL或GitHub链接，AI自动分析并填充产品信息</CardDescription>
+                    </CardHeader>
+                    <CardContent className="relative space-y-3">
+                      <div className="flex gap-2">
+                        <div className="relative flex-1">
+                          <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                          <Input
+                            placeholder="粘贴URL或GitHub链接..."
+                            className="pl-9 h-10 bg-secondary border-border text-sm"
+                            value={url}
+                            onChange={(e) => setUrl(e.target.value)}
+                            onKeyDown={(e) => e.key === "Enter" && handleAIAnalyze()}
+                          />
+                        </div>
+                      </div>
+                      <Button onClick={handleAIAnalyze} className="w-full gap-2 bg-primary">
+                        <Zap className="h-4 w-4" /> 开始分析
+                      </Button>
+                    </CardContent>
+                  </Card>
+
+                  {/* Option B: Manual Entry */}
+                  <Card
+                    className="bg-card border-border hover:border-primary/50 transition-all cursor-pointer group relative overflow-hidden"
+                    onClick={handleManualEntry}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <CardHeader className="pb-3 relative">
+                      <div className="h-12 w-12 rounded-xl bg-accent/10 flex items-center justify-center mb-3">
+                        <FileEdit className="h-6 w-6 text-muted-foreground" />
+                      </div>
+                      <CardTitle className="text-base">📝 手动填写</CardTitle>
+                      <CardDescription className="text-xs">从空白表单开始，手动录入产品所有信息</CardDescription>
+                    </CardHeader>
+                    <CardContent className="relative">
+                      <div className="flex flex-col items-center justify-center py-4 text-center">
+                        <p className="text-xs text-muted-foreground mb-4">适合暂无在线产品或需要精细控制每个字段的创作者</p>
+                        <Button variant="outline" className="gap-2">
+                          从空白开始 <ArrowRight className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
               </div>
             )}
-            {step === "analyzing" && (
+
+            {/* Step: Analyzing */}
+            {submitStep === "analyzing" && (
               <div className="space-y-6 animate-fade-in max-w-lg mx-auto py-16">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="h-8 w-8 rounded-lg bg-primary/20 flex items-center justify-center animate-pulse"><Zap className="h-4 w-4 text-primary" /></div>
@@ -140,31 +259,258 @@ const MakerStudio = () => {
                 {[1, 2, 3, 4, 5].map((i) => (<div key={i} className="space-y-2"><Skeleton className="h-4 w-24 bg-secondary" /><Skeleton className="h-10 w-full bg-secondary" /></div>))}
               </div>
             )}
-            {step === "form" && (
-              <div className="space-y-6 animate-fade-in">
-                <div className="flex items-center justify-between">
-                  <div><h2 className="text-lg font-bold text-foreground">产品信息</h2><p className="text-xs text-muted-foreground">AI已自动填充，请检查并补充</p></div>
-                  <Button size="sm" variant="ghost" onClick={() => setStep("url")}>重新分析</Button>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-1.5"><label className="text-xs font-medium text-muted-foreground">产品名称</label><Input defaultValue="我的AI产品" className="bg-secondary" /></div>
-                  <div className="space-y-1.5"><label className="text-xs font-medium text-muted-foreground">一句话介绍</label><Input defaultValue="用AI重新定义工作方式" className="bg-secondary" /></div>
-                  <div className="space-y-1.5"><label className="text-xs font-medium text-muted-foreground">分类</label>
-                    <Select defaultValue="productivity"><SelectTrigger className="bg-secondary"><SelectValue /></SelectTrigger><SelectContent>{categories.map((c) => (<SelectItem key={c.id} value={c.id}>{c.icon} {c.label}</SelectItem>))}</SelectContent></Select>
+
+            {/* Step: Unified Form */}
+            {submitStep === "form" && (
+              <div className="animate-fade-in max-w-3xl mx-auto">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="text-xl font-bold text-foreground">产品信息</h2>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {isAIMode ? "AI已自动填充以下字段，请检查并补充" : "请填写完整的产品信息"}
+                    </p>
                   </div>
-                  <div className="space-y-1.5"><label className="text-xs font-medium text-muted-foreground">标签</label>
-                    <div className="flex flex-wrap gap-1.5">{["AI助手", "效率", "自动化"].map((t) => (<Badge key={t} variant="secondary" className="text-xs">{t} ×</Badge>))}<Input placeholder="添加标签" className="h-6 w-20 text-xs bg-secondary" /></div>
+                  <Button size="sm" variant="ghost" onClick={() => { setSubmitStep("choose"); setUrl(""); }}>
+                    ← 返回
+                  </Button>
+                </div>
+
+                {/* Section 1: Basic Info */}
+                <div className="space-y-6">
+                  <div className="space-y-1 mb-1">
+                    <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                      <div className="h-5 w-1 bg-primary rounded-full" /> 基本信息
+                    </h3>
+                  </div>
+                  <Card className="bg-card border-border">
+                    <CardContent className="p-5 space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium text-muted-foreground">产品名称 *</label>
+                          <Input
+                            value={formData.name}
+                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                            placeholder="输入产品名称"
+                            className="bg-secondary"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium text-muted-foreground">Slogan *</label>
+                          <Input
+                            value={formData.slogan}
+                            onChange={(e) => setFormData({ ...formData, slogan: e.target.value })}
+                            placeholder="一句话介绍你的产品"
+                            className="bg-secondary"
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium text-muted-foreground">分类 *</label>
+                          <Select value={formData.category} onValueChange={(v) => setFormData({ ...formData, category: v })}>
+                            <SelectTrigger className="bg-secondary"><SelectValue placeholder="选择产品分类" /></SelectTrigger>
+                            <SelectContent>
+                              {categories.map((c) => (
+                                <SelectItem key={c.id} value={c.id}>{c.icon} {c.label}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium text-muted-foreground">标签</label>
+                          <div className="flex flex-wrap gap-1.5 items-center min-h-[40px] p-2 rounded-md bg-secondary border border-border">
+                            {formData.tags.map((t) => (
+                              <Badge key={t} variant="secondary" className="text-xs gap-1 pr-1 bg-background">
+                                {t}
+                                <button onClick={() => handleRemoveTag(t)} className="ml-0.5 hover:text-destructive transition-colors">×</button>
+                              </Badge>
+                            ))}
+                            <Input
+                              placeholder="添加标签..."
+                              className="h-6 w-24 text-xs bg-transparent border-none shadow-none focus-visible:ring-0 p-0"
+                              value={newTag}
+                              onChange={(e) => setNewTag(e.target.value)}
+                              onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddTag())}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium text-muted-foreground">产品描述 *</label>
+                        <Textarea
+                          value={formData.description}
+                          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                          placeholder="详细描述你的产品功能、特色和目标用户..."
+                          className="bg-secondary min-h-[140px]"
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Section 2: Links */}
+                  <div className="space-y-1 mb-1">
+                    <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                      <div className="h-5 w-1 bg-primary rounded-full" /> 相关链接
+                    </h3>
+                  </div>
+                  <Card className="bg-card border-border">
+                    <CardContent className="p-5">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                            <Link className="h-3 w-3" /> 官方网站
+                          </label>
+                          <Input
+                            value={formData.website}
+                            onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                            placeholder="https://..."
+                            className="bg-secondary font-mono text-sm"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                            <Github className="h-3 w-3" /> GitHub
+                          </label>
+                          <Input
+                            value={formData.github}
+                            onChange={(e) => setFormData({ ...formData, github: e.target.value })}
+                            placeholder="https://github.com/..."
+                            className="bg-secondary font-mono text-sm"
+                          />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Section 3: Team & Company */}
+                  <div className="space-y-1 mb-1">
+                    <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                      <div className="h-5 w-1 bg-primary rounded-full" /> 团队与公司
+                    </h3>
+                  </div>
+                  <Card className="bg-card border-border">
+                    <CardContent className="p-5 space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                            <Users className="h-3 w-3" /> 创始人/负责人
+                          </label>
+                          <Input
+                            value={formData.founderName}
+                            onChange={(e) => setFormData({ ...formData, founderName: e.target.value })}
+                            placeholder="姓名"
+                            className="bg-secondary"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium text-muted-foreground">职位</label>
+                          <Input
+                            value={formData.founderTitle}
+                            onChange={(e) => setFormData({ ...formData, founderTitle: e.target.value })}
+                            placeholder="CEO / CTO / ..."
+                            className="bg-secondary"
+                          />
+                        </div>
+                      </div>
+                      <Separator className="bg-border/60" />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                            <Building2 className="h-3 w-3" /> 公司名称
+                          </label>
+                          <Input
+                            value={formData.companyName}
+                            onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
+                            placeholder="公司名称"
+                            className="bg-secondary"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium text-muted-foreground">成立年份</label>
+                          <Input
+                            value={formData.companyFounded}
+                            onChange={(e) => setFormData({ ...formData, companyFounded: e.target.value })}
+                            placeholder="2024"
+                            className="bg-secondary"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium text-muted-foreground">所在地</label>
+                          <Input
+                            value={formData.companyLocation}
+                            onChange={(e) => setFormData({ ...formData, companyLocation: e.target.value })}
+                            placeholder="北京 / 旧金山 / ..."
+                            className="bg-secondary"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium text-muted-foreground">融资阶段</label>
+                          <Input
+                            value={formData.companyFunding}
+                            onChange={(e) => setFormData({ ...formData, companyFunding: e.target.value })}
+                            placeholder="种子轮 / A轮 / ..."
+                            className="bg-secondary"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium text-muted-foreground">公司简介</label>
+                        <Textarea
+                          value={formData.companyBio}
+                          onChange={(e) => setFormData({ ...formData, companyBio: e.target.value })}
+                          placeholder="简要介绍团队和公司背景..."
+                          className="bg-secondary min-h-[80px]"
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Section 4: Team Radar (conditional on admin config) */}
+                  {adminConfig.showTeamRadar && (
+                    <>
+                      <div className="space-y-1 mb-1">
+                        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                          <div className="h-5 w-1 bg-primary rounded-full" /> 团队能力雷达
+                        </h3>
+                        <p className="text-xs text-muted-foreground ml-3">调整滑块以展示团队核心能力</p>
+                      </div>
+                      <Card className="bg-card border-border">
+                        <CardContent className="p-5 space-y-4">
+                          {formData.radarItems.map((item, idx) => (
+                            <div key={item.label} className="space-y-1.5">
+                              <div className="flex justify-between text-xs">
+                                <span className="text-muted-foreground">{item.label}</span>
+                                <span className="text-foreground font-semibold font-mono">{item.value}%</span>
+                              </div>
+                              <Slider
+                                value={[item.value]}
+                                onValueChange={([v]) => {
+                                  const updated = [...formData.radarItems];
+                                  updated[idx] = { ...item, value: v };
+                                  setFormData({ ...formData, radarItems: updated });
+                                }}
+                                max={100}
+                                step={5}
+                                className="[&_[role=slider]]:bg-primary"
+                              />
+                            </div>
+                          ))}
+                        </CardContent>
+                      </Card>
+                    </>
+                  )}
+
+                  {/* Submit Actions */}
+                  <div className="flex justify-end gap-3 pt-2 pb-8">
+                    <Button variant="outline" onClick={() => { setSubmitStep("choose"); setUrl(""); }}>
+                      取消
+                    </Button>
+                    <Button variant="outline">保存草稿</Button>
+                    <Button className="bg-primary gap-2" onClick={handleSubmitProduct}>
+                      <Send className="h-4 w-4" /> 提交审核
+                    </Button>
                   </div>
                 </div>
-                <div className="space-y-1.5"><label className="text-xs font-medium text-muted-foreground">产品描述</label><Textarea defaultValue="这是一款基于大语言模型的AI产品..." className="bg-secondary min-h-[120px]" /></div>
-                <div className="space-y-1.5"><label className="text-xs font-medium text-muted-foreground">相关链接</label>
-                  <div className="grid grid-cols-2 gap-3"><Input placeholder="官网 URL" className="bg-secondary" defaultValue={url} /><Input placeholder="GitHub" className="bg-secondary" /></div>
-                </div>
-                <Card className="bg-card border-border"><CardHeader className="pb-3"><CardTitle className="text-sm">团队能力雷达</CardTitle><CardDescription className="text-xs">调整滑块以展示团队核心能力</CardDescription></CardHeader>
-                  <CardContent className="space-y-4">{radarItems.map((item) => (<div key={item.label} className="space-y-1.5"><div className="flex justify-between text-xs"><span className="text-muted-foreground">{item.label}</span><span className="text-foreground font-medium">{item.value}%</span></div><Slider defaultValue={[item.value]} max={100} step={5} className="[&_[role=slider]]:bg-primary" /></div>))}</CardContent>
-                </Card>
-                <div className="space-y-1.5"><label className="text-xs font-medium text-muted-foreground">公司背景</label><Textarea placeholder="介绍团队和公司背景..." className="bg-secondary" /></div>
-                <div className="flex justify-end gap-3"><Button variant="outline" onClick={() => setStep("url")}>返回</Button><Button className="bg-primary">提交审核</Button></div>
               </div>
             )}
           </TabsContent>
@@ -247,9 +593,7 @@ const MakerStudio = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {promotionServices.map((svc) => (
                 <Card key={svc.id} className={`bg-card border-border hover-lift cursor-pointer group relative ${svc.hot ? "ring-1 ring-rose-500/30" : ""}`} onClick={() => { setInquiryService(svc.title); setInquiryOpen(true); }}>
-                  {svc.hot && (
-                    <Badge className="absolute -top-2 right-3 bg-rose-500 text-white text-[10px] px-2 py-0.5">Hot</Badge>
-                  )}
+                  {svc.hot && <Badge className="absolute -top-2 right-3 bg-rose-500 text-white text-[10px] px-2 py-0.5">Hot</Badge>}
                   <CardHeader className="pb-2">
                     <svc.icon className={`h-6 w-6 ${svc.color} mb-2`} />
                     <CardTitle className="text-sm group-hover:text-primary transition-colors">{svc.title}</CardTitle>
