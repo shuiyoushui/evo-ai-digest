@@ -20,13 +20,21 @@ export interface Product {
   launchDate: string;
 }
 
-export const categories = [
-  { id: "agents", label: "AI Agents", icon: "🤖", count: 128 },
-  { id: "productivity", label: "效率工具", icon: "⚡", count: 95 },
-  { id: "imagegen", label: "图像生成", icon: "🎨", count: 87 },
-  { id: "devtools", label: "开发者工具", icon: "🛠️", count: 76 },
-  { id: "writing", label: "写作", icon: "✍️", count: 63 },
-  { id: "marketing", label: "营销", icon: "📈", count: 41 },
+export interface Category {
+  id: string;
+  label: string;
+  icon: string;
+  count: number;
+  children: { id: string; label: string }[];
+}
+
+export const categories: Category[] = [
+  { id: "devcode", label: "开发与编程", icon: "💻", count: 152, children: [] },
+  { id: "agents", label: "智能体与自动化", icon: "🤖", count: 128, children: [] },
+  { id: "efficiency", label: "效率与办公", icon: "⚡", count: 95, children: [] },
+  { id: "visual", label: "视觉与创意", icon: "🎨", count: 87, children: [] },
+  { id: "writing", label: "写作营销", icon: "✍️", count: 63, children: [] },
+  { id: "infra", label: "模型与基建", icon: "🧠", count: 41, children: [] },
 ];
 
 export const products: Product[] = [
@@ -34,7 +42,7 @@ export const products: Product[] = [
     id: "1", rank: 1, name: "Cursor",
     slogan: "AI驱动的代码编辑器，让编程速度提升10倍",
     description: "Cursor是一款革命性的AI代码编辑器，内置GPT-4和Claude，能够理解你的整个代码库。它提供智能代码补全、自然语言编辑、以及强大的代码生成能力，让开发者的生产力提升到一个全新的水平。\n\n### 核心功能\n- **智能补全**: 基于上下文的AI代码建议\n- **自然语言编辑**: 用中文描述你想要的改动\n- **代码库理解**: AI能理解你的整个项目结构\n- **多模型支持**: 同时支持GPT-4、Claude等顶级模型",
-    logo: "", tags: ["编辑器", "AI编程", "开发工具"], category: "devtools",
+    logo: "", tags: ["编辑器", "AI编程", "开发工具"], category: "devcode",
     upvotes: 2847, views: 45200, comments: 312, website: "https://cursor.sh",
     verified: true, featured: true,
     maker: { name: "Aman Sanger", avatar: "", title: "CEO & Co-founder" },
@@ -46,7 +54,7 @@ export const products: Product[] = [
     id: "2", rank: 2, name: "Midjourney",
     slogan: "用文字创造令人惊叹的艺术作品",
     description: "Midjourney是领先的AI图像生成平台，通过简单的文字描述即可创造出专业级别的艺术作品和设计。V6版本带来了前所未有的图像质量和创作控制能力。",
-    logo: "", tags: ["图像生成", "AI艺术", "设计"], category: "imagegen",
+    logo: "", tags: ["图像生成", "AI艺术", "设计"], category: "visual",
     upvotes: 2341, views: 38900, comments: 256, website: "https://midjourney.com",
     verified: true, featured: true,
     maker: { name: "David Holz", avatar: "", title: "创始人" },
@@ -58,7 +66,7 @@ export const products: Product[] = [
     id: "3", rank: 3, name: "Kimi",
     slogan: "20万字超长上下文AI助手，中文理解更出色",
     description: "Kimi是由月之暗面(Moonshot AI)推出的AI助手，支持20万字超长上下文，在中文理解和生成方面表现卓越。",
-    logo: "", tags: ["AI助手", "长文本", "中文"], category: "productivity",
+    logo: "", tags: ["AI助手", "长文本", "中文"], category: "efficiency",
     upvotes: 1956, views: 32100, comments: 189, website: "https://kimi.moonshot.cn",
     verified: true, featured: false,
     maker: { name: "杨植麟", avatar: "", title: "创始人 & CEO" },
@@ -82,7 +90,7 @@ export const products: Product[] = [
     id: "5", rank: 5, name: "Sora",
     slogan: "OpenAI文生视频模型，创造逼真视频内容",
     description: "Sora是OpenAI推出的文生视频AI模型，能够根据文字描述生成长达60秒的高质量视频。",
-    logo: "", tags: ["文生视频", "OpenAI", "内容创作"], category: "marketing",
+    logo: "", tags: ["文生视频", "OpenAI", "内容创作"], category: "visual",
     upvotes: 1647, views: 51200, comments: 178, website: "https://openai.com/sora",
     verified: true, featured: true,
     maker: { name: "Sam Altman", avatar: "", title: "CEO" },
@@ -94,7 +102,7 @@ export const products: Product[] = [
     id: "6", rank: 6, name: "Jasper AI",
     slogan: "企业级AI内容营销平台",
     description: "Jasper是面向企业的AI内容营销平台，帮助品牌快速生成高质量的营销文案、社交媒体内容、邮件和广告素材。",
-    logo: "", tags: ["营销", "文案", "内容生成"], category: "marketing",
+    logo: "", tags: ["营销", "文案", "内容生成"], category: "writing",
     upvotes: 1432, views: 22300, comments: 134, website: "https://jasper.ai",
     verified: true, featured: false,
     maker: { name: "Dave Rogenmoser", avatar: "", title: "CEO" },
@@ -118,7 +126,7 @@ export const products: Product[] = [
     id: "8", rank: 8, name: "V0.dev",
     slogan: "用自然语言生成React组件和UI界面",
     description: "V0是Vercel推出的AI驱动UI生成工具，使用自然语言描述即可快速生成基于React和Tailwind CSS的精美组件。",
-    logo: "", tags: ["UI生成", "React", "前端"], category: "devtools",
+    logo: "", tags: ["UI生成", "React", "前端"], category: "devcode",
     upvotes: 1156, views: 17600, comments: 87, website: "https://v0.dev",
     verified: true, featured: false,
     maker: { name: "Guillermo Rauch", avatar: "", title: "CEO" },
@@ -130,7 +138,7 @@ export const products: Product[] = [
     id: "9", rank: 9, name: "DeepSeek",
     slogan: "开源高性能大语言模型，媲美GPT-4",
     description: "DeepSeek是国产开源大模型，在代码生成、数学推理等方面表现出色，支持128K上下文。",
-    logo: "", tags: ["大模型", "开源", "推理"], category: "agents",
+    logo: "", tags: ["大模型", "开源", "推理"], category: "infra",
     upvotes: 2105, views: 41000, comments: 267, website: "https://deepseek.com",
     verified: true, featured: false,
     maker: { name: "梁文峰", avatar: "", title: "创始人" },
@@ -142,7 +150,7 @@ export const products: Product[] = [
     id: "10", rank: 10, name: "Copilot",
     slogan: "GitHub官方AI编程助手，代码自动补全",
     description: "GitHub Copilot 是微软推出的AI编程助手，深度集成在VS Code和JetBrains中，实时提供代码建议。",
-    logo: "", tags: ["编程", "自动补全", "GitHub"], category: "devtools",
+    logo: "", tags: ["编程", "自动补全", "GitHub"], category: "devcode",
     upvotes: 1870, views: 35600, comments: 198, website: "https://github.com/features/copilot",
     verified: true, featured: false,
     maker: { name: "Thomas Dohmke", avatar: "", title: "CEO" },
