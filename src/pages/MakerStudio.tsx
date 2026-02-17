@@ -7,7 +7,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -19,6 +18,7 @@ import {
 import {
   Link2, Zap, LayoutTemplate, Megaphone, Feather, Globe, Send, ChevronDown,
   Plane, Eye, Pencil, Trash2, FileEdit, ArrowRight, Sparkles, Users, Building2, Link, Github,
+  Plus, X, Terminal, Briefcase, Banknote, Code, UserPlus,
 } from "lucide-react";
 import { categories, products } from "@/data/mockData";
 import { toast } from "sonner";
@@ -28,18 +28,15 @@ import {
 
 type SubmitStep = "choose" | "analyzing" | "form";
 
-// Simulated admin config
-const adminConfig = {
-  showTeamRadar: true,
-  showFunding: true,
-};
+interface SkillItem { name: string; description: string }
+interface PromptItem { title: string; content: string }
 
 // Mock AI-prefilled data
 const mockAIData = {
   name: "我的AI产品",
   slogan: "用AI重新定义工作方式",
-  category: "productivity",
-  tags: ["AI助手", "效率", "自动化"],
+  category: "efficiency",
+  tags: ["AI助手", "Web", "Freemium"],
   description: "这是一款基于大语言模型的AI产品，致力于帮助用户通过智能化工具提升日常工作效率。核心功能包括智能问答、文档分析和任务自动化。",
   website: "",
   github: "",
@@ -50,34 +47,32 @@ const mockAIData = {
   companyLocation: "北京",
   companyFunding: "种子轮",
   companyBio: "一家专注于AI应用的初创公司",
-  radarItems: [
-    { label: "技术实力", value: 80 },
-    { label: "产品设计", value: 70 },
-    { label: "市场能力", value: 60 },
-    { label: "团队背景", value: 85 },
-    { label: "用户口碑", value: 75 },
-  ],
+  skills: [
+    { name: "智能问答", description: "基于RAG的上下文问答能力" },
+    { name: "文档分析", description: "支持PDF、Word等文档解析与总结" },
+  ] as SkillItem[],
+  prompts: [
+    { title: "总结文档", content: "请阅读以下文档内容，提取核心观点并生成一份不超过500字的中文摘要..." },
+  ] as PromptItem[],
 };
 
 const emptyFormData = {
   name: "", slogan: "", category: "", tags: [] as string[], description: "",
   website: "", github: "", founderName: "", founderTitle: "", companyName: "",
   companyFounded: "", companyLocation: "", companyFunding: "", companyBio: "",
-  radarItems: [
-    { label: "技术实力", value: 50 },
-    { label: "产品设计", value: 50 },
-    { label: "市场能力", value: 50 },
-    { label: "团队背景", value: 50 },
-    { label: "用户口碑", value: 50 },
-  ],
+  skills: [] as SkillItem[],
+  prompts: [] as PromptItem[],
 };
 
+const platformPresets = ["Web", "Mobile App", "Browser Plugin", "Desktop"];
+const pricingPresets = ["Free", "Paid", "Freemium"];
+
 const promotionServices = [
-  { id: "display", title: "CSDN 展示广告", desc: "首页及侧边栏Banner广告投放", icon: LayoutTemplate, color: "text-blue-400", hot: false },
-  { id: "channel", title: "CSDN 用户通道广告", desc: "特定技术频道精准曝光（如 Python、AI）", icon: Megaphone, color: "text-emerald-400", hot: false },
-  { id: "non-standard", title: "CSDN 非标推广", desc: "软文推广、公众号推送、达人内容合作", icon: Feather, color: "text-amber-400", hot: false },
-  { id: "domestic", title: "国内其他平台付费推广", desc: "CSDN 资源外的国内商业投放推广", icon: Globe, color: "text-purple-400", hot: false },
-  { id: "overseas", title: "海外推广", desc: "Product Hunt、Hacker News 及全球媒体投放推广", icon: Plane, color: "text-rose-400", hot: true },
+  { id: "traffic", title: "流量推广", desc: "CSDN展示广告、频道精准广告、站外付费推广等全渠道流量服务", icon: Megaphone, color: "text-blue-400" },
+  { id: "business", title: "工商财税服务", desc: "公司注册、税务筹划、资质申请一站式企业服务", icon: Briefcase, color: "text-emerald-400" },
+  { id: "financing", title: "项目融资服务", desc: "FA对接、BP优化、投融资路演辅导", icon: Banknote, color: "text-amber-400" },
+  { id: "tech", title: "产品技术服务", desc: "代码审计、架构咨询、性能优化", icon: Code, color: "text-purple-400" },
+  { id: "talent", title: "人才服务", desc: "技术人才招聘、团队组建咨询", icon: UserPlus, color: "text-rose-400" },
 ];
 
 const mockProjects = [
@@ -165,6 +160,42 @@ const MakerStudio = () => {
     setFormData({ ...formData, tags: formData.tags.filter((t) => t !== tag) });
   };
 
+  const togglePresetTag = (tag: string) => {
+    if (formData.tags.includes(tag)) {
+      handleRemoveTag(tag);
+    } else {
+      setFormData({ ...formData, tags: [...formData.tags, tag] });
+    }
+  };
+
+  const addSkill = () => {
+    setFormData({ ...formData, skills: [...formData.skills, { name: "", description: "" }] });
+  };
+
+  const updateSkill = (idx: number, field: keyof SkillItem, value: string) => {
+    const updated = [...formData.skills];
+    updated[idx] = { ...updated[idx], [field]: value };
+    setFormData({ ...formData, skills: updated });
+  };
+
+  const removeSkill = (idx: number) => {
+    setFormData({ ...formData, skills: formData.skills.filter((_, i) => i !== idx) });
+  };
+
+  const addPrompt = () => {
+    setFormData({ ...formData, prompts: [...formData.prompts, { title: "", content: "" }] });
+  };
+
+  const updatePrompt = (idx: number, field: keyof PromptItem, value: string) => {
+    const updated = [...formData.prompts];
+    updated[idx] = { ...updated[idx], [field]: value };
+    setFormData({ ...formData, prompts: updated });
+  };
+
+  const removePrompt = (idx: number) => {
+    setFormData({ ...formData, prompts: formData.prompts.filter((_, i) => i !== idx) });
+  };
+
   const handleSubmitProduct = () => {
     toast.success("产品已提交审核", { description: "我们将在1-2个工作日内完成审核" });
     setSubmitStep("choose");
@@ -180,7 +211,7 @@ const MakerStudio = () => {
           <TabsList className="bg-secondary mb-6">
             <TabsTrigger value="submit">智能提交</TabsTrigger>
             <TabsTrigger value="projects">我的项目</TabsTrigger>
-            <TabsTrigger value="promotion">推广中心</TabsTrigger>
+            <TabsTrigger value="promotion">推广服务</TabsTrigger>
             <TabsTrigger value="more">更多服务……</TabsTrigger>
           </TabsList>
 
@@ -287,21 +318,11 @@ const MakerStudio = () => {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-1.5">
                           <label className="text-xs font-medium text-muted-foreground">产品名称 *</label>
-                          <Input
-                            value={formData.name}
-                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            placeholder="输入产品名称"
-                            className="bg-secondary"
-                          />
+                          <Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="输入产品名称" className="bg-secondary" />
                         </div>
                         <div className="space-y-1.5">
                           <label className="text-xs font-medium text-muted-foreground">Slogan *</label>
-                          <Input
-                            value={formData.slogan}
-                            onChange={(e) => setFormData({ ...formData, slogan: e.target.value })}
-                            placeholder="一句话介绍你的产品"
-                            className="bg-secondary"
-                          />
+                          <Input value={formData.slogan} onChange={(e) => setFormData({ ...formData, slogan: e.target.value })} placeholder="一句话介绍你的产品" className="bg-secondary" />
                         </div>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -333,6 +354,41 @@ const MakerStudio = () => {
                               onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddTag())}
                             />
                           </div>
+                          {/* Preset Tag Chips */}
+                          <div className="space-y-2 pt-1">
+                            <div className="flex flex-wrap gap-1.5 items-center">
+                              <span className="text-[10px] text-muted-foreground mr-1">平台:</span>
+                              {platformPresets.map((tag) => (
+                                <button
+                                  key={tag}
+                                  onClick={() => togglePresetTag(tag)}
+                                  className={`text-[11px] px-2.5 py-1 rounded-full border transition-all ${
+                                    formData.tags.includes(tag)
+                                      ? "bg-primary/15 text-primary border-primary/30"
+                                      : "bg-secondary/60 text-muted-foreground border-border hover:border-primary/30 hover:text-foreground"
+                                  }`}
+                                >
+                                  {tag}
+                                </button>
+                              ))}
+                            </div>
+                            <div className="flex flex-wrap gap-1.5 items-center">
+                              <span className="text-[10px] text-muted-foreground mr-1">定价:</span>
+                              {pricingPresets.map((tag) => (
+                                <button
+                                  key={tag}
+                                  onClick={() => togglePresetTag(tag)}
+                                  className={`text-[11px] px-2.5 py-1 rounded-full border transition-all ${
+                                    formData.tags.includes(tag)
+                                      ? "bg-primary/15 text-primary border-primary/30"
+                                      : "bg-secondary/60 text-muted-foreground border-border hover:border-primary/30 hover:text-foreground"
+                                  }`}
+                                >
+                                  {tag}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
                         </div>
                       </div>
                       <div className="space-y-1.5">
@@ -347,7 +403,92 @@ const MakerStudio = () => {
                     </CardContent>
                   </Card>
 
-                  {/* Section 2: Links */}
+                  {/* Section 2: AI Skills & Prompts */}
+                  <div className="space-y-1 mb-1">
+                    <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                      <div className="h-5 w-1 bg-primary rounded-full" /> AI 技能与提示词
+                    </h3>
+                    <p className="text-xs text-muted-foreground ml-3">描述产品的核心AI能力和推荐提示词</p>
+                  </div>
+                  <Card className="bg-card border-border">
+                    <CardContent className="p-5 space-y-5">
+                      {/* Agent Skills */}
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                            <Zap className="h-3 w-3 text-primary" /> Agent Skills
+                          </label>
+                          <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={addSkill}>
+                            <Plus className="h-3 w-3" /> 添加技能
+                          </Button>
+                        </div>
+                        {formData.skills.length === 0 && (
+                          <p className="text-xs text-muted-foreground/60 text-center py-3">暂无技能，点击上方按钮添加</p>
+                        )}
+                        {formData.skills.map((skill, idx) => (
+                          <div key={idx} className="flex gap-3 items-start p-3 rounded-lg bg-secondary/40 border border-border/30">
+                            <div className="flex-1 space-y-2">
+                              <Input
+                                value={skill.name}
+                                onChange={(e) => updateSkill(idx, "name", e.target.value)}
+                                placeholder="技能名称，如：Web Browsing"
+                                className="bg-background h-8 text-sm"
+                              />
+                              <Textarea
+                                value={skill.description}
+                                onChange={(e) => updateSkill(idx, "description", e.target.value)}
+                                placeholder="技能描述..."
+                                className="bg-background min-h-[60px] text-sm"
+                              />
+                            </div>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => removeSkill(idx)}>
+                              <X className="h-3 w-3 text-muted-foreground" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+
+                      <Separator className="bg-border/60" />
+
+                      {/* Prompt Library */}
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                            <Terminal className="h-3 w-3 text-primary" /> Prompt Library
+                          </label>
+                          <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={addPrompt}>
+                            <Plus className="h-3 w-3" /> 添加提示词
+                          </Button>
+                        </div>
+                        {formData.prompts.length === 0 && (
+                          <p className="text-xs text-muted-foreground/60 text-center py-3">暂无提示词，点击上方按钮添加</p>
+                        )}
+                        {formData.prompts.map((prompt, idx) => (
+                          <div key={idx} className="flex gap-3 items-start p-3 rounded-lg bg-secondary/40 border border-border/30">
+                            <div className="flex-1 space-y-2">
+                              <Input
+                                value={prompt.title}
+                                onChange={(e) => updatePrompt(idx, "title", e.target.value)}
+                                placeholder="提示词标题，如：Fix Bug"
+                                className="bg-background h-8 text-sm"
+                              />
+                              <Textarea
+                                value={prompt.content}
+                                onChange={(e) => updatePrompt(idx, "content", e.target.value)}
+                                placeholder="提示词内容..."
+                                className="bg-background min-h-[80px] text-sm font-mono"
+                              />
+                            </div>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => removePrompt(idx)}>
+                              <X className="h-3 w-3 text-muted-foreground" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Section 3: Links */}
                   <div className="space-y-1 mb-1">
                     <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                       <div className="h-5 w-1 bg-primary rounded-full" /> 相关链接
@@ -360,29 +501,19 @@ const MakerStudio = () => {
                           <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
                             <Link className="h-3 w-3" /> 官方网站
                           </label>
-                          <Input
-                            value={formData.website}
-                            onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                            placeholder="https://..."
-                            className="bg-secondary font-mono text-sm"
-                          />
+                          <Input value={formData.website} onChange={(e) => setFormData({ ...formData, website: e.target.value })} placeholder="https://..." className="bg-secondary font-mono text-sm" />
                         </div>
                         <div className="space-y-1.5">
                           <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
                             <Github className="h-3 w-3" /> GitHub
                           </label>
-                          <Input
-                            value={formData.github}
-                            onChange={(e) => setFormData({ ...formData, github: e.target.value })}
-                            placeholder="https://github.com/..."
-                            className="bg-secondary font-mono text-sm"
-                          />
+                          <Input value={formData.github} onChange={(e) => setFormData({ ...formData, github: e.target.value })} placeholder="https://github.com/..." className="bg-secondary font-mono text-sm" />
                         </div>
                       </div>
                     </CardContent>
                   </Card>
 
-                  {/* Section 3: Team & Company */}
+                  {/* Section 4: Team & Company */}
                   <div className="space-y-1 mb-1">
                     <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                       <div className="h-5 w-1 bg-primary rounded-full" /> 团队与公司
@@ -395,21 +526,11 @@ const MakerStudio = () => {
                           <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
                             <Users className="h-3 w-3" /> 创始人/负责人
                           </label>
-                          <Input
-                            value={formData.founderName}
-                            onChange={(e) => setFormData({ ...formData, founderName: e.target.value })}
-                            placeholder="姓名"
-                            className="bg-secondary"
-                          />
+                          <Input value={formData.founderName} onChange={(e) => setFormData({ ...formData, founderName: e.target.value })} placeholder="姓名" className="bg-secondary" />
                         </div>
                         <div className="space-y-1.5">
                           <label className="text-xs font-medium text-muted-foreground">职位</label>
-                          <Input
-                            value={formData.founderTitle}
-                            onChange={(e) => setFormData({ ...formData, founderTitle: e.target.value })}
-                            placeholder="CEO / CTO / ..."
-                            className="bg-secondary"
-                          />
+                          <Input value={formData.founderTitle} onChange={(e) => setFormData({ ...formData, founderTitle: e.target.value })} placeholder="CEO / CTO / ..." className="bg-secondary" />
                         </div>
                       </div>
                       <Separator className="bg-border/60" />
@@ -418,93 +539,31 @@ const MakerStudio = () => {
                           <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
                             <Building2 className="h-3 w-3" /> 公司名称
                           </label>
-                          <Input
-                            value={formData.companyName}
-                            onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
-                            placeholder="公司名称"
-                            className="bg-secondary"
-                          />
+                          <Input value={formData.companyName} onChange={(e) => setFormData({ ...formData, companyName: e.target.value })} placeholder="公司名称" className="bg-secondary" />
                         </div>
                         <div className="space-y-1.5">
                           <label className="text-xs font-medium text-muted-foreground">成立年份</label>
-                          <Input
-                            value={formData.companyFounded}
-                            onChange={(e) => setFormData({ ...formData, companyFounded: e.target.value })}
-                            placeholder="2024"
-                            className="bg-secondary"
-                          />
+                          <Input value={formData.companyFounded} onChange={(e) => setFormData({ ...formData, companyFounded: e.target.value })} placeholder="2024" className="bg-secondary" />
                         </div>
                         <div className="space-y-1.5">
                           <label className="text-xs font-medium text-muted-foreground">所在地</label>
-                          <Input
-                            value={formData.companyLocation}
-                            onChange={(e) => setFormData({ ...formData, companyLocation: e.target.value })}
-                            placeholder="北京 / 旧金山 / ..."
-                            className="bg-secondary"
-                          />
+                          <Input value={formData.companyLocation} onChange={(e) => setFormData({ ...formData, companyLocation: e.target.value })} placeholder="北京 / 旧金山 / ..." className="bg-secondary" />
                         </div>
                         <div className="space-y-1.5">
                           <label className="text-xs font-medium text-muted-foreground">融资阶段</label>
-                          <Input
-                            value={formData.companyFunding}
-                            onChange={(e) => setFormData({ ...formData, companyFunding: e.target.value })}
-                            placeholder="种子轮 / A轮 / ..."
-                            className="bg-secondary"
-                          />
+                          <Input value={formData.companyFunding} onChange={(e) => setFormData({ ...formData, companyFunding: e.target.value })} placeholder="种子轮 / A轮 / ..." className="bg-secondary" />
                         </div>
                       </div>
                       <div className="space-y-1.5">
                         <label className="text-xs font-medium text-muted-foreground">公司简介</label>
-                        <Textarea
-                          value={formData.companyBio}
-                          onChange={(e) => setFormData({ ...formData, companyBio: e.target.value })}
-                          placeholder="简要介绍团队和公司背景..."
-                          className="bg-secondary min-h-[80px]"
-                        />
+                        <Textarea value={formData.companyBio} onChange={(e) => setFormData({ ...formData, companyBio: e.target.value })} placeholder="简要介绍团队和公司背景..." className="bg-secondary min-h-[80px]" />
                       </div>
                     </CardContent>
                   </Card>
 
-                  {/* Section 4: Team Radar (conditional on admin config) */}
-                  {adminConfig.showTeamRadar && (
-                    <>
-                      <div className="space-y-1 mb-1">
-                        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                          <div className="h-5 w-1 bg-primary rounded-full" /> 团队能力雷达
-                        </h3>
-                        <p className="text-xs text-muted-foreground ml-3">调整滑块以展示团队核心能力</p>
-                      </div>
-                      <Card className="bg-card border-border">
-                        <CardContent className="p-5 space-y-4">
-                          {formData.radarItems.map((item, idx) => (
-                            <div key={item.label} className="space-y-1.5">
-                              <div className="flex justify-between text-xs">
-                                <span className="text-muted-foreground">{item.label}</span>
-                                <span className="text-foreground font-semibold font-mono">{item.value}%</span>
-                              </div>
-                              <Slider
-                                value={[item.value]}
-                                onValueChange={([v]) => {
-                                  const updated = [...formData.radarItems];
-                                  updated[idx] = { ...item, value: v };
-                                  setFormData({ ...formData, radarItems: updated });
-                                }}
-                                max={100}
-                                step={5}
-                                className="[&_[role=slider]]:bg-primary"
-                              />
-                            </div>
-                          ))}
-                        </CardContent>
-                      </Card>
-                    </>
-                  )}
-
                   {/* Submit Actions */}
                   <div className="flex justify-end gap-3 pt-2 pb-8">
-                    <Button variant="outline" onClick={() => { setSubmitStep("choose"); setUrl(""); }}>
-                      取消
-                    </Button>
+                    <Button variant="outline" onClick={() => { setSubmitStep("choose"); setUrl(""); }}>取消</Button>
                     <Button variant="outline">保存草稿</Button>
                     <Button className="bg-primary gap-2" onClick={handleSubmitProduct}>
                       <Send className="h-4 w-4" /> 提交审核
@@ -567,7 +626,7 @@ const MakerStudio = () => {
             )}
           </TabsContent>
 
-          {/* PROMOTION TAB */}
+          {/* PROMOTION SERVICES TAB */}
           <TabsContent value="promotion" className="space-y-6 animate-fade-in">
             <div className="flex items-center gap-3">
               <span className="text-xs text-muted-foreground">当前项目:</span>
@@ -588,12 +647,11 @@ const MakerStudio = () => {
             </div>
 
             <h3 className="text-lg font-bold text-foreground">推广服务</h3>
-            <p className="text-sm text-muted-foreground -mt-4">选择适合的推广方案，提交咨询后CSDN团队将与您联系</p>
+            <p className="text-sm text-muted-foreground -mt-4">覆盖产品全生命周期的一站式服务，提交咨询后团队将与您联系</p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {promotionServices.map((svc) => (
-                <Card key={svc.id} className={`bg-card border-border hover-lift cursor-pointer group relative ${svc.hot ? "ring-1 ring-rose-500/30" : ""}`} onClick={() => { setInquiryService(svc.title); setInquiryOpen(true); }}>
-                  {svc.hot && <Badge className="absolute -top-2 right-3 bg-rose-500 text-white text-[10px] px-2 py-0.5">Hot</Badge>}
+                <Card key={svc.id} className="bg-card border-border hover-lift cursor-pointer group relative" onClick={() => { setInquiryService(svc.title); setInquiryOpen(true); }}>
                   <CardHeader className="pb-2">
                     <svc.icon className={`h-6 w-6 ${svc.color} mb-2`} />
                     <CardTitle className="text-sm group-hover:text-primary transition-colors">{svc.title}</CardTitle>

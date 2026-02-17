@@ -14,9 +14,9 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { LayoutDashboard, FileText, Megaphone, Settings, Plus, Eye, ThumbsUp, Clock, MessageCircle, Save, Image, Upload, Pencil, Trash2, AlertTriangle } from "lucide-react";
+import { LayoutDashboard, FileText, Megaphone, Settings, Plus, Eye, ThumbsUp, Clock, MessageCircle, Save, Image, Upload, Pencil, Trash2, AlertTriangle, Lock } from "lucide-react";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-import { mockInquiries } from "@/data/mockData";
+import { mockInquiries, categories } from "@/data/mockData";
 import { defaultBannerSlides, type BannerSlide } from "@/components/home/HomeBanner";
 import { toast } from "sonner";
 
@@ -35,19 +35,19 @@ const mockSubmissions = [
 ];
 
 const categoryInquiryData = [
-  { name: "AI Agents", value: 45 },
-  { name: "图像生成", value: 30 },
-  { name: "开发工具", value: 25 },
-  { name: "效率工具", value: 18 },
-  { name: "写作", value: 10 },
+  { name: "开发与编程", value: 45 },
+  { name: "视觉与创意", value: 30 },
+  { name: "智能体", value: 25 },
+  { name: "效率与办公", value: 18 },
+  { name: "写作营销", value: 10 },
 ];
 
 const serviceTypeData = [
-  { name: "展示广告", value: 30 },
-  { name: "用户通道", value: 22 },
-  { name: "非标推广", value: 18 },
-  { name: "国内付费", value: 16 },
-  { name: "海外推广", value: 14 },
+  { name: "流量推广", value: 30 },
+  { name: "工商财税", value: 12 },
+  { name: "项目融资", value: 18 },
+  { name: "产品技术", value: 22 },
+  { name: "人才服务", value: 18 },
 ];
 
 const PIE_COLORS = [
@@ -58,58 +58,10 @@ const PIE_COLORS = [
   "hsl(350, 80%, 55%)",
 ];
 
-// Initial category data with product counts
-const initialCategories = [
-  { name: "AI Agents", productCount: 128 },
-  { name: "效率工具", productCount: 95 },
-  { name: "图像生成", productCount: 87 },
-  { name: "开发者工具", productCount: 76 },
-  { name: "写作", productCount: 63 },
-  { name: "营销", productCount: 41 },
-];
-
 const Admin = () => {
   const [activeTab, setActiveTab] = useState("overview");
-  const [cats, setCats] = useState(initialCategories);
-  const [newCat, setNewCat] = useState("");
   const [weights, setWeights] = useState({ upvotes: 40, views: 25, comments: 20, decay: 15 });
   const [bannerSlides, setBannerSlides] = useState<BannerSlide[]>(defaultBannerSlides);
-
-  // Category management state
-  const [deleteTarget, setDeleteTarget] = useState<typeof initialCategories[0] | null>(null);
-  const [migrationTarget, setMigrationTarget] = useState("");
-  const [editTarget, setEditTarget] = useState<typeof initialCategories[0] | null>(null);
-  const [editName, setEditName] = useState("");
-
-  const addCategory = () => {
-    const trimmed = newCat.trim();
-    if (trimmed && !cats.some((c) => c.name === trimmed)) {
-      setCats([...cats, { name: trimmed, productCount: 0 }]);
-      setNewCat("");
-      toast.success(`分类「${trimmed}」已添加`);
-    }
-  };
-
-  const handleDeleteCategory = () => {
-    if (!deleteTarget || !migrationTarget) return;
-    const migratedCount = deleteTarget.productCount;
-    setCats((prev) =>
-      prev
-        .filter((c) => c.name !== deleteTarget.name)
-        .map((c) => c.name === migrationTarget ? { ...c, productCount: c.productCount + migratedCount } : c)
-    );
-    toast.success(`已将 ${migratedCount} 个产品迁移至「${migrationTarget}」，并删除「${deleteTarget.name}」`);
-    setDeleteTarget(null);
-    setMigrationTarget("");
-  };
-
-  const handleEditCategory = () => {
-    if (!editTarget || !editName.trim()) return;
-    setCats((prev) => prev.map((c) => c.name === editTarget.name ? { ...c, name: editName.trim() } : c));
-    toast.success(`分类已更新为「${editName.trim()}」`);
-    setEditTarget(null);
-    setEditName("");
-  };
 
   const updateBanner = (index: number, field: keyof BannerSlide, value: string | boolean) => {
     setBannerSlides((prev) => prev.map((s, i) => i === index ? { ...s, [field]: value } : s));
@@ -209,7 +161,7 @@ const Admin = () => {
                     <ResponsiveContainer width="100%" height={140}>
                       <BarChart data={categoryInquiryData} layout="vertical" margin={{ left: 0, right: 8, top: 0, bottom: 0 }}>
                         <XAxis type="number" hide />
-                        <YAxis type="category" dataKey="name" width={60} tick={{ fontSize: 11, fill: "hsl(240, 5%, 55%)" }} axisLine={false} tickLine={false} />
+                        <YAxis type="category" dataKey="name" width={70} tick={{ fontSize: 11, fill: "hsl(240, 5%, 55%)" }} axisLine={false} tickLine={false} />
                         <Bar dataKey="value" fill="hsl(230, 90%, 60%)" radius={[0, 4, 4, 0]} barSize={14} />
                       </BarChart>
                     </ResponsiveContainer>
@@ -307,7 +259,6 @@ const Admin = () => {
                 <CardHeader className="pb-3"><CardTitle className="text-sm">功能开关</CardTitle><CardDescription className="text-xs">控制平台功能模块的启用状态</CardDescription></CardHeader>
                 <CardContent className="space-y-4">
                   {[
-                    { label: "展示团队雷达图", desc: "在产品详情页显示团队能力雷达", defaultOn: true },
                     { label: "启用融资模块", desc: "显示公司融资信息", defaultOn: true },
                     { label: "开放注册", desc: "允许新用户注册", defaultOn: true },
                     { label: "最新上线模块", desc: "在首页显示「最新上线」Tab", defaultOn: true },
@@ -355,65 +306,76 @@ const Admin = () => {
                 </CardContent>
               </Card>
 
-              {/* Category Management - Upgraded to Data Table */}
+              {/* Category Enums - Read Only */}
               <Card className="bg-card border-border">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm">分类管理</CardTitle>
-                  <CardDescription className="text-xs">管理产品分类，删除分类前需将关联产品迁移至其他分类</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Add Category */}
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="输入新分类名称..."
-                      className="bg-secondary text-sm"
-                      value={newCat}
-                      onChange={(e) => setNewCat(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && addCategory()}
-                    />
-                    <Button size="sm" onClick={addCategory} className="bg-primary gap-1 shrink-0">
-                      <Plus className="h-3.5 w-3.5" /> 添加分类
-                    </Button>
+                  <div className="flex items-center gap-2">
+                    <Lock className="h-4 w-4 text-muted-foreground" />
+                    <CardTitle className="text-sm">产品分类体系</CardTitle>
                   </div>
-
-                  {/* Category Table */}
+                  <CardDescription className="text-xs">全局分类枚举（一级分类，当前为只读），二级分类待扩展</CardDescription>
+                </CardHeader>
+                <CardContent>
                   <div className="rounded-md border border-border overflow-hidden">
                     <Table>
                       <TableHeader>
                         <TableRow className="border-border bg-secondary/30">
+                          <TableHead className="text-xs font-medium">图标</TableHead>
+                          <TableHead className="text-xs font-medium">分类ID</TableHead>
                           <TableHead className="text-xs font-medium">分类名称</TableHead>
                           <TableHead className="text-xs font-medium text-center">关联产品数</TableHead>
-                          <TableHead className="text-xs font-medium text-right">操作</TableHead>
+                          <TableHead className="text-xs font-medium text-center">二级分类</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {cats.map((cat) => (
-                          <TableRow key={cat.name} className="border-border">
-                            <TableCell className="text-sm font-medium">{cat.name}</TableCell>
+                        {categories.map((cat) => (
+                          <TableRow key={cat.id} className="border-border">
+                            <TableCell className="text-base">{cat.icon}</TableCell>
+                            <TableCell className="text-xs font-mono text-muted-foreground">{cat.id}</TableCell>
+                            <TableCell className="text-sm font-medium">{cat.label}</TableCell>
                             <TableCell className="text-center">
-                              <Badge variant="secondary" className="text-[10px] font-mono">{cat.productCount}</Badge>
+                              <Badge variant="secondary" className="text-[10px] font-mono">{cat.count}</Badge>
                             </TableCell>
-                            <TableCell className="text-right">
-                              <div className="flex items-center justify-end gap-1">
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-7 w-7"
-                                  title="编辑"
-                                  onClick={() => { setEditTarget(cat); setEditName(cat.name); }}
-                                >
-                                  <Pencil className="h-3 w-3 text-muted-foreground" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-7 w-7"
-                                  title="删除"
-                                  onClick={() => { setDeleteTarget(cat); setMigrationTarget(""); }}
-                                >
-                                  <Trash2 className="h-3 w-3 text-destructive" />
-                                </Button>
-                              </div>
+                            <TableCell className="text-center">
+                              <span className="text-xs text-muted-foreground/50">暂无</span>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Service Types Management */}
+              <Card className="bg-card border-border">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm">推广服务类型管理</CardTitle>
+                  <CardDescription className="text-xs">管理创作者中心可用的服务类型</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="rounded-md border border-border overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="border-border bg-secondary/30">
+                          <TableHead className="text-xs font-medium">服务名称</TableHead>
+                          <TableHead className="text-xs font-medium">描述</TableHead>
+                          <TableHead className="text-xs font-medium text-center">状态</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {[
+                          { name: "流量推广", desc: "CSDN广告、频道精准、站外付费推广", active: true },
+                          { name: "工商财税服务", desc: "公司注册、税务筹划", active: true },
+                          { name: "项目融资服务", desc: "FA对接、BP优化", active: true },
+                          { name: "产品技术服务", desc: "代码审计、架构咨询", active: true },
+                          { name: "人才服务", desc: "技术招聘、团队组建", active: false },
+                        ].map((svc) => (
+                          <TableRow key={svc.name} className="border-border">
+                            <TableCell className="text-sm font-medium">{svc.name}</TableCell>
+                            <TableCell className="text-xs text-muted-foreground">{svc.desc}</TableCell>
+                            <TableCell className="text-center">
+                              <Switch defaultChecked={svc.active} />
                             </TableCell>
                           </TableRow>
                         ))}
@@ -438,87 +400,6 @@ const Admin = () => {
           </div>
         </div>
       )}
-
-      {/* Delete Category - Migration Dialog */}
-      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}>
-        <AlertDialogContent className="bg-card border-border">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-amber-500" />
-              删除分类需要迁移产品
-            </AlertDialogTitle>
-            <AlertDialogDescription asChild>
-              <div className="space-y-3 pt-2">
-                {deleteTarget && deleteTarget.productCount > 0 ? (
-                  <>
-                    <p className="text-sm text-muted-foreground">
-                      分类「<span className="text-foreground font-medium">{deleteTarget.name}</span>」下有
-                      <span className="text-foreground font-bold mx-1">{deleteTarget.productCount}</span>
-                      个产品。请选择一个目标分类，将这些产品迁移后再删除。
-                    </p>
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-medium text-muted-foreground">迁移至</label>
-                      <Select value={migrationTarget} onValueChange={setMigrationTarget}>
-                        <SelectTrigger className="bg-secondary">
-                          <SelectValue placeholder="选择目标分类" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {cats
-                            .filter((c) => c.name !== deleteTarget.name)
-                            .map((c) => (
-                              <SelectItem key={c.name} value={c.name}>
-                                {c.name}（{c.productCount} 个产品）
-                              </SelectItem>
-                            ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </>
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    分类「<span className="text-foreground font-medium">{deleteTarget?.name}</span>」下没有产品，确认删除吗？
-                  </p>
-                )}
-              </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              disabled={!!deleteTarget && deleteTarget.productCount > 0 && !migrationTarget}
-              onClick={handleDeleteCategory}
-            >
-              {deleteTarget && deleteTarget.productCount > 0 ? "迁移并删除" : "确认删除"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Edit Category Dialog */}
-      <AlertDialog open={!!editTarget} onOpenChange={(open) => { if (!open) setEditTarget(null); }}>
-        <AlertDialogContent className="bg-card border-border">
-          <AlertDialogHeader>
-            <AlertDialogTitle>编辑分类</AlertDialogTitle>
-            <AlertDialogDescription asChild>
-              <div className="space-y-3 pt-2">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-muted-foreground">分类名称</label>
-                  <Input
-                    value={editName}
-                    onChange={(e) => setEditName(e.target.value)}
-                    className="bg-secondary"
-                  />
-                </div>
-              </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={handleEditCategory}>保存</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 };
