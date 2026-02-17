@@ -252,8 +252,7 @@ const MakerStudio = () => {
           <TabsList className="bg-secondary mb-6">
             <TabsTrigger value="submit">智能提交</TabsTrigger>
             <TabsTrigger value="projects">我的项目</TabsTrigger>
-            <TabsTrigger value="promotion">推广服务</TabsTrigger>
-            <TabsTrigger value="more">更多服务……</TabsTrigger>
+            <TabsTrigger value="promotion">服务中心</TabsTrigger>
           </TabsList>
 
           {/* SUBMIT TAB */}
@@ -725,29 +724,6 @@ const MakerStudio = () => {
                 </TabsContent>
               ))}
             </Tabs>
-          </TabsContent>
-
-          {/* MORE SERVICES TAB */}
-          <TabsContent value="more" className="animate-fade-in">
-            <h3 className="text-lg font-bold text-foreground mb-2">更多服务</h3>
-            <p className="text-sm text-muted-foreground mb-6">以下服务正在持续接入中，敬请期待</p>
-            <div className="space-y-3">
-              {[
-                { name: "OPC 注册", desc: "一站式开放平台企业认证与注册服务" },
-                { name: "大模型服务", desc: "大模型接入、微调训练及私有化部署服务" },
-                { name: "云计算服务", desc: "弹性云资源、GPU算力及基础设施托管服务" },
-              ].map((svc) => (
-                <Card key={svc.name} className="bg-card border-border">
-                  <CardContent className="p-4 flex items-center justify-between">
-                    <div>
-                      <h4 className="text-sm font-semibold text-foreground">{svc.name}</h4>
-                      <p className="text-xs text-muted-foreground mt-0.5">{svc.desc}</p>
-                    </div>
-                    <Badge variant="secondary" className="text-[10px] shrink-0">即将上线</Badge>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
           </TabsContent>
         </Tabs>
       </div>
