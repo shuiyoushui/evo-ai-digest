@@ -687,8 +687,7 @@ const MakerStudio = () => {
             </div>
 
             <div>
-              <h3 className="text-lg font-bold text-foreground">推广服务</h3>
-              <p className="text-sm text-muted-foreground mt-1">覆盖产品全生命周期的一站式生态服务市场</p>
+              <p className="text-sm text-muted-foreground">覆盖产品全生命周期的一站式生态服务市场</p>
             </div>
 
             <Tabs defaultValue="promotion" className="w-full">
