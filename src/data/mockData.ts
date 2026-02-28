@@ -183,15 +183,16 @@ export interface InquiryRequest {
   contact: string;
   phone: string;
   budget: string;
+  goalDetails: string;
   date: string;
   status: string;
 }
 
 export const mockInquiries: InquiryRequest[] = [
-  { id: "i1", projectName: "Cursor", serviceType: "CSDN展示广告", contact: "张经理", phone: "138****1234", budget: "5万-10万", date: "2024-03-20", status: "待处理" },
-  { id: "i2", projectName: "Midjourney", serviceType: "CSDN非标合作", contact: "李总", phone: "139****5678", budget: "10万-20万", date: "2024-03-19", status: "待处理" },
-  { id: "i3", projectName: "DeepSeek", serviceType: "CSDN频道精准", contact: "王经理", phone: "137****9012", budget: "3万-5万", date: "2024-03-18", status: "已跟进" },
-  { id: "i4", projectName: "Kimi", serviceType: "站外付费流量", contact: "赵总", phone: "136****3456", budget: "20万以上", date: "2024-03-17", status: "已完成" },
-  { id: "i5", projectName: "Sora", serviceType: "CSDN展示广告", contact: "孙经理", phone: "135****7890", budget: "5万-10万", date: "2024-03-16", status: "待处理" },
-  { id: "i6", projectName: "V0.dev", serviceType: "CSDN频道精准", contact: "周总", phone: "134****2345", budget: "3万-5万", date: "2024-03-15", status: "已跟进" },
+  { id: "i1", projectName: "Cursor", serviceType: "种子用户", contact: "张经理", phone: "138****1234", budget: "¥500", goalDetails: "获取曝光 ~10,000次", date: "2024-03-20", status: "待处理" },
+  { id: "i2", projectName: "Midjourney", serviceType: "体验评测", contact: "李总", phone: "139****5678", budget: "¥1,000", goalDetails: "体验产品 ~200人", date: "2024-03-19", status: "待处理" },
+  { id: "i3", projectName: "DeepSeek", serviceType: "规模增长", contact: "王经理", phone: "137****9012", budget: "—", goalDetails: "CSDN展示+通道广告", date: "2024-03-18", status: "已跟进" },
+  { id: "i4", projectName: "Kimi", serviceType: "种子用户", contact: "赵总", phone: "136****3456", budget: "¥5,000", goalDetails: "获取点击 ~10,000次", date: "2024-03-17", status: "已完成" },
+  { id: "i5", projectName: "Sora", serviceType: "体验评测", contact: "孙经理", phone: "135****7890", budget: "¥500", goalDetails: "产品开发 ~100人", date: "2024-03-16", status: "待处理" },
+  { id: "i6", projectName: "V0.dev", serviceType: "规模增长", contact: "周总", phone: "134****2345", budget: "—", goalDetails: "出海推广+非CSDN", date: "2024-03-15", status: "已跟进" },
 ];
