@@ -9,8 +9,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
@@ -21,6 +23,7 @@ import {
   Plus, X, Terminal, Briefcase, Banknote, Code, UserPlus, Cpu, CircleDollarSign,
   Radio, LayoutGrid, Newspaper, Target, Rocket, BookOpen, Calculator, FileText,
   Presentation, Handshake, Landmark, Bot, Database, HardDrive, UserCheck, UserCog, Award,
+  Sprout, Star, TrendingUp,
 } from "lucide-react";
 import { categories, products } from "@/data/mockData";
 import { toast } from "sonner";
@@ -69,17 +72,17 @@ const emptyFormData = {
 const platformPresets = ["Web", "Mobile App", "Browser Plugin", "Desktop"];
 const pricingPresets = ["Free", "Paid", "Freemium"];
 
+// Self-service promotion cards
+const selfServiceCards = [
+  { id: "seed", title: "种子用户获取", desc: "精准获取早期高质量种子用户，快速验证产品方向", icon: Sprout },
+  { id: "review", title: "体验评测用户获取", desc: "邀请目标用户深度体验产品并撰写真实评测", icon: Star },
+  { id: "growth", title: "用户规模增长", desc: "多渠道大规模投放，实现用户快速增长", icon: TrendingUp },
+];
+
+const budgetOptions = [100, 500, 1000, 5000];
+
+// Old service categories kept for other tabs
 const serviceCategories = {
-  promotion: {
-    label: "推广服务", icon: Megaphone,
-    items: [
-      { id: "csdn-channel", title: "CSDN通道广告", desc: "技术频道精准曝光", icon: Target },
-      { id: "csdn-display", title: "CSDN展示广告", desc: "首页与侧边栏Banner广告", icon: LayoutGrid },
-      { id: "csdn-custom", title: "CSDN非标广告", desc: "软文、活动、社区推送", icon: Newspaper },
-      { id: "domestic-ads", title: "非CSDN国内广告", desc: "其他技术媒体与平台", icon: Radio },
-      { id: "overseas-ads", title: "非CSDN出海广告", desc: "Product Hunt发布与全球媒体", icon: Rocket },
-    ],
-  },
   business: {
     label: "工商财税服务", icon: Building2,
     items: [
@@ -131,14 +134,53 @@ const MakerStudio = () => {
   const [url, setUrl] = useState("");
   const [activeTab, setActiveTab] = useState("submit");
   const [selectedProject, setSelectedProject] = useState(uniqueProjects[0]);
-  const [inquiryOpen, setInquiryOpen] = useState(false);
-  const [inquiryService, setInquiryService] = useState("");
   const [myProjects, setMyProjects] = useState(uniqueProjects);
   const [editOpen, setEditOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<typeof uniqueProjects[0] | null>(null);
   const [formData, setFormData] = useState(emptyFormData);
   const [newTag, setNewTag] = useState("");
   const [isAIMode, setIsAIMode] = useState(false);
+
+  // Generic inquiry dialog (for non-promotion services)
+  const [inquiryOpen, setInquiryOpen] = useState(false);
+  const [inquiryService, setInquiryService] = useState("");
+
+  // Self-service modals
+  const [seedOpen, setSeedOpen] = useState(false);
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const [growthOpen, setGrowthOpen] = useState(false);
+
+  // Modal A: Seed
+  const [seedBudget, setSeedBudget] = useState("500");
+  const [seedCustomBudget, setSeedCustomBudget] = useState("");
+  const [seedGoal, setSeedGoal] = useState("impressions");
+
+  // Modal B: Review
+  const [reviewBudget, setReviewBudget] = useState("500");
+  const [reviewCustomBudget, setReviewCustomBudget] = useState("");
+  const [reviewGoal, setReviewGoal] = useState("experience");
+
+  // Modal C: Growth
+  const [growthChannels, setGrowthChannels] = useState<string[]>([]);
+  const [growthRequirements, setGrowthRequirements] = useState("");
+
+  const getEffectiveBudget = (budget: string, custom: string) => {
+    if (budget === "custom") return parseInt(custom) || 0;
+    return parseInt(budget) || 0;
+  };
+
+  const estimateSeedResults = () => {
+    const b = getEffectiveBudget(seedBudget, seedCustomBudget);
+    if (b === 0) return "—";
+    if (seedGoal === "impressions") return `~${(b * 20).toLocaleString()} 次曝光`;
+    return `~${(b * 2).toLocaleString()} 次点击`;
+  };
+
+  const estimateReviewResults = () => {
+    const b = getEffectiveBudget(reviewBudget, reviewCustomBudget);
+    if (b === 0) return "—";
+    return `~${Math.floor(b / 5).toLocaleString()} 人`;
+  };
 
   useEffect(() => {
     const tab = searchParams.get("tab");
@@ -170,7 +212,7 @@ const MakerStudio = () => {
 
   const handleSubmitInquiry = () => {
     setInquiryOpen(false);
-    toast.success("咨询请求已发送给CSDN管理员", { description: "我们将在1-2个工作日内联系您" });
+    toast.success("咨询请求已发送给管理员", { description: "我们将在1-2个工作日内联系您" });
   };
 
   const handleDeleteProject = (id: string) => {
@@ -243,6 +285,71 @@ const MakerStudio = () => {
     setFormData(emptyFormData);
     setUrl("");
   };
+
+  const handleCardClick = (cardId: string) => {
+    if (cardId === "seed") setSeedOpen(true);
+    else if (cardId === "review") setReviewOpen(true);
+    else if (cardId === "growth") setGrowthOpen(true);
+  };
+
+  const handleSubmitSeed = () => {
+    setSeedOpen(false);
+    toast.success("种子用户获取需求已提交", { description: `预算: ¥${getEffectiveBudget(seedBudget, seedCustomBudget)}` });
+  };
+
+  const handleSubmitReview = () => {
+    setReviewOpen(false);
+    toast.success("体验评测需求已提交", { description: `预算: ¥${getEffectiveBudget(reviewBudget, reviewCustomBudget)}` });
+  };
+
+  const handleSubmitGrowth = () => {
+    setGrowthOpen(false);
+    toast.success("用户规模增长需求已提交", { description: `已选${growthChannels.length}个渠道` });
+  };
+
+  const toggleGrowthChannel = (ch: string) => {
+    setGrowthChannels((prev) => prev.includes(ch) ? prev.filter((c) => c !== ch) : [...prev, ch]);
+  };
+
+  const renderBudgetSelector = (budget: string, setBudgetFn: (v: string) => void, customBudget: string, setCustomFn: (v: string) => void) => (
+    <div className="space-y-2">
+      <label className="text-xs font-medium text-muted-foreground">流量套餐</label>
+      <div className="flex flex-wrap gap-2">
+        {budgetOptions.map((opt) => (
+          <button
+            key={opt}
+            onClick={() => setBudgetFn(String(opt))}
+            className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
+              budget === String(opt)
+                ? "bg-primary text-primary-foreground border-primary"
+                : "bg-secondary text-foreground border-border hover:border-primary/40"
+            }`}
+          >
+            ¥{opt.toLocaleString()}
+          </button>
+        ))}
+        <button
+          onClick={() => setBudgetFn("custom")}
+          className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
+            budget === "custom"
+              ? "bg-primary text-primary-foreground border-primary"
+              : "bg-secondary text-foreground border-border hover:border-primary/40"
+          }`}
+        >
+          自定义
+        </button>
+      </div>
+      {budget === "custom" && (
+        <Input
+          type="number"
+          placeholder="输入自定义金额..."
+          value={customBudget}
+          onChange={(e) => setCustomFn(e.target.value)}
+          className="bg-secondary mt-2"
+        />
+      )}
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -394,38 +501,17 @@ const MakerStudio = () => {
                               onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddTag())}
                             />
                           </div>
-                          {/* Preset Tag Chips */}
                           <div className="space-y-2 pt-1">
                             <div className="flex flex-wrap gap-1.5 items-center">
                               <span className="text-[10px] text-muted-foreground mr-1">平台:</span>
                               {platformPresets.map((tag) => (
-                                <button
-                                  key={tag}
-                                  onClick={() => togglePresetTag(tag)}
-                                  className={`text-[11px] px-2.5 py-1 rounded-full border transition-all ${
-                                    formData.tags.includes(tag)
-                                      ? "bg-primary/15 text-primary border-primary/30"
-                                      : "bg-secondary/60 text-muted-foreground border-border hover:border-primary/30 hover:text-foreground"
-                                  }`}
-                                >
-                                  {tag}
-                                </button>
+                                <button key={tag} onClick={() => togglePresetTag(tag)} className={`text-[11px] px-2.5 py-1 rounded-full border transition-all ${formData.tags.includes(tag) ? "bg-primary/15 text-primary border-primary/30" : "bg-secondary/60 text-muted-foreground border-border hover:border-primary/30 hover:text-foreground"}`}>{tag}</button>
                               ))}
                             </div>
                             <div className="flex flex-wrap gap-1.5 items-center">
                               <span className="text-[10px] text-muted-foreground mr-1">定价:</span>
                               {pricingPresets.map((tag) => (
-                                <button
-                                  key={tag}
-                                  onClick={() => togglePresetTag(tag)}
-                                  className={`text-[11px] px-2.5 py-1 rounded-full border transition-all ${
-                                    formData.tags.includes(tag)
-                                      ? "bg-primary/15 text-primary border-primary/30"
-                                      : "bg-secondary/60 text-muted-foreground border-border hover:border-primary/30 hover:text-foreground"
-                                  }`}
-                                >
-                                  {tag}
-                                </button>
+                                <button key={tag} onClick={() => togglePresetTag(tag)} className={`text-[11px] px-2.5 py-1 rounded-full border transition-all ${formData.tags.includes(tag) ? "bg-primary/15 text-primary border-primary/30" : "bg-secondary/60 text-muted-foreground border-border hover:border-primary/30 hover:text-foreground"}`}>{tag}</button>
                               ))}
                             </div>
                           </div>
@@ -433,12 +519,7 @@ const MakerStudio = () => {
                       </div>
                       <div className="space-y-1.5">
                         <label className="text-xs font-medium text-muted-foreground">产品描述 *</label>
-                        <Textarea
-                          value={formData.description}
-                          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                          placeholder="详细描述你的产品功能、特色和目标用户..."
-                          className="bg-secondary min-h-[140px]"
-                        />
+                        <Textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="详细描述你的产品功能、特色和目标用户..." className="bg-secondary min-h-[140px]" />
                       </div>
                     </CardContent>
                   </Card>
@@ -452,76 +533,36 @@ const MakerStudio = () => {
                   </div>
                   <Card className="bg-card border-border">
                     <CardContent className="p-5 space-y-5">
-                      {/* Agent Skills */}
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                          <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                            <Zap className="h-3 w-3 text-primary" /> Agent Skills
-                          </label>
-                          <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={addSkill}>
-                            <Plus className="h-3 w-3" /> 添加技能
-                          </Button>
+                          <label className="text-xs font-semibold text-foreground flex items-center gap-1.5"><Zap className="h-3 w-3 text-primary" /> Agent Skills</label>
+                          <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={addSkill}><Plus className="h-3 w-3" /> 添加技能</Button>
                         </div>
-                        {formData.skills.length === 0 && (
-                          <p className="text-xs text-muted-foreground/60 text-center py-3">暂无技能，点击上方按钮添加</p>
-                        )}
+                        {formData.skills.length === 0 && <p className="text-xs text-muted-foreground/60 text-center py-3">暂无技能，点击上方按钮添加</p>}
                         {formData.skills.map((skill, idx) => (
                           <div key={idx} className="flex gap-3 items-start p-3 rounded-lg bg-secondary/40 border border-border/30">
                             <div className="flex-1 space-y-2">
-                              <Input
-                                value={skill.name}
-                                onChange={(e) => updateSkill(idx, "name", e.target.value)}
-                                placeholder="技能名称，如：Web Browsing"
-                                className="bg-background h-8 text-sm"
-                              />
-                              <Textarea
-                                value={skill.description}
-                                onChange={(e) => updateSkill(idx, "description", e.target.value)}
-                                placeholder="技能描述..."
-                                className="bg-background min-h-[60px] text-sm"
-                              />
+                              <Input value={skill.name} onChange={(e) => updateSkill(idx, "name", e.target.value)} placeholder="技能名称" className="bg-background h-8 text-sm" />
+                              <Textarea value={skill.description} onChange={(e) => updateSkill(idx, "description", e.target.value)} placeholder="技能描述..." className="bg-background min-h-[60px] text-sm" />
                             </div>
-                            <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => removeSkill(idx)}>
-                              <X className="h-3 w-3 text-muted-foreground" />
-                            </Button>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => removeSkill(idx)}><X className="h-3 w-3 text-muted-foreground" /></Button>
                           </div>
                         ))}
                       </div>
-
                       <Separator className="bg-border/60" />
-
-                      {/* Prompt Library */}
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                          <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                            <Terminal className="h-3 w-3 text-primary" /> Prompt Library
-                          </label>
-                          <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={addPrompt}>
-                            <Plus className="h-3 w-3" /> 添加提示词
-                          </Button>
+                          <label className="text-xs font-semibold text-foreground flex items-center gap-1.5"><Terminal className="h-3 w-3 text-primary" /> Prompt Library</label>
+                          <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={addPrompt}><Plus className="h-3 w-3" /> 添加提示词</Button>
                         </div>
-                        {formData.prompts.length === 0 && (
-                          <p className="text-xs text-muted-foreground/60 text-center py-3">暂无提示词，点击上方按钮添加</p>
-                        )}
+                        {formData.prompts.length === 0 && <p className="text-xs text-muted-foreground/60 text-center py-3">暂无提示词，点击上方按钮添加</p>}
                         {formData.prompts.map((prompt, idx) => (
                           <div key={idx} className="flex gap-3 items-start p-3 rounded-lg bg-secondary/40 border border-border/30">
                             <div className="flex-1 space-y-2">
-                              <Input
-                                value={prompt.title}
-                                onChange={(e) => updatePrompt(idx, "title", e.target.value)}
-                                placeholder="提示词标题，如：Fix Bug"
-                                className="bg-background h-8 text-sm"
-                              />
-                              <Textarea
-                                value={prompt.content}
-                                onChange={(e) => updatePrompt(idx, "content", e.target.value)}
-                                placeholder="提示词内容..."
-                                className="bg-background min-h-[80px] text-sm font-mono"
-                              />
+                              <Input value={prompt.title} onChange={(e) => updatePrompt(idx, "title", e.target.value)} placeholder="提示词标题" className="bg-background h-8 text-sm" />
+                              <Textarea value={prompt.content} onChange={(e) => updatePrompt(idx, "content", e.target.value)} placeholder="提示词内容..." className="bg-background min-h-[80px] text-sm font-mono" />
                             </div>
-                            <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => removePrompt(idx)}>
-                              <X className="h-3 w-3 text-muted-foreground" />
-                            </Button>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => removePrompt(idx)}><X className="h-3 w-3 text-muted-foreground" /></Button>
                           </div>
                         ))}
                       </div>
@@ -530,23 +571,17 @@ const MakerStudio = () => {
 
                   {/* Section 3: Links */}
                   <div className="space-y-1 mb-1">
-                    <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                      <div className="h-5 w-1 bg-primary rounded-full" /> 相关链接
-                    </h3>
+                    <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><div className="h-5 w-1 bg-primary rounded-full" /> 相关链接</h3>
                   </div>
                   <Card className="bg-card border-border">
                     <CardContent className="p-5">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-1.5">
-                          <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-                            <Link className="h-3 w-3" /> 官方网站
-                          </label>
+                          <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5"><Link className="h-3 w-3" /> 官方网站</label>
                           <Input value={formData.website} onChange={(e) => setFormData({ ...formData, website: e.target.value })} placeholder="https://..." className="bg-secondary font-mono text-sm" />
                         </div>
                         <div className="space-y-1.5">
-                          <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-                            <Github className="h-3 w-3" /> GitHub
-                          </label>
+                          <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5"><Github className="h-3 w-3" /> GitHub</label>
                           <Input value={formData.github} onChange={(e) => setFormData({ ...formData, github: e.target.value })} placeholder="https://github.com/..." className="bg-secondary font-mono text-sm" />
                         </div>
                       </div>
@@ -555,17 +590,13 @@ const MakerStudio = () => {
 
                   {/* Section 4: Team & Company */}
                   <div className="space-y-1 mb-1">
-                    <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                      <div className="h-5 w-1 bg-primary rounded-full" /> 团队与公司
-                    </h3>
+                    <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><div className="h-5 w-1 bg-primary rounded-full" /> 团队与公司</h3>
                   </div>
                   <Card className="bg-card border-border">
                     <CardContent className="p-5 space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-1.5">
-                          <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-                            <Users className="h-3 w-3" /> 创始人/负责人
-                          </label>
+                          <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5"><Users className="h-3 w-3" /> 创始人/负责人</label>
                           <Input value={formData.founderName} onChange={(e) => setFormData({ ...formData, founderName: e.target.value })} placeholder="姓名" className="bg-secondary" />
                         </div>
                         <div className="space-y-1.5">
@@ -576,9 +607,7 @@ const MakerStudio = () => {
                       <Separator className="bg-border/60" />
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-1.5">
-                          <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-                            <Building2 className="h-3 w-3" /> 公司名称
-                          </label>
+                          <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5"><Building2 className="h-3 w-3" /> 公司名称</label>
                           <Input value={formData.companyName} onChange={(e) => setFormData({ ...formData, companyName: e.target.value })} placeholder="公司名称" className="bg-secondary" />
                         </div>
                         <div className="space-y-1.5">
@@ -631,21 +660,13 @@ const MakerStudio = () => {
                         <h4 className="text-sm font-semibold text-foreground truncate">{proj.name}</h4>
                         <p className="text-xs text-muted-foreground truncate">{proj.slogan}</p>
                       </div>
-                      <Badge variant={proj.status === "已上线" ? "default" : "secondary"} className="text-[10px] shrink-0">
-                        {proj.status}
-                      </Badge>
+                      <Badge variant={proj.status === "已上线" ? "default" : "secondary"} className="text-[10px] shrink-0">{proj.status}</Badge>
                       <div className="flex items-center gap-1 shrink-0">
-                        <Button variant="ghost" size="icon" className="h-8 w-8" title="查看">
-                          <Eye className="h-3.5 w-3.5 text-muted-foreground" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" title="编辑" onClick={() => handleEditProject(proj)}>
-                          <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
-                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" title="查看"><Eye className="h-3.5 w-3.5 text-muted-foreground" /></Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" title="编辑" onClick={() => handleEditProject(proj)}><Pencil className="h-3.5 w-3.5 text-muted-foreground" /></Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8" title="删除">
-                              <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                            </Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8" title="删除"><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent className="bg-card border-border">
                             <AlertDialogHeader>
@@ -666,7 +687,7 @@ const MakerStudio = () => {
             )}
           </TabsContent>
 
-          {/* PROMOTION SERVICES TAB */}
+          {/* SERVICE CENTER TAB */}
           <TabsContent value="promotion" className="space-y-6 animate-fade-in">
             <div className="flex items-center gap-3">
               <span className="text-xs text-muted-foreground">当前项目:</span>
@@ -690,14 +711,40 @@ const MakerStudio = () => {
               <p className="text-sm text-muted-foreground">覆盖产品全生命周期的一站式生态服务市场</p>
             </div>
 
-            <Tabs defaultValue="promotion" className="w-full">
+            <Tabs defaultValue="self-promotion" className="w-full">
               <TabsList className="bg-secondary w-full justify-start flex-wrap h-auto gap-1 p-1.5">
+                <TabsTrigger value="self-promotion" className="gap-1.5 text-xs data-[state=active]:bg-background">
+                  <Megaphone className="h-3.5 w-3.5" /> 自助推广
+                </TabsTrigger>
                 {Object.entries(serviceCategories).map(([key, cat]) => (
                   <TabsTrigger key={key} value={key} className="gap-1.5 text-xs data-[state=active]:bg-background">
                     <cat.icon className="h-3.5 w-3.5" /> {cat.label}
                   </TabsTrigger>
                 ))}
               </TabsList>
+
+              {/* Self-Service Promotion Tab */}
+              <TabsContent value="self-promotion" className="mt-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {selfServiceCards.map((svc) => (
+                    <Card
+                      key={svc.id}
+                      className="bg-card border-border hover:border-primary/40 transition-all cursor-pointer group"
+                      onClick={() => handleCardClick(svc.id)}
+                    >
+                      <CardContent className="p-5 flex flex-col items-center text-center gap-3">
+                        <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
+                          <svc.icon className="h-6 w-6 text-primary" />
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">{svc.title}</h4>
+                          <p className="text-xs text-muted-foreground mt-1">{svc.desc}</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </TabsContent>
 
               {Object.entries(serviceCategories).map(([key, cat]) => (
                 <TabsContent key={key} value={key} className="mt-4">
@@ -727,7 +774,7 @@ const MakerStudio = () => {
         </Tabs>
       </div>
 
-      {/* Inquiry Dialog */}
+      {/* Generic Inquiry Dialog (for non-promotion services) */}
       <Dialog open={inquiryOpen} onOpenChange={setInquiryOpen}>
         <DialogContent className="bg-card border-border max-w-md">
           <DialogHeader>
@@ -744,25 +791,133 @@ const MakerStudio = () => {
               <Input placeholder="方便联系的方式" className="bg-secondary" />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground">预算范围</label>
-              <Select>
-                <SelectTrigger className="bg-secondary"><SelectValue placeholder="选择预算范围" /></SelectTrigger>
+              <label className="text-xs font-medium text-muted-foreground">具体需求</label>
+              <Textarea placeholder="请描述您的需求..." className="bg-secondary min-h-[80px]" />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setInquiryOpen(false)}>取消</Button>
+              <Button onClick={handleSubmitInquiry} className="bg-primary gap-2">
+                <Send className="h-3.5 w-3.5" /> 提交需求
+              </Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal A: Seed User Acquisition */}
+      <Dialog open={seedOpen} onOpenChange={setSeedOpen}>
+        <DialogContent className="bg-card border-border max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-base">种子用户获取</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-2">
+            <div className="text-xs text-muted-foreground">推广项目: <span className="text-foreground font-medium">{selectedProject.name}</span></div>
+
+            {renderBudgetSelector(seedBudget, setSeedBudget, seedCustomBudget, setSeedCustomBudget)}
+
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-muted-foreground">推广目标</label>
+              <Select value={seedGoal} onValueChange={setSeedGoal}>
+                <SelectTrigger className="bg-secondary"><SelectValue /></SelectTrigger>
                 <SelectContent className="bg-popover border-border z-50">
-                  <SelectItem value="1-3">1万 - 3万</SelectItem>
-                  <SelectItem value="3-5">3万 - 5万</SelectItem>
-                  <SelectItem value="5-10">5万 - 10万</SelectItem>
-                  <SelectItem value="10-20">10万 - 20万</SelectItem>
-                  <SelectItem value="20+">20万以上</SelectItem>
+                  <SelectItem value="impressions">获取曝光</SelectItem>
+                  <SelectItem value="clicks">获取点击</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+
+            <div className="rounded-lg bg-primary/10 border border-primary/20 p-4 text-center">
+              <p className="text-xs text-muted-foreground mb-1">预估流量</p>
+              <p className="text-lg font-bold text-primary">{estimateSeedResults()}</p>
+            </div>
+
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setSeedOpen(false)}>取消</Button>
+              <Button onClick={handleSubmitSeed} className="bg-primary">提交需求</Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal B: Experience & Review User */}
+      <Dialog open={reviewOpen} onOpenChange={setReviewOpen}>
+        <DialogContent className="bg-card border-border max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-base">体验评测用户获取</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-2">
+            <div className="text-xs text-muted-foreground">推广项目: <span className="text-foreground font-medium">{selectedProject.name}</span></div>
+
+            {renderBudgetSelector(reviewBudget, setReviewBudget, reviewCustomBudget, setReviewCustomBudget)}
+
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-muted-foreground">评测目标</label>
+              <Select value={reviewGoal} onValueChange={setReviewGoal}>
+                <SelectTrigger className="bg-secondary"><SelectValue /></SelectTrigger>
+                <SelectContent className="bg-popover border-border z-50">
+                  <SelectItem value="experience">体验产品</SelectItem>
+                  <SelectItem value="development">产品开发</SelectItem>
+                  <SelectItem value="other">其他</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="rounded-lg bg-primary/10 border border-primary/20 p-4 text-center">
+              <p className="text-xs text-muted-foreground mb-1">预估触达</p>
+              <p className="text-lg font-bold text-primary">{estimateReviewResults()}</p>
+            </div>
+
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setReviewOpen(false)}>取消</Button>
+              <Button onClick={handleSubmitReview} className="bg-primary">提交需求</Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal C: User Scale Growth */}
+      <Dialog open={growthOpen} onOpenChange={setGrowthOpen}>
+        <DialogContent className="bg-card border-border max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-base">用户规模增长</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-2">
+            <div className="text-xs text-muted-foreground">推广项目: <span className="text-foreground font-medium">{selectedProject.name}</span></div>
+
+            <div className="space-y-3">
+              <label className="text-xs font-medium text-muted-foreground">推广渠道（多选）</label>
+              {[
+                { id: "csdn-display", label: "CSDN 展示广告" },
+                { id: "csdn-channel", label: "CSDN 通道广告" },
+                { id: "csdn-custom", label: "CSDN 非标广告" },
+                { id: "non-csdn", label: "非 CSDN 推广" },
+                { id: "overseas", label: "出海推广" },
+              ].map((ch) => (
+                <div key={ch.id} className="flex items-center gap-2">
+                  <Checkbox
+                    id={ch.id}
+                    checked={growthChannels.includes(ch.id)}
+                    onCheckedChange={() => toggleGrowthChannel(ch.id)}
+                  />
+                  <label htmlFor={ch.id} className="text-sm text-foreground cursor-pointer">{ch.label}</label>
+                </div>
+              ))}
+            </div>
+
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">具体需求</label>
-              <Textarea placeholder="请描述您的推广需求..." className="bg-secondary min-h-[80px]" />
+              <Textarea
+                placeholder="请描述您的预算和需求..."
+                value={growthRequirements}
+                onChange={(e) => setGrowthRequirements(e.target.value)}
+                className="bg-secondary min-h-[80px]"
+              />
             </div>
-            <Button onClick={handleSubmitInquiry} className="w-full bg-primary gap-2">
-              <Send className="h-3.5 w-3.5" /> 发送给管理员
-            </Button>
+
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setGrowthOpen(false)}>取消</Button>
+              <Button onClick={handleSubmitGrowth} className="bg-primary">提交需求</Button>
+            </DialogFooter>
           </div>
         </DialogContent>
       </Dialog>

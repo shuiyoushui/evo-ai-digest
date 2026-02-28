@@ -17,7 +17,7 @@ export function TopNav({ onSearch }: TopNavProps) {
           <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm">
             AI
           </div>
-          <span className="font-semibold text-foreground text-lg hidden sm:block">AI 创客星球</span>
+          <span className="font-semibold text-foreground text-lg hidden sm:block">Agent Hunt</span>
         </Link>
 
         <nav className="hidden md:flex items-center gap-1 ml-4">
@@ -28,7 +28,7 @@ export function TopNav({ onSearch }: TopNavProps) {
             <Button variant={location.pathname === "/news" ? "secondary" : "ghost"} size="sm" className="text-sm">AI 资讯</Button>
           </Link>
           <Link to="/maker">
-            <Button variant={location.pathname === "/maker" ? "secondary" : "ghost"} size="sm" className="text-sm">创作者中心</Button>
+            <Button variant={location.pathname === "/maker" ? "secondary" : "ghost"} size="sm" className="text-sm">发布者中心</Button>
           </Link>
           <Link to="/about">
             <Button variant={location.pathname === "/about" ? "secondary" : "ghost"} size="sm" className="text-sm">关于我们</Button>

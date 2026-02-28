@@ -43,11 +43,9 @@ const categoryInquiryData = [
 ];
 
 const serviceTypeData = [
-  { name: "流量推广", value: 30 },
-  { name: "工商财税", value: 12 },
-  { name: "项目融资", value: 18 },
-  { name: "产品技术", value: 22 },
-  { name: "人才服务", value: 18 },
+  { name: "种子用户", value: 42 },
+  { name: "体验评测", value: 31 },
+  { name: "规模增长", value: 27 },
 ];
 
 const PIE_COLORS = [
@@ -147,62 +145,41 @@ const Admin = () => {
           {/* ADS MANAGEMENT */}
           {activeTab === "ads" && (
             <div className="space-y-6 animate-fade-in">
-              <h2 className="text-lg font-bold text-foreground">广告管理</h2>
+              <h2 className="text-lg font-bold text-foreground">推广管理</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card className="bg-card border-border">
-                  <CardContent className="p-5 text-center">
-                    <p className="text-xs text-muted-foreground mb-1">总咨询请求</p>
-                    <p className="text-3xl font-bold text-foreground">128</p>
-                  </CardContent>
-                </Card>
-                <Card className="bg-card border-border">
-                  <CardHeader className="pb-2 pt-4 px-4"><CardTitle className="text-xs text-muted-foreground font-normal">按分类统计</CardTitle></CardHeader>
-                  <CardContent className="px-4 pb-4">
-                    <ResponsiveContainer width="100%" height={140}>
-                      <BarChart data={categoryInquiryData} layout="vertical" margin={{ left: 0, right: 8, top: 0, bottom: 0 }}>
-                        <XAxis type="number" hide />
-                        <YAxis type="category" dataKey="name" width={70} tick={{ fontSize: 11, fill: "hsl(240, 5%, 55%)" }} axisLine={false} tickLine={false} />
-                        <Bar dataKey="value" fill="hsl(230, 90%, 60%)" radius={[0, 4, 4, 0]} barSize={14} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </CardContent>
-                </Card>
-                <Card className="bg-card border-border">
-                  <CardHeader className="pb-2 pt-4 px-4"><CardTitle className="text-xs text-muted-foreground font-normal">按服务类型（5类）</CardTitle></CardHeader>
-                  <CardContent className="px-4 pb-4 flex items-center justify-center">
-                    <ResponsiveContainer width="100%" height={140}>
-                      <PieChart>
-                        <Pie data={serviceTypeData} dataKey="value" cx="50%" cy="50%" outerRadius={50} innerRadius={25} strokeWidth={0}>
-                          {serviceTypeData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
-                        </Pie>
-                        <Tooltip contentStyle={{ background: "hsl(240, 10%, 5.5%)", border: "1px solid hsl(240, 5%, 17%)", borderRadius: 8, fontSize: 12, color: "hsl(0,0%,98%)" }} />
-                      </PieChart>
-                    </ResponsiveContainer>
-                    <div className="space-y-1.5 ml-2 shrink-0">
-                      {serviceTypeData.map((d, i) => (
-                        <div key={d.name} className="flex items-center gap-1.5 text-[11px]">
-                          <div className="h-2.5 w-2.5 rounded-sm" style={{ background: PIE_COLORS[i] }} />
-                          <span className="text-muted-foreground">{d.name}</span>
-                          <span className="text-foreground font-medium">{d.value}%</span>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
+                {[
+                  { label: "种子用户请求", value: "54" },
+                  { label: "体验评测请求", value: "39" },
+                  { label: "规模增长请求", value: "35" },
+                ].map((kpi) => (
+                  <Card key={kpi.label} className="bg-card border-border">
+                    <CardContent className="p-5 text-center">
+                      <p className="text-xs text-muted-foreground mb-1">{kpi.label}</p>
+                      <p className="text-3xl font-bold text-foreground">{kpi.value}</p>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
               <Card className="bg-card border-border">
-                <CardHeader className="pb-2"><CardTitle className="text-sm">近期咨询记录</CardTitle></CardHeader>
+                <CardHeader className="pb-2"><CardTitle className="text-sm">近期推广记录</CardTitle></CardHeader>
                 <Table>
                   <TableHeader><TableRow className="border-border">
-                    <TableHead className="text-xs">项目名称</TableHead><TableHead className="text-xs">服务类型</TableHead><TableHead className="text-xs">联系人</TableHead><TableHead className="text-xs">预算</TableHead><TableHead className="text-xs">日期</TableHead><TableHead className="text-xs">状态</TableHead>
+                    <TableHead className="text-xs">项目名称</TableHead>
+                    <TableHead className="text-xs">服务类型</TableHead>
+                    <TableHead className="text-xs">预算</TableHead>
+                    <TableHead className="text-xs">目标详情</TableHead>
+                    <TableHead className="text-xs">日期</TableHead>
+                    <TableHead className="text-xs">状态</TableHead>
                   </TableRow></TableHeader>
                   <TableBody>
                     {mockInquiries.map((inq) => (
                       <TableRow key={inq.id} className="border-border">
                         <TableCell className="text-sm font-medium">{inq.projectName}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{inq.serviceType}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{inq.contact}</TableCell>
+                        <TableCell>
+                          <Badge variant={inq.serviceType === "种子用户" ? "default" : inq.serviceType === "体验评测" ? "secondary" : "outline"} className="text-[10px]">{inq.serviceType}</Badge>
+                        </TableCell>
                         <TableCell className="text-sm text-muted-foreground">{inq.budget}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{inq.goalDetails}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">{inq.date}</TableCell>
                         <TableCell>
                           <Badge variant={inq.status === "已完成" ? "default" : inq.status === "已跟进" ? "secondary" : "outline"} className="text-[10px]">{inq.status}</Badge>
