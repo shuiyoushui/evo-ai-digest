@@ -17,7 +17,7 @@ export function TopNav({ onSearch }: TopNavProps) {
           <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm">
             AI
           </div>
-          <span className="font-semibold text-foreground text-lg hidden sm:block">AI 创客星球</span>
+          <span className="font-semibold text-foreground text-lg hidden sm:block">Agent Hunt</span>
         </Link>
 
         <nav className="hidden md:flex items-center gap-1 ml-4">
