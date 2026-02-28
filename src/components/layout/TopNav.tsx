@@ -1,4 +1,4 @@
-import { Search, Plus, LogIn } from "lucide-react";
+import { Search, Plus, LogIn, Hexagon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
@@ -13,11 +13,14 @@ export function TopNav({ onSearch }: TopNavProps) {
   return (
     <header className="sticky top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur-xl">
       <div className="flex h-14 items-center gap-4 px-6">
-        <Link to="/" className="flex items-center gap-2 shrink-0">
-          <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm">
-            AI
+        <Link to="/" className="flex items-center gap-2.5 shrink-0">
+          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary via-violet-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-primary/25">
+            <Hexagon className="h-4.5 w-4.5 text-white" strokeWidth={2.5} />
           </div>
-          <span className="font-semibold text-foreground text-lg hidden sm:block">Agent Hunt</span>
+          <div className="hidden sm:flex flex-col">
+            <span className="font-bold text-foreground text-base leading-tight tracking-tight">Agent Hunt</span>
+            <span className="text-[10px] text-muted-foreground leading-tight">中国首选的 AI 产品首发与增长加速平台</span>
+          </div>
         </Link>
 
         <nav className="hidden md:flex items-center gap-1 ml-4">
