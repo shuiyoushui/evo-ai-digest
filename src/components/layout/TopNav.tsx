@@ -28,7 +28,7 @@ export function TopNav({ onSearch }: TopNavProps) {
             <Button variant={location.pathname === "/news" ? "secondary" : "ghost"} size="sm" className="text-sm">AI 资讯</Button>
           </Link>
           <Link to="/maker">
-            <Button variant={location.pathname === "/maker" ? "secondary" : "ghost"} size="sm" className="text-sm">创作者中心</Button>
+            <Button variant={location.pathname === "/maker" ? "secondary" : "ghost"} size="sm" className="text-sm">发布者中心</Button>
           </Link>
           <Link to="/about">
             <Button variant={location.pathname === "/about" ? "secondary" : "ghost"} size="sm" className="text-sm">关于我们</Button>

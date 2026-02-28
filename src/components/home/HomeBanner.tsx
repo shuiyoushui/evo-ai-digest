@@ -16,7 +16,7 @@ export interface BannerSlide {
 export const defaultBannerSlides: BannerSlide[] = [
   {
     id: "b1",
-    title: "DeepSeek V3 重磅发布 — 体验全新编程模型",
+    title: "上架 Agent Hunt 即可免费瓜分万亿曝光",
     cta: "立即体验",
     link: "#",
     active: true,
