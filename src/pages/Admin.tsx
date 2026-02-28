@@ -43,11 +43,9 @@ const categoryInquiryData = [
 ];
 
 const serviceTypeData = [
-  { name: "流量推广", value: 30 },
-  { name: "工商财税", value: 12 },
-  { name: "项目融资", value: 18 },
-  { name: "产品技术", value: 22 },
-  { name: "人才服务", value: 18 },
+  { name: "种子用户", value: 42 },
+  { name: "体验评测", value: 31 },
+  { name: "规模增长", value: 27 },
 ];
 
 const PIE_COLORS = [
