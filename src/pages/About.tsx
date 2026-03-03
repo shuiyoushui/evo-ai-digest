@@ -13,9 +13,9 @@ const About = () => {
         {/* Hero */}
         <div className="text-center mb-12">
           <div className="h-16 w-16 rounded-2xl bg-primary flex items-center justify-center text-primary-foreground font-bold text-xl mx-auto mb-4 shadow-lg">
-            AI
+            AH
           </div>
-          <h1 className="text-3xl font-bold text-foreground mb-3">AI 创客星球</h1>
+          <h1 className="text-3xl font-bold text-foreground mb-3">Agent Hunt</h1>
           <p className="text-muted-foreground text-base max-w-lg mx-auto">
             连接开发者与 AI 机遇的一站式平台
           </p>
@@ -29,7 +29,7 @@ const About = () => {
           <Card className="bg-card border-border">
             <CardContent className="p-6">
               <p className="text-sm text-muted-foreground leading-relaxed">
-                AI 创客星球致力于成为中国领先的 AI 产品发现与交流平台。我们汇聚全球优质 AI 工具与产品，
+                Agent Hunt 致力于成为中国领先的 AI 产品发现与交流平台。我们汇聚全球优质 AI 工具与产品，
                 为开发者、创业者和企业用户搭建一个发现、评测和推广 AI 产品的生态社区。
               </p>
               <p className="text-sm text-muted-foreground leading-relaxed mt-3">
@@ -92,7 +92,7 @@ const About = () => {
               <div className="flex items-center gap-3">
                 <MessageCircle className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm text-muted-foreground">微信公众号：</span>
-                <span className="text-sm text-foreground">AI创客星球</span>
+                <span className="text-sm text-foreground">Agent Hunt</span>
               </div>
               <div className="flex items-center gap-3">
                 <MessageCircle className="h-4 w-4 text-muted-foreground" />
