@@ -19,7 +19,7 @@ export function TopNav({ onSearch }: TopNavProps) {
           </div>
           <div className="hidden sm:flex flex-col">
             <span className="font-bold text-foreground text-base leading-tight tracking-tight">Agent Hunt</span>
-            <span className="text-[10px] text-muted-foreground leading-tight">中国首选的 AI 产品首发与增长加速平台</span>
+            <span className="text-[10px] text-muted-foreground leading-tight">发现最好的AI工具</span>
           </div>
         </Link>
 
