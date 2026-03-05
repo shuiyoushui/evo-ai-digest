@@ -20,7 +20,7 @@ import {
 import {
   Link2, Zap, LayoutTemplate, Megaphone, Feather, Globe, Send, ChevronDown,
   Plane, Eye, Pencil, Trash2, FileEdit, ArrowRight, Sparkles, Users, Link, Github,
-  Plus, X, Terminal, Code, Cpu,
+  Plus, X, Terminal, Code, Cpu, Building2,
   Radio, LayoutGrid, Newspaper, Target, Rocket,
   Sprout, Star, TrendingUp,
 } from "lucide-react";
