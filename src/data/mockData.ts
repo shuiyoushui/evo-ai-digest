@@ -193,6 +193,7 @@ export const mockInquiries: InquiryRequest[] = [
   { id: "i2", projectName: "Midjourney", serviceType: "体验评测", contact: "李总", phone: "139****5678", budget: "¥1,000", goalDetails: "体验产品 ~200人", date: "2024-03-19", status: "待处理" },
   { id: "i3", projectName: "DeepSeek", serviceType: "规模增长", contact: "王经理", phone: "137****9012", budget: "—", goalDetails: "CSDN展示+通道广告", date: "2024-03-18", status: "已跟进" },
   { id: "i4", projectName: "Kimi", serviceType: "种子用户", contact: "赵总", phone: "136****3456", budget: "¥5,000", goalDetails: "获取点击 ~10,000次", date: "2024-03-17", status: "已完成" },
-  { id: "i5", projectName: "Sora", serviceType: "体验评测", contact: "孙经理", phone: "135****7890", budget: "¥500", goalDetails: "产品开发 ~100人", date: "2024-03-16", status: "待处理" },
-  { id: "i6", projectName: "V0.dev", serviceType: "规模增长", contact: "周总", phone: "134****2345", budget: "—", goalDetails: "出海推广+非CSDN", date: "2024-03-15", status: "已跟进" },
+  { id: "i5", projectName: "Sora", serviceType: "大模型接入", contact: "孙经理", phone: "135****7890", budget: "—", goalDetails: "GPT-4 API接入与部署", date: "2024-03-16", status: "待处理" },
+  { id: "i6", projectName: "V0.dev", serviceType: "MCP开发", contact: "周总", phone: "134****2345", budget: "—", goalDetails: "定制Agent开发", date: "2024-03-15", status: "已跟进" },
+  { id: "i7", projectName: "Copilot", serviceType: "云服务", contact: "吴经理", phone: "133****6789", budget: "—", goalDetails: "GPU算力与RAG部署", date: "2024-03-14", status: "待处理" },
 ];

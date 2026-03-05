@@ -146,11 +146,10 @@ const Admin = () => {
           {activeTab === "ads" && (
             <div className="space-y-6 animate-fade-in">
               <h2 className="text-lg font-bold text-foreground">推广管理</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[
-                  { label: "种子用户请求", value: "54" },
-                  { label: "体验评测请求", value: "39" },
-                  { label: "规模增长请求", value: "35" },
+                  { label: "推广请求总数", value: "128" },
+                  { label: "技术服务请求总数", value: "47" },
                 ].map((kpi) => (
                   <Card key={kpi.label} className="bg-card border-border">
                     <CardContent className="p-5 text-center">
@@ -341,12 +340,11 @@ const Admin = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {[
-                          { name: "流量推广", desc: "CSDN广告、频道精准、站外付费推广", active: true },
-                          { name: "工商财税服务", desc: "公司注册、税务筹划", active: true },
-                          { name: "项目融资服务", desc: "FA对接、BP优化", active: true },
-                          { name: "产品技术服务", desc: "代码审计、架构咨询", active: true },
-                          { name: "人才服务", desc: "技术招聘、团队组建", active: false },
+                       {[
+                          { name: "自助推广", desc: "种子用户、体验评测、规模增长", active: true },
+                          { name: "技术服务 - 大模型接入", desc: "API接入、模型部署与微调", active: true },
+                          { name: "技术服务 - MCP 开发服务", desc: "Model Context Protocol & Agent 开发", active: true },
+                          { name: "技术服务 - 其他模型/云服务", desc: "GPU算力、RAG、数据处理", active: true },
                         ].map((svc) => (
                           <TableRow key={svc.name} className="border-border">
                             <TableCell className="text-sm font-medium">{svc.name}</TableCell>
