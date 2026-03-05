@@ -81,43 +81,12 @@ const selfServiceCards = [
 
 const budgetOptions = [100, 500, 1000, 5000];
 
-// Old service categories kept for other tabs
-const serviceCategories = {
-  business: {
-    label: "工商财税服务", icon: Building2,
-    items: [
-      { id: "opc", title: "OPC注册", desc: "一人公司快速注册通道", icon: FileText },
-      { id: "bookkeeping", title: "记账服务", desc: "专业财务代理记账", icon: BookOpen },
-      { id: "tax", title: "报税服务", desc: "税务合规与筹划", icon: Calculator },
-    ],
-  },
-  financing: {
-    label: "项目融资服务", icon: CircleDollarSign,
-    items: [
-      { id: "roadshow", title: "项目路演", desc: "Demo Day参与与路演辅导", icon: Presentation },
-      { id: "vc", title: "VC对接/股权融资", desc: "连接优质投资机构", icon: Handshake },
-      { id: "loan", title: "企业贷款/债权融资", desc: "银行与信贷支持", icon: Landmark },
-    ],
-  },
-  tech: {
-    label: "产品技术服务", icon: Cpu,
-    items: [
-      { id: "llm", title: "大模型接入", desc: "API接入与模型部署", icon: Bot },
-      { id: "rag", title: "RAG调优", desc: "知识库构建与优化", icon: Database },
-      { id: "agent", title: "Agent 开发", desc: "定制智能体开发", icon: Zap },
-      { id: "data", title: "语料/数据服务", desc: "数据清洗与标注", icon: HardDrive },
-      { id: "compute", title: "计算资源服务", desc: "GPU与云算力", icon: Code },
-    ],
-  },
-  talent: {
-    label: "人才服务", icon: Users,
-    items: [
-      { id: "parttime", title: "兼职", desc: "灵活的开发者/设计师", icon: UserCheck },
-      { id: "fulltime", title: "全职", desc: "核心团队招聘", icon: UserPlus },
-      { id: "executive", title: "高招", desc: "CTO/联合创始人匹配", icon: Award },
-    ],
-  },
-};
+// Technical Services cards
+const techServiceCards = [
+  { id: "llm", title: "大模型接入", desc: "API integration, model deployment, and fine-tuning.", icon: Cpu },
+  { id: "mcp", title: "MCP 开发服务", desc: "Model Context Protocol & Custom Agent development.", icon: Code },
+  { id: "cloud", title: "其他模型/云服务等", desc: "GPU computing resources, RAG, and data processing.", icon: Globe },
+];
 
 const mockProjects = [
   { id: "p1", name: "我的AI助手", slogan: "你的智能工作伙伴", status: "已上线", date: "2024-03-15" },
@@ -716,11 +685,9 @@ const MakerStudio = () => {
                 <TabsTrigger value="self-promotion" className="gap-1.5 text-xs data-[state=active]:bg-background">
                   <Megaphone className="h-3.5 w-3.5" /> 自助推广
                 </TabsTrigger>
-                {Object.entries(serviceCategories).map(([key, cat]) => (
-                  <TabsTrigger key={key} value={key} className="gap-1.5 text-xs data-[state=active]:bg-background">
-                    <cat.icon className="h-3.5 w-3.5" /> {cat.label}
-                  </TabsTrigger>
-                ))}
+                <TabsTrigger value="tech" className="gap-1.5 text-xs data-[state=active]:bg-background">
+                  <Cpu className="h-3.5 w-3.5" /> 技术服务
+                </TabsTrigger>
               </TabsList>
 
               {/* Self-Service Promotion Tab */}
@@ -746,29 +713,28 @@ const MakerStudio = () => {
                 </div>
               </TabsContent>
 
-              {Object.entries(serviceCategories).map(([key, cat]) => (
-                <TabsContent key={key} value={key} className="mt-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {cat.items.map((svc) => (
-                      <Card
-                        key={svc.id}
-                        className="bg-card border-border hover:border-primary/40 transition-all cursor-pointer group"
-                        onClick={() => { setInquiryService(svc.title); setInquiryOpen(true); }}
-                      >
-                        <CardContent className="p-4 flex items-start gap-3">
-                          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
-                            <svc.icon className="h-5 w-5 text-primary" />
-                          </div>
-                          <div className="min-w-0">
-                            <h4 className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">{svc.title}</h4>
-                            <p className="text-xs text-muted-foreground mt-0.5">{svc.desc}</p>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </TabsContent>
-              ))}
+              {/* Technical Services Tab */}
+              <TabsContent value="tech" className="mt-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {techServiceCards.map((svc) => (
+                    <Card
+                      key={svc.id}
+                      className="bg-card border-border hover:border-primary/40 transition-all cursor-pointer group"
+                      onClick={() => { setInquiryService(svc.title); setInquiryOpen(true); }}
+                    >
+                      <CardContent className="p-5 flex flex-col items-center text-center gap-3">
+                        <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
+                          <svc.icon className="h-6 w-6 text-primary" />
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">{svc.title}</h4>
+                          <p className="text-xs text-muted-foreground mt-1">{svc.desc}</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </TabsContent>
             </Tabs>
           </TabsContent>
         </Tabs>
