@@ -19,10 +19,9 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   Link2, Zap, LayoutTemplate, Megaphone, Feather, Globe, Send, ChevronDown,
-  Plane, Eye, Pencil, Trash2, FileEdit, ArrowRight, Sparkles, Users, Building2, Link, Github,
-  Plus, X, Terminal, Briefcase, Banknote, Code, UserPlus, Cpu, CircleDollarSign,
-  Radio, LayoutGrid, Newspaper, Target, Rocket, BookOpen, Calculator, FileText,
-  Presentation, Handshake, Landmark, Bot, Database, HardDrive, UserCheck, UserCog, Award,
+  Plane, Eye, Pencil, Trash2, FileEdit, ArrowRight, Sparkles, Users, Link, Github,
+  Plus, X, Terminal, Code, Cpu,
+  Radio, LayoutGrid, Newspaper, Target, Rocket,
   Sprout, Star, TrendingUp,
 } from "lucide-react";
 import { categories, products } from "@/data/mockData";
