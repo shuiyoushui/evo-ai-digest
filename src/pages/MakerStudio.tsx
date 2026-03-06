@@ -101,16 +101,24 @@ const uniqueProjects = mockProjects.filter((p, i, arr) => arr.findIndex((x) => x
 
 const MakerStudio = () => {
   const [searchParams] = useSearchParams();
+  const { user, isLoggedIn, updateUser, bindCSDN } = useAuth();
   const [submitStep, setSubmitStep] = useState<SubmitStep>("choose");
   const [url, setUrl] = useState("");
   const [activeTab, setActiveTab] = useState("submit");
   const [selectedProject, setSelectedProject] = useState(uniqueProjects[0]);
   const [myProjects, setMyProjects] = useState(uniqueProjects);
-  const [editOpen, setEditOpen] = useState(false);
-  const [editingProject, setEditingProject] = useState<typeof uniqueProjects[0] | null>(null);
+  const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
+  const [editFormData, setEditFormData] = useState(emptyFormData);
+  const [editNewTag, setEditNewTag] = useState("");
   const [formData, setFormData] = useState(emptyFormData);
   const [newTag, setNewTag] = useState("");
   const [isAIMode, setIsAIMode] = useState(false);
+
+  // Profile form state
+  const [profileNickname, setProfileNickname] = useState(user?.nickname || "");
+  const [profilePhone, setProfilePhone] = useState(user?.phone || "");
+  const [profileEmail, setProfileEmail] = useState(user?.email || "");
+  const [csdnUsername, setCsdnUsername] = useState("");
 
   // Generic inquiry dialog (for non-promotion services)
   const [inquiryOpen, setInquiryOpen] = useState(false);
