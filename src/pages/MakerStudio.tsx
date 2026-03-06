@@ -356,8 +356,9 @@ const MakerStudio = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="bg-secondary mb-6">
             <TabsTrigger value="submit">智能提交</TabsTrigger>
-            <TabsTrigger value="projects">我的项目</TabsTrigger>
+            <TabsTrigger value="projects">产品管理</TabsTrigger>
             <TabsTrigger value="promotion">服务中心</TabsTrigger>
+            <TabsTrigger value="profile">个人信息</TabsTrigger>
           </TabsList>
 
           {/* SUBMIT TAB */}
@@ -643,7 +644,7 @@ const MakerStudio = () => {
 
           {/* MY PROJECTS TAB */}
           <TabsContent value="projects" className="animate-fade-in">
-            <h3 className="text-lg font-bold text-foreground mb-4">我的项目</h3>
+            <h3 className="text-lg font-bold text-foreground mb-4">产品管理</h3>
             {myProjects.length === 0 ? (
               <div className="text-center py-16 text-muted-foreground text-sm">暂无项目，去提交一个吧</div>
             ) : (
@@ -683,6 +684,189 @@ const MakerStudio = () => {
                 ))}
               </div>
             )}
+          </TabsContent>
+
+          {/* EDIT PRODUCT TAB (full form) */}
+          <TabsContent value="edit" className="animate-fade-in">
+            {editingProjectId && (
+              <div className="max-w-3xl mx-auto">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="text-xl font-bold text-foreground">编辑产品</h2>
+                    <p className="text-xs text-muted-foreground mt-1">修改产品的完整信息</p>
+                  </div>
+                  <Button size="sm" variant="ghost" onClick={() => { setEditingProjectId(null); setActiveTab("projects"); }}>← 返回列表</Button>
+                </div>
+                <div className="space-y-6">
+                  <Card className="bg-card border-border">
+                    <CardContent className="p-5 space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium text-muted-foreground">产品名称 *</label>
+                          <Input value={editFormData.name} onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })} className="bg-secondary" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium text-muted-foreground">Slogan *</label>
+                          <Input value={editFormData.slogan} onChange={(e) => setEditFormData({ ...editFormData, slogan: e.target.value })} className="bg-secondary" />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium text-muted-foreground">分类</label>
+                          <Select value={editFormData.category} onValueChange={(v) => setEditFormData({ ...editFormData, category: v })}>
+                            <SelectTrigger className="bg-secondary"><SelectValue placeholder="选择产品分类" /></SelectTrigger>
+                            <SelectContent>{categories.map((c) => (<SelectItem key={c.id} value={c.id}>{c.icon} {c.label}</SelectItem>))}</SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium text-muted-foreground">标签</label>
+                          <div className="flex flex-wrap gap-1.5 items-center min-h-[40px] p-2 rounded-md bg-secondary border border-border">
+                            {editFormData.tags.map((t) => (
+                              <Badge key={t} variant="secondary" className="text-xs gap-1 pr-1 bg-background">{t}<button onClick={() => setEditFormData({ ...editFormData, tags: editFormData.tags.filter((x) => x !== t) })} className="ml-0.5 hover:text-destructive">×</button></Badge>
+                            ))}
+                            <Input placeholder="添加标签..." className="h-6 w-24 text-xs bg-transparent border-none shadow-none focus-visible:ring-0 p-0" value={editNewTag} onChange={(e) => setEditNewTag(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); if (editNewTag.trim()) { setEditFormData({ ...editFormData, tags: [...editFormData.tags, editNewTag.trim()] }); setEditNewTag(""); } } }} />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium text-muted-foreground">产品描述</label>
+                        <Textarea value={editFormData.description} onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })} className="bg-secondary min-h-[140px]" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-card border-border">
+                    <CardContent className="p-5">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium text-muted-foreground">官方网站</label>
+                          <Input value={editFormData.website} onChange={(e) => setEditFormData({ ...editFormData, website: e.target.value })} placeholder="https://..." className="bg-secondary font-mono text-sm" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium text-muted-foreground">GitHub</label>
+                          <Input value={editFormData.github} onChange={(e) => setEditFormData({ ...editFormData, github: e.target.value })} placeholder="https://github.com/..." className="bg-secondary font-mono text-sm" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <div className="flex justify-end gap-3 pt-2 pb-8">
+                    <Button variant="outline" onClick={() => { setEditingProjectId(null); setActiveTab("projects"); }}>取消</Button>
+                    <Button className="bg-primary gap-2" onClick={handleSaveEdit}><Send className="h-4 w-4" /> 保存修改</Button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </TabsContent>
+
+          {/* PROFILE TAB */}
+          <TabsContent value="profile" className="animate-fade-in">
+            <div className="max-w-2xl mx-auto space-y-6">
+              <h3 className="text-lg font-bold text-foreground">个人信息维护</h3>
+
+              {/* Avatar & Basic Info */}
+              <Card className="bg-card border-border">
+                <CardContent className="p-6 space-y-5">
+                  <div className="flex items-center gap-5">
+                    <div className="relative group cursor-pointer">
+                      <Avatar className="h-20 w-20">
+                        <AvatarFallback className="text-2xl bg-primary/15 text-primary">
+                          {(user?.nickname || "U").slice(0, 1)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="absolute inset-0 rounded-full bg-background/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                        <Upload className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">{user?.nickname || "未登录"}</p>
+                      <p className="text-xs text-muted-foreground">点击头像更换</p>
+                    </div>
+                  </div>
+                  <Separator />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-muted-foreground">昵称</label>
+                      <Input value={profileNickname} onChange={(e) => setProfileNickname(e.target.value)} className="bg-secondary" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-muted-foreground">手机号</label>
+                      <div className="flex gap-2">
+                        <Input value={profilePhone} onChange={(e) => setProfilePhone(e.target.value)} className="bg-secondary flex-1" />
+                        <Button variant="outline" size="sm" className="shrink-0 text-xs">更换</Button>
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-muted-foreground">绑定邮箱</label>
+                      <Input value={profileEmail} onChange={(e) => setProfileEmail(e.target.value)} placeholder="输入邮箱地址" className="bg-secondary" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-muted-foreground">密码</label>
+                      <Button variant="outline" size="sm" className="w-full text-xs">修改密码</Button>
+                    </div>
+                  </div>
+                  <div className="flex justify-end">
+                    <Button className="bg-primary" onClick={handleSaveProfile}>保存信息</Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* CSDN Binding */}
+              <Card className="bg-card border-border overflow-hidden">
+                <div className="bg-gradient-to-r from-[hsl(14,100%,50%)]/10 to-transparent p-4 border-b border-border">
+                  <div className="flex items-center gap-2">
+                    <Shield className="h-5 w-5 text-[hsl(14,100%,50%)]" />
+                    <h4 className="text-sm font-bold text-foreground">CSDN 账号集成</h4>
+                    {user?.csdnBound && (
+                      <Badge className="text-[9px] px-1.5 py-0 h-4 bg-[hsl(14,100%,50%)] hover:bg-[hsl(14,100%,45%)] text-white border-none">已绑定</Badge>
+                    )}
+                  </div>
+                </div>
+                <CardContent className="p-5 space-y-4">
+                  <div className="rounded-lg bg-primary/5 border border-primary/20 p-3">
+                    <p className="text-sm text-foreground font-medium">🎁 关联 CSDN 账号即可获取免费曝光流量！</p>
+                    <p className="text-xs text-muted-foreground mt-1">绑定后，您的产品将获得额外的 CSDN 社区曝光资源</p>
+                  </div>
+                  {user?.csdnBound ? (
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary">
+                      <Badge className="bg-[hsl(14,100%,50%)] text-white border-none">CSDN Verified</Badge>
+                      <span className="text-sm text-foreground">{user.csdnUsername}</span>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Input value={csdnUsername} onChange={(e) => setCsdnUsername(e.target.value)} placeholder="输入CSDN用户名" className="bg-secondary flex-1" />
+                      <Button onClick={handleBindCSDN} className="bg-[hsl(14,100%,50%)] hover:bg-[hsl(14,100%,45%)] text-white shrink-0">绑定账号</Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Danger Zone */}
+              <Card className="bg-card border-destructive/30">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4 text-destructive" />
+                    <CardTitle className="text-sm text-destructive">危险操作</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent className="pb-5">
+                  <p className="text-xs text-muted-foreground mb-3">删除账号后，所有数据将不可恢复。</p>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive" size="sm" className="text-xs">账号注销</Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="bg-card border-border">
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>确认注销账号</AlertDialogTitle>
+                        <AlertDialogDescription>此操作将永久删除您的账号和所有关联数据。此操作不可恢复。</AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>取消</AlertDialogCancel>
+                        <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90">确认注销</AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
           {/* SERVICE CENTER TAB */}
