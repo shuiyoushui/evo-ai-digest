@@ -762,9 +762,16 @@ const MakerStudio = () => {
             <div className="max-w-2xl mx-auto space-y-6">
               <h3 className="text-lg font-bold text-foreground">个人信息维护</h3>
 
-              {/* Avatar & Basic Info */}
+              {/* Section 1: Basic Info */}
               <Card className="bg-card border-border">
-                <CardContent className="p-6 space-y-5">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center gap-2">
+                    <User className="h-4 w-4 text-primary" />
+                    <CardTitle className="text-sm">基本信息</CardTitle>
+                  </div>
+                  <CardDescription className="text-xs">管理您的头像和昵称</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-5">
                   <div className="flex items-center gap-5">
                     <div className="relative group cursor-pointer">
                       <Avatar className="h-20 w-20">
@@ -781,27 +788,37 @@ const MakerStudio = () => {
                       <p className="text-xs text-muted-foreground">点击头像更换</p>
                     </div>
                   </div>
-                  <Separator />
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-medium text-muted-foreground">昵称</label>
-                      <Input value={profileNickname} onChange={(e) => setProfileNickname(e.target.value)} className="bg-secondary" />
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground">昵称</label>
+                    <Input value={profileNickname} onChange={(e) => setProfileNickname(e.target.value)} className="bg-secondary" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Section 2: Security */}
+              <Card className="bg-card border-border">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center gap-2">
+                    <Shield className="h-4 w-4 text-primary" />
+                    <CardTitle className="text-sm">安全设置</CardTitle>
+                  </div>
+                  <CardDescription className="text-xs">管理手机号、邮箱和密码</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground">手机号</label>
+                    <div className="flex gap-2">
+                      <Input value={profilePhone} onChange={(e) => setProfilePhone(e.target.value)} className="bg-secondary flex-1" />
+                      <Button variant="outline" size="sm" className="shrink-0 text-xs">更换</Button>
                     </div>
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-medium text-muted-foreground">手机号</label>
-                      <div className="flex gap-2">
-                        <Input value={profilePhone} onChange={(e) => setProfilePhone(e.target.value)} className="bg-secondary flex-1" />
-                        <Button variant="outline" size="sm" className="shrink-0 text-xs">更换</Button>
-                      </div>
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-medium text-muted-foreground">绑定邮箱</label>
-                      <Input value={profileEmail} onChange={(e) => setProfileEmail(e.target.value)} placeholder="输入邮箱地址" className="bg-secondary" />
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-medium text-muted-foreground">密码</label>
-                      <Button variant="outline" size="sm" className="w-full text-xs">修改密码</Button>
-                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground">绑定邮箱</label>
+                    <Input value={profileEmail} onChange={(e) => setProfileEmail(e.target.value)} placeholder="输入邮箱地址" className="bg-secondary" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground">密码</label>
+                    <Button variant="outline" size="sm" className="w-full text-xs">修改密码</Button>
                   </div>
                   <div className="flex justify-end">
                     <Button className="bg-primary" onClick={handleSaveProfile}>保存信息</Button>
@@ -809,37 +826,38 @@ const MakerStudio = () => {
                 </CardContent>
               </Card>
 
-              {/* CSDN Binding */}
+              {/* Section 3: Account Binding */}
               <Card className="bg-card border-border overflow-hidden">
-                <div className="bg-gradient-to-r from-[hsl(14,100%,50%)]/10 to-transparent p-4 border-b border-border">
+                <div className="bg-gradient-to-r from-[hsl(25,95%,53%)]/10 to-transparent p-4 border-b border-border">
                   <div className="flex items-center gap-2">
-                    <Shield className="h-5 w-5 text-[hsl(14,100%,50%)]" />
+                    <Rocket className="h-5 w-5 text-[hsl(25,95%,53%)]" />
                     <h4 className="text-sm font-bold text-foreground">CSDN 账号集成</h4>
                     {user?.csdnBound && (
-                      <Badge className="text-[9px] px-1.5 py-0 h-4 bg-[hsl(14,100%,50%)] hover:bg-[hsl(14,100%,45%)] text-white border-none">已绑定</Badge>
+                      <Rocket className="h-4 w-4 text-[hsl(25,95%,53%)]" />
                     )}
                   </div>
                 </div>
                 <CardContent className="p-5 space-y-4">
-                  <div className="rounded-lg bg-primary/5 border border-primary/20 p-3">
-                    <p className="text-sm text-foreground font-medium">🎁 关联 CSDN 账号即可获取免费曝光流量！</p>
+                  <div className="rounded-lg bg-[hsl(25,95%,53%)]/5 border border-[hsl(25,95%,53%)]/20 p-3">
+                    <p className="text-sm text-foreground font-medium">🚀 关联 CSDN 账号即可获取免费曝光流量！</p>
                     <p className="text-xs text-muted-foreground mt-1">绑定后，您的产品将获得额外的 CSDN 社区曝光资源</p>
                   </div>
                   {user?.csdnBound ? (
                     <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary">
-                      <Badge className="bg-[hsl(14,100%,50%)] text-white border-none">CSDN Verified</Badge>
+                      <Rocket className="h-4 w-4 text-[hsl(25,95%,53%)]" />
                       <span className="text-sm text-foreground">{user.csdnUsername}</span>
+                      <span className="text-xs text-muted-foreground">· 已绑定</span>
                     </div>
                   ) : (
                     <div className="flex gap-2">
                       <Input value={csdnUsername} onChange={(e) => setCsdnUsername(e.target.value)} placeholder="输入CSDN用户名" className="bg-secondary flex-1" />
-                      <Button onClick={handleBindCSDN} className="bg-[hsl(14,100%,50%)] hover:bg-[hsl(14,100%,45%)] text-white shrink-0">绑定账号</Button>
+                      <Button onClick={handleBindCSDN} className="bg-[hsl(25,95%,53%)] hover:bg-[hsl(25,95%,48%)] text-white shrink-0">绑定账号</Button>
                     </div>
                   )}
                 </CardContent>
               </Card>
 
-              {/* Danger Zone */}
+              {/* Section 4: Danger Zone */}
               <Card className="bg-card border-destructive/30">
                 <CardHeader className="pb-2">
                   <div className="flex items-center gap-2">
