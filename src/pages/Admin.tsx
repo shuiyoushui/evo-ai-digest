@@ -236,10 +236,8 @@ const Admin = () => {
                 <CardContent className="space-y-4">
                   {[
                     { label: "启用融资模块", desc: "显示公司融资信息", defaultOn: true },
-                    { label: "开放注册", desc: "允许新用户注册", defaultOn: true },
                     { label: "最新上线模块", desc: "在首页显示「最新上线」Tab", defaultOn: true },
                     { label: "评论功能", desc: "启用产品评论区", defaultOn: false },
-                    { label: "CSDN Passport 登录", desc: "允许使用CSDN账号登录", defaultOn: true },
                     { label: "是否启用演示视频", desc: "在产品详情页显示演示视频模块", defaultOn: false },
                     { label: "是否启用社区评价", desc: "在产品页面启用社区评价与讨论功能", defaultOn: false },
                   ].map((toggle) => (

@@ -4,6 +4,7 @@ import {
   Reply, Rocket, Globe, Code, ImageIcon, Terminal, Zap, Users,
   Copy, Check, Brain, FileText, Sparkles
 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -82,6 +83,18 @@ export function ProductDetail({ product, open, onClose, onPromote }: ProductDeta
                   <div className="flex items-center gap-2">
                     <DialogTitle className="text-xl font-bold">{product.name}</DialogTitle>
                     {product.verified && <CheckCircle className="h-4 w-4 text-primary" />}
+                    {product.featured && (
+                      <TooltipProvider delayDuration={200}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Rocket className="h-4 w-4 text-[hsl(25,95%,53%)] cursor-pointer" />
+                          </TooltipTrigger>
+                          <TooltipContent className="text-xs">
+                            csdn 助力新产品曝光中
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
                   </div>
                   <p className="text-muted-foreground text-sm mt-1">{product.slogan}</p>
                   <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
