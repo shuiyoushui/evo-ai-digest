@@ -20,10 +20,6 @@ import {
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import {
   Link2, Zap, LayoutTemplate, Megaphone, Feather, Globe, Send, ChevronDown,
   Plane, Eye, Pencil, Trash2, FileEdit, ArrowRight, Sparkles, Users, Link, Github,
   Plus, X, Terminal, Code, Cpu, Building2,
