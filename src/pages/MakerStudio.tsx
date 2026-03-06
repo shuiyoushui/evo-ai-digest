@@ -1100,35 +1100,6 @@ const MakerStudio = () => {
           </div>
         </DialogContent>
       </Dialog>
-
-      {/* Edit Project Dialog */}
-      <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="bg-card border-border max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-base">编辑项目</DialogTitle>
-          </DialogHeader>
-          {editingProject && (
-            <div className="space-y-4 mt-2">
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">产品名称</label>
-                <Input value={editingProject.name} onChange={(e) => setEditingProject({ ...editingProject, name: e.target.value })} className="bg-secondary" />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">一句话介绍</label>
-                <Input value={editingProject.slogan} onChange={(e) => setEditingProject({ ...editingProject, slogan: e.target.value })} className="bg-secondary" />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">官网链接</label>
-                <Input placeholder="https://..." className="bg-secondary" />
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setEditOpen(false)}>取消</Button>
-                <Button className="bg-primary" onClick={handleSaveEdit}>保存</Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
