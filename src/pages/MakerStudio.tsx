@@ -165,8 +165,6 @@ const MakerStudio = () => {
         const found = uniqueProjects.find((p) => p.name === projectName);
         if (found) setSelectedProject(found);
       }
-    } else if (tab === "profile") {
-      setActiveTab("profile");
     }
   }, [searchParams]);
 
