@@ -132,7 +132,7 @@ export function TopNav({ onSearch }: TopNavProps) {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
                   <DropdownMenuItem asChild className="cursor-pointer">
-                    <Link to="/maker?tab=profile" className="flex items-center gap-2">
+                    <Link to="/profile" className="flex items-center gap-2">
                       <Settings className="h-3.5 w-3.5" /> 个人信息维护
                     </Link>
                   </DropdownMenuItem>

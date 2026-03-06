@@ -9,6 +9,7 @@ import MakerStudio from "./pages/MakerStudio";
 import Admin from "./pages/Admin";
 import AINews from "./pages/AINews";
 import About from "./pages/About";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
             <Route path="/admin" element={<Admin />} />
             <Route path="/news" element={<AINews />} />
             <Route path="/about" element={<About />} />
+            <Route path="/profile" element={<Profile />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
