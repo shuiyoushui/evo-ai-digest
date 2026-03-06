@@ -101,7 +101,7 @@ const uniqueProjects = mockProjects.filter((p, i, arr) => arr.findIndex((x) => x
 
 const MakerStudio = () => {
   const [searchParams] = useSearchParams();
-  const { user, isLoggedIn, updateUser, bindCSDN } = useAuth();
+  const { user, isLoggedIn } = useAuth();
   const [submitStep, setSubmitStep] = useState<SubmitStep>("choose");
   const [url, setUrl] = useState("");
   const [activeTab, setActiveTab] = useState("submit");
@@ -114,11 +114,6 @@ const MakerStudio = () => {
   const [newTag, setNewTag] = useState("");
   const [isAIMode, setIsAIMode] = useState(false);
 
-  // Profile form state
-  const [profileNickname, setProfileNickname] = useState(user?.nickname || "");
-  const [profilePhone, setProfilePhone] = useState(user?.phone || "");
-  const [profileEmail, setProfileEmail] = useState(user?.email || "");
-  const [csdnUsername, setCsdnUsername] = useState("");
 
   // Generic inquiry dialog (for non-promotion services)
   const [inquiryOpen, setInquiryOpen] = useState(false);
