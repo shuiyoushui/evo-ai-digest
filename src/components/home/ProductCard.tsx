@@ -22,8 +22,6 @@ const logoClasses: Record<string, string> = {
   "10": "product-logo-10",
 };
 
-const vibeCodingTags = ["Vibe Coding", "AI 编程", "AI编程", "编辑器"];
-
 export function ProductCard({ product, onClick }: ProductCardProps) {
   const [upvoted, setUpvoted] = useState(false);
   const [count, setCount] = useState(product.upvotes);
@@ -43,12 +41,11 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
     product.rank === 3 ? "rank-bronze" : "";
 
   const isTop3 = product.rank <= 3;
-  const isVibeCoding = product.tags.some((t) => vibeCodingTags.includes(t)) || product.category === "devcode";
 
   return (
     <div
       onClick={onClick}
-      className={`group flex items-center gap-4 px-4 py-4 rounded-xl hover:bg-secondary/40 transition-all duration-200 cursor-pointer border border-transparent hover:border-border/30 ${isVibeCoding ? "vibe-coding-border !border-[hsl(280,70%,50%,0.25)]" : ""}`}
+      className="group flex items-center gap-4 px-4 py-4 rounded-xl hover:bg-secondary/40 transition-all duration-200 cursor-pointer border border-transparent hover:border-border/30"
     >
       {/* Rank */}
       <span className={`w-7 text-center text-base font-bold shrink-0 ${rankClass || "text-muted-foreground/60"}`}>
@@ -82,25 +79,11 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
         </div>
         <p className="text-muted-foreground text-xs mt-0.5 truncate">{product.slogan}</p>
         <div className="flex items-center gap-1.5 mt-2">
-          {product.tags.slice(0, 3).map((tag) => {
-            const isHot = tag === "热门" || product.rank <= 3;
-            const isNew = tag === "新品";
-            const isVibe = vibeCodingTags.includes(tag);
-            return (
-              <Badge
-                key={tag}
-                variant="secondary"
-                className={`text-[10px] px-2 py-0.5 h-auto font-normal border-0 ${
-                  isVibe ? "bg-[hsl(280,70%,50%)]/15 text-[hsl(280,70%,65%)] border border-[hsl(280,70%,50%)]/30" :
-                  isHot && product.rank === 1 ? "glow-badge-hot" :
-                  isNew ? "glow-badge-new" :
-                  "bg-secondary/80 text-muted-foreground"
-                }`}
-              >
-                {tag}
-              </Badge>
-            );
-          })}
+          {product.tags.slice(0, 3).map((tag) => (
+            <Badge key={tag} variant="secondary" className="text-[10px] px-2 py-0.5 h-auto font-normal bg-secondary/80 text-muted-foreground border-0">
+              {tag}
+            </Badge>
+          ))}
         </div>
       </div>
 

@@ -76,9 +76,9 @@ const pricingPresets = ["Free", "Paid", "Freemium"];
 
 // Self-service promotion cards
 const selfServiceCards = [
-  { id: "seed", title: "🌱 破壳计划", desc: "精准匹配极客体验官，获取冷启动阶段的高价值反馈与真实点击。", icon: Sprout },
-  { id: "review", title: "🔬 深度评测", desc: "招募专业开发者与高频 AI 用户，多维度验证产品逻辑与核心 Agent 能力。", icon: Star },
-  { id: "growth", title: "🚀 全域引爆", desc: "站内外多渠道流量矩阵分发，实现目标用户的指数级增长。", icon: TrendingUp },
+  { id: "seed", title: "种子用户获取", desc: "精准获取早期高质量种子用户，快速验证产品方向", icon: Sprout },
+  { id: "review", title: "体验评测用户获取", desc: "邀请目标用户深度体验产品并撰写真实评测", icon: Star },
+  { id: "growth", title: "用户规模增长", desc: "多渠道大规模投放，实现用户快速增长", icon: TrendingUp },
 ];
 
 const budgetOptions = [100, 500, 1000, 5000];
@@ -780,17 +780,15 @@ const MakerStudio = () => {
                   {selfServiceCards.map((svc) => (
                     <Card
                       key={svc.id}
-                      className="bg-card/80 border-border/50 hover:border-primary/50 transition-all cursor-pointer group relative overflow-hidden hover-lift"
+                      className="bg-card border-border hover:border-primary/40 transition-all cursor-pointer group"
                       onClick={() => handleCardClick(svc.id)}
                     >
-                      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                      <CardContent className="p-5 flex flex-col items-center text-center gap-3 relative z-10">
-                        <div className="h-12 w-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 group-hover:bg-primary/20 group-hover:shadow-[0_0_20px_hsl(230_90%_60%/0.15)] transition-all">
+                      <CardContent className="p-5 flex flex-col items-center text-center gap-3">
+                        <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
                           <svc.icon className="h-6 w-6 text-primary" />
                         </div>
                         <div>
-                          <h4 className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors font-mono">{svc.title}</h4>
+                          <h4 className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">{svc.title}</h4>
                           <p className="text-xs text-muted-foreground mt-1">{svc.desc}</p>
                         </div>
                       </CardContent>
