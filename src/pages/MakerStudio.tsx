@@ -214,16 +214,6 @@ const MakerStudio = () => {
     toast.success("产品信息已更新");
   };
 
-  const handleSaveProfile = () => {
-    updateUser({ nickname: profileNickname, phone: profilePhone, email: profileEmail });
-    toast.success("个人信息已保存");
-  };
-
-  const handleBindCSDN = () => {
-    if (!csdnUsername) { toast.error("请输入CSDN用户名"); return; }
-    bindCSDN(csdnUsername);
-    toast.success("CSDN账号绑定成功！", { description: "您已获得免费曝光流量资格" });
-  };
 
   const handleAddTag = () => {
     if (newTag.trim() && !formData.tags.includes(newTag.trim())) {
