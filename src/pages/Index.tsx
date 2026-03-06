@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { TopNav } from "@/components/layout/TopNav";
 import { CategorySidebar } from "@/components/layout/CategorySidebar";
-import { HomeBanner } from "@/components/home/HomeBanner";
+import { HeroSection } from "@/components/home/HeroSection";
 import { HeroBanner } from "@/components/home/HeroBanner";
 import { ProductCard } from "@/components/home/ProductCard";
 import { ProductDetail } from "@/components/product/ProductDetail";
@@ -49,31 +49,27 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <TopNav onSearch={setSearchQuery} />
 
-      {/* Ambient hero glow */}
-      <div className="hero-glow h-48 -mt-1 pointer-events-none" />
+      {/* New Hero Section */}
+      <HeroSection onSearch={setSearchQuery} />
 
-      <div className="max-w-7xl mx-auto px-6 -mt-32 relative z-10">
-        {/* 2-column layout: Sidebar stays full-height on left */}
+      <div className="max-w-7xl mx-auto px-6 relative z-10">
+        {/* 2-column layout */}
         <div className="flex gap-8">
           <CategorySidebar selected={selectedCategory} onSelect={setSelectedCategory} />
 
-          {/* Right column: Banner + Content */}
           <main className="flex-1 min-w-0 pb-16">
-            {/* Banner Carousel inside right column */}
-            <HomeBanner />
-
             <HeroBanner onProductClick={setSelectedProduct} />
 
             <Tabs defaultValue="hot" className="mb-4">
               <div className="flex items-center justify-between mb-4">
                 <TabsList className="bg-secondary/60 border border-border/30 p-1 rounded-xl">
                   <TabsTrigger value="hot" className="gap-1.5 text-sm rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                    <TrendingUp className="h-3.5 w-3.5" /> 🔥 热门趋势
+                    <TrendingUp className="h-3.5 w-3.5" /> <span className="glow-badge-hot px-1.5 py-0.5 rounded-md text-[10px] font-bold">🔥 热门</span> 趋势
                   </TabsTrigger>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <TabsTrigger value="new" className="gap-1.5 text-sm rounded-lg relative data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                        <Rocket className="h-3.5 w-3.5" /> 🚀 最新上线
+                        <Rocket className="h-3.5 w-3.5" /> <span className="glow-badge-new px-1.5 py-0.5 rounded-md text-[10px] font-bold">🚀 最新</span> 上线
                         <Lock className="h-3 w-3 text-muted-foreground ml-1 opacity-40" />
                       </TabsTrigger>
                     </TooltipTrigger>
