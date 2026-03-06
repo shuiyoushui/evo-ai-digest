@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Search, Plus, LogIn, Hexagon, User, Settings, LogOut } from "lucide-react";
+import { Search, Plus, LogIn, Hexagon, User, Settings, LogOut, Rocket } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
@@ -116,9 +117,16 @@ export function TopNav({ onSearch }: TopNavProps) {
                     </Avatar>
                     <span className="hidden sm:inline">{user.nickname}</span>
                     {user.csdnBound && (
-                      <Badge className="text-[9px] px-1.5 py-0 h-4 bg-[hsl(14,100%,50%)] hover:bg-[hsl(14,100%,45%)] text-white border-none">
-                        CSDN
-                      </Badge>
+                      <TooltipProvider delayDuration={200}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Rocket className="h-4 w-4 text-[hsl(25,95%,53%)] animate-in fade-in duration-300 cursor-pointer" />
+                          </TooltipTrigger>
+                          <TooltipContent className="text-xs">
+                            csdn 助力新产品曝光中
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     )}
                   </Button>
                 </DropdownMenuTrigger>

@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { ChevronUp } from "lucide-react";
+import { ChevronUp, Rocket } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { Product } from "@/data/mockData";
 
 interface ProductCardProps {
@@ -62,6 +63,18 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
           <h3 className="font-semibold text-foreground text-sm truncate">{product.name}</h3>
           {product.verified && (
             <span className="text-xs bg-primary/15 text-primary px-1 py-0.5 rounded font-medium leading-none">✓</span>
+          )}
+          {product.featured && (
+            <TooltipProvider delayDuration={200}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Rocket className="h-3.5 w-3.5 text-[hsl(25,95%,53%)] shrink-0 cursor-pointer" />
+                </TooltipTrigger>
+                <TooltipContent className="text-xs">
+                  csdn 助力新产品曝光中
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
         </div>
         <p className="text-muted-foreground text-xs mt-0.5 truncate">{product.slogan}</p>
