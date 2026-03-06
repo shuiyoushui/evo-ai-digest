@@ -170,6 +170,8 @@ const MakerStudio = () => {
         const found = uniqueProjects.find((p) => p.name === projectName);
         if (found) setSelectedProject(found);
       }
+    } else if (tab === "profile") {
+      setActiveTab("profile");
     }
   }, [searchParams]);
 
@@ -200,15 +202,32 @@ const MakerStudio = () => {
   };
 
   const handleEditProject = (proj: typeof uniqueProjects[0]) => {
-    setEditingProject({ ...proj });
-    setEditOpen(true);
+    setEditingProjectId(proj.id);
+    setEditFormData({
+      ...emptyFormData,
+      name: proj.name,
+      slogan: proj.slogan,
+    });
+    setActiveTab("edit");
   };
 
   const handleSaveEdit = () => {
-    if (!editingProject) return;
-    setMyProjects((prev) => prev.map((p) => p.id === editingProject.id ? editingProject : p));
-    setEditOpen(false);
-    toast.success("项目信息已更新");
+    if (!editingProjectId) return;
+    setMyProjects((prev) => prev.map((p) => p.id === editingProjectId ? { ...p, name: editFormData.name, slogan: editFormData.slogan } : p));
+    setEditingProjectId(null);
+    setActiveTab("projects");
+    toast.success("产品信息已更新");
+  };
+
+  const handleSaveProfile = () => {
+    updateUser({ nickname: profileNickname, phone: profilePhone, email: profileEmail });
+    toast.success("个人信息已保存");
+  };
+
+  const handleBindCSDN = () => {
+    if (!csdnUsername) { toast.error("请输入CSDN用户名"); return; }
+    bindCSDN(csdnUsername);
+    toast.success("CSDN账号绑定成功！", { description: "您已获得免费曝光流量资格" });
   };
 
   const handleAddTag = () => {
