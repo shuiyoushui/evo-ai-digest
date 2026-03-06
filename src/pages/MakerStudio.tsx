@@ -358,7 +358,6 @@ const MakerStudio = () => {
             <TabsTrigger value="submit">智能提交</TabsTrigger>
             <TabsTrigger value="projects">产品管理</TabsTrigger>
             <TabsTrigger value="promotion">服务中心</TabsTrigger>
-            <TabsTrigger value="profile">个人信息</TabsTrigger>
           </TabsList>
 
           {/* SUBMIT TAB */}
