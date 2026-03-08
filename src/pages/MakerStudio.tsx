@@ -190,12 +190,21 @@ const MakerStudio = () => {
     }
   };
 
-  const handleEditProject = (proj: typeof uniqueProjects[0]) => {
+  const handleEditProject = (proj: any) => {
     setEditingProjectId(proj.id);
     setEditFormData({
       ...emptyFormData,
       name: proj.name,
-      slogan: proj.slogan,
+      slogan: proj.slogan || "",
+      category: proj.category_id || "",
+      description: proj.description || "",
+      website: proj.website || "",
+      founderName: proj.maker_name || "",
+      founderTitle: proj.maker_title || "",
+      companyName: proj.company_name || "",
+      companyFounded: proj.company_founded || "",
+      companyLocation: proj.company_location || "",
+      companyFunding: proj.company_funding || "",
     });
     setActiveTab("edit");
   };
