@@ -1,4 +1,4 @@
-import { categories } from "@/data/mockData";
+import { useCategories } from "@/hooks/useCategories";
 import { LayoutGrid } from "lucide-react";
 
 interface CategorySidebarProps {
@@ -7,6 +7,8 @@ interface CategorySidebarProps {
 }
 
 export function CategorySidebar({ selected, onSelect }: CategorySidebarProps) {
+  const { data: categories = [] } = useCategories();
+
   return (
     <aside className="w-56 shrink-0 hidden lg:block">
       <div className="sticky top-20">
@@ -40,7 +42,6 @@ export function CategorySidebar({ selected, onSelect }: CategorySidebarProps) {
                 <span className="text-base">{cat.icon}</span>
                 <span>{cat.label}</span>
               </span>
-              <span className={`text-[11px] tabular-nums ${selected === cat.id ? "text-primary/70" : "text-muted-foreground/50"}`}>{cat.count}</span>
             </button>
           ))}
         </nav>

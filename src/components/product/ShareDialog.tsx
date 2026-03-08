@@ -3,10 +3,30 @@ import { Copy, Check } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import type { Product } from "@/data/mockData";
+
+export interface ShareProduct {
+  id: string;
+  name: string;
+  slogan: string;
+  description: string;
+  logo: string;
+  tags: string[];
+  category: string;
+  upvotes: number;
+  views: number;
+  comments: number;
+  website: string;
+  verified: boolean;
+  featured: boolean;
+  maker: { name: string; avatar: string; title: string };
+  company: { name: string; founded: string; location: string; funding?: string };
+  benefits: string[];
+  launchDate: string;
+  rank: number;
+}
 
 interface ShareDialogProps {
-  product: Product;
+  product: ShareProduct;
   open: boolean;
   onClose: () => void;
 }
@@ -15,7 +35,7 @@ export function ShareDialog({ product, open, onClose }: ShareDialogProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
-    const text = `🔥 推荐一个超棒的AI工具！\n\n📌 ${product.name}\n💡 ${product.slogan}\n\n✨ 核心优势：\n${product.benefits.map((b) => `• ${b}`).join("\n")}\n\n🔗 ${product.website}\n\n#AI产品 #${product.name} #效率工具`;
+    const text = `🔥 推荐一个超棒的AI工具！\n\n📌 ${product.name}\n💡 ${product.slogan}\n\n✨ 核心优势：\n${(product.benefits || []).map((b) => `• ${b}`).join("\n")}\n\n🔗 ${product.website}\n\n#AI产品 #${product.name} #效率工具`;
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -35,7 +55,6 @@ export function ShareDialog({ product, open, onClose }: ShareDialogProps) {
             <TabsTrigger value="video" className="flex-1 text-xs">竖版视频</TabsTrigger>
           </TabsList>
 
-          {/* WeChat Poster */}
           <TabsContent value="wechat">
             <div className="bg-gradient-to-b from-primary/20 to-secondary rounded-lg p-6 text-center space-y-4" style={{ aspectRatio: "9/16", maxHeight: 400 }}>
               <div className="pt-8">
@@ -53,7 +72,6 @@ export function ShareDialog({ product, open, onClose }: ShareDialogProps) {
             </div>
           </TabsContent>
 
-          {/* RedNote Card */}
           <TabsContent value="rednote">
             <div className="bg-gradient-to-br from-primary/10 via-secondary to-card rounded-lg p-5 space-y-3" style={{ aspectRatio: "3/4", maxHeight: 400 }}>
               <div className="flex items-center gap-3">
@@ -66,7 +84,7 @@ export function ShareDialog({ product, open, onClose }: ShareDialogProps) {
                 </div>
               </div>
               <div className="rounded-md bg-secondary/50 p-3 text-xs text-muted-foreground space-y-1.5">
-                {product.benefits.map((b, i) => (
+                {(product.benefits || []).map((b, i) => (
                   <p key={i}>✨ {b}</p>
                 ))}
               </div>
@@ -80,7 +98,6 @@ export function ShareDialog({ product, open, onClose }: ShareDialogProps) {
             </Button>
           </TabsContent>
 
-          {/* Vertical Video */}
           <TabsContent value="video">
             <div className="bg-secondary rounded-lg flex items-center justify-center" style={{ aspectRatio: "9/16", maxHeight: 400 }}>
               <div className="text-center space-y-2">
