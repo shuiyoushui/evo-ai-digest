@@ -282,11 +282,33 @@ const MakerStudio = () => {
     setFormData({ ...formData, prompts: formData.prompts.filter((_, i) => i !== idx) });
   };
 
-  const handleSubmitProduct = () => {
-    toast.success("产品已提交审核", { description: "我们将在1-2个工作日内完成审核" });
-    setSubmitStep("choose");
-    setFormData(emptyFormData);
-    setUrl("");
+  const handleSubmitProduct = async () => {
+    if (!user) { toast.error("请先登录"); return; }
+    if (!formData.name) { toast.error("请填写产品名称"); return; }
+    try {
+      await submitProduct.mutateAsync({
+        name: formData.name,
+        slogan: formData.slogan,
+        description: formData.description,
+        category_id: formData.category || "devcode",
+        tags: formData.tags,
+        website: formData.website,
+        maker_name: formData.founderName,
+        maker_title: formData.founderTitle,
+        company_name: formData.companyName,
+        company_founded: formData.companyFounded,
+        company_location: formData.companyLocation,
+        company_funding: formData.companyFunding,
+        benefits: [],
+        user_id: user.id,
+      });
+      toast.success("产品已提交审核", { description: "我们将在1-2个工作日内完成审核" });
+      setSubmitStep("choose");
+      setFormData(emptyFormData);
+      setUrl("");
+    } catch (e: any) {
+      toast.error(e.message || "提交失败");
+    }
   };
 
   const handleCardClick = (cardId: string) => {
