@@ -223,6 +223,7 @@ const MakerStudio = () => {
         name: editFormData.name,
         slogan: editFormData.slogan,
         category_id: editFormData.category || null,
+        tags: editFormData.tags,
         description: editFormData.description,
         website: editFormData.website,
         maker_name: editFormData.founderName,
