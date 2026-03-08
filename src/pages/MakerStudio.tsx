@@ -202,6 +202,7 @@ const MakerStudio = () => {
       name: proj.name,
       slogan: proj.slogan || "",
       category: proj.category_id || "",
+      tags: proj.tags || [],
       description: proj.description || "",
       website: proj.website || "",
       founderName: proj.maker_name || "",
