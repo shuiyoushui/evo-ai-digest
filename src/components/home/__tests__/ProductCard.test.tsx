@@ -43,6 +43,8 @@ const baseProduct: DbProduct = {
   created_at: "2024-01-01",
   updated_at: "2024-01-01",
   upvote_count: 42,
+  skills: null,
+  prompts: null,
 };
 
 describe("ProductCard", () => {

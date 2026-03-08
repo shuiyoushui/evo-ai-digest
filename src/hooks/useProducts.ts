@@ -28,6 +28,8 @@ export interface DbProduct {
   created_at: string;
   updated_at: string;
   upvote_count: number;
+  skills: { name: string; description: string }[] | null;
+  prompts: { title: string; content: string }[] | null;
 }
 
 export function useProducts(category?: string | null) {

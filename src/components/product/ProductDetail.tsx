@@ -1,8 +1,8 @@
 import { useState } from "react";
 import {
   ChevronUp, ExternalLink, CheckCircle, Share2, Eye, MessageCircle,
-  Reply, Rocket, Globe, Code, ImageIcon, Terminal, Zap, Users,
-  Copy, Check, Brain, FileText, Sparkles
+  Reply, Rocket, Terminal, Zap,
+  Copy, Check
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -18,22 +18,6 @@ import { useToggleUpvote, useUserUpvotes } from "@/hooks/useUpvotes";
 import { toast } from "sonner";
 import type { DbProduct } from "@/hooks/useProducts";
 import { mockComments } from "@/data/mockData";
-
-const mockSkills = [
-  { icon: Globe, name: "联网搜索", desc: "实时搜索互联网获取最新数据和信息" },
-  { icon: Code, name: "代码解释器", desc: "运行 Python 代码进行数据分析和计算" },
-  { icon: ImageIcon, name: "图像生成", desc: "根据文字描述生成高质量图像" },
-  { icon: Brain, name: "长文本理解", desc: "支持超长上下文的深度理解与分析" },
-  { icon: FileText, name: "文档解析", desc: "解析 PDF、Word 等格式文档内容" },
-  { icon: Sparkles, name: "多模态理解", desc: "理解图片、图表等视觉内容" },
-];
-
-const mockPrompts = [
-  { id: "p1", title: "修复 Bug", prompt: "分析以下 React 代码片段，找出导致重复渲染的问题并给出修复方案。" },
-  { id: "p2", title: "编写测试", prompt: "为以下函数生成 Jest 单元测试用例，覆盖正常输入、边界条件和异常情况。" },
-  { id: "p3", title: "代码审查", prompt: "对以下代码进行 Code Review，从性能、安全性、可读性三个维度给出改进建议。" },
-  { id: "p4", title: "架构设计", prompt: "我需要设计一个支持百万用户的实时聊天系统，请给出技术架构方案。" },
-];
 
 interface ProductDetailProps {
   product: DbProduct | null;
@@ -51,6 +35,10 @@ export function ProductDetail({ product, open, onClose, onPromote }: ProductDeta
   const { data: userUpvotes = new Set<string>() } = useUserUpvotes(user?.id);
 
   if (!product) return null;
+
+  const skills = (product.skills as { name: string; description: string }[] | null) || [];
+  const prompts = (product.prompts as { title: string; content: string }[] | null) || [];
+  const hasSkillsOrPrompts = skills.length > 0 || prompts.length > 0;
 
   const isUpvoted = userUpvotes instanceof Set ? userUpvotes.has(product.id) : false;
 
@@ -143,7 +131,9 @@ export function ProductDetail({ product, open, onClose, onPromote }: ProductDeta
             <Tabs defaultValue="overview" className="w-full">
               <TabsList className="w-full justify-start bg-secondary/50 mb-6">
                 <TabsTrigger value="overview" className="gap-1.5"><Eye className="h-3.5 w-3.5" /> 概览</TabsTrigger>
-                <TabsTrigger value="skills" className="gap-1.5"><Zap className="h-3.5 w-3.5" /> 技能 & Prompts</TabsTrigger>
+                {hasSkillsOrPrompts && (
+                  <TabsTrigger value="skills" className="gap-1.5"><Zap className="h-3.5 w-3.5" /> 技能 & Prompts</TabsTrigger>
+                )}
                 <TabsTrigger value="community" className="gap-1.5"><MessageCircle className="h-3.5 w-3.5" /> 社区评价</TabsTrigger>
               </TabsList>
 
@@ -203,42 +193,48 @@ export function ProductDetail({ product, open, onClose, onPromote }: ProductDeta
                 </div>
               </TabsContent>
 
-              <TabsContent value="skills">
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2"><Zap className="h-4 w-4 text-primary" /> Agent 技能</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {mockSkills.map((skill) => (
-                        <Card key={skill.name} className="bg-secondary/30 border-border/40 hover:border-primary/30 transition-colors">
-                          <CardContent className="p-4 flex items-start gap-3">
-                            <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0"><skill.icon className="h-4 w-4 text-primary" /></div>
-                            <div>
-                              <p className="text-sm font-medium text-foreground">{skill.name}</p>
-                              <p className="text-xs text-muted-foreground mt-0.5">{skill.desc}</p>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2"><Terminal className="h-4 w-4 text-primary" /> 最佳 Prompt 库</h3>
-                    <div className="space-y-3">
-                      {mockPrompts.map((p) => (
-                        <div key={p.id} className="rounded-lg border border-border/40 overflow-hidden">
-                          <div className="flex items-center justify-between px-4 py-2 bg-secondary/40">
-                            <span className="text-sm font-medium text-foreground">{p.title}</span>
-                            <Button variant="ghost" size="sm" className="h-7 gap-1.5 text-xs" onClick={() => handleCopy(p.id, p.prompt)}>
-                              {copiedId === p.id ? <><Check className="h-3 w-3 text-primary" /> 已复制</> : <><Copy className="h-3 w-3" /> 复制</>}
-                            </Button>
-                          </div>
-                          <div className="px-4 py-3 bg-secondary font-mono text-xs text-muted-foreground leading-relaxed">{p.prompt}</div>
+              {hasSkillsOrPrompts && (
+                <TabsContent value="skills">
+                  <div className="space-y-6">
+                    {skills.length > 0 && (
+                      <div>
+                        <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2"><Zap className="h-4 w-4 text-primary" /> Agent 技能</h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {skills.map((skill) => (
+                            <Card key={skill.name} className="bg-secondary/30 border-border/40 hover:border-primary/30 transition-colors">
+                              <CardContent className="p-4 flex items-start gap-3">
+                                <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0"><Zap className="h-4 w-4 text-primary" /></div>
+                                <div>
+                                  <p className="text-sm font-medium text-foreground">{skill.name}</p>
+                                  <p className="text-xs text-muted-foreground mt-0.5">{skill.description}</p>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))}
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    )}
+                    {prompts.length > 0 && (
+                      <div>
+                        <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2"><Terminal className="h-4 w-4 text-primary" /> 最佳 Prompt 库</h3>
+                        <div className="space-y-3">
+                          {prompts.map((p, idx) => (
+                            <div key={idx} className="rounded-lg border border-border/40 overflow-hidden">
+                              <div className="flex items-center justify-between px-4 py-2 bg-secondary/40">
+                                <span className="text-sm font-medium text-foreground">{p.title}</span>
+                                <Button variant="ghost" size="sm" className="h-7 gap-1.5 text-xs" onClick={() => handleCopy(`prompt-${idx}`, p.content)}>
+                                  {copiedId === `prompt-${idx}` ? <><Check className="h-3 w-3 text-primary" /> 已复制</> : <><Copy className="h-3 w-3" /> 复制</>}
+                                </Button>
+                              </div>
+                              <div className="px-4 py-3 bg-secondary font-mono text-xs text-muted-foreground leading-relaxed">{p.content}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                </div>
-              </TabsContent>
+                </TabsContent>
+              )}
 
               <TabsContent value="community">
                 <div className="space-y-4">
