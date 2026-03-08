@@ -52,9 +52,13 @@ export function ProductDetail({ product, open, onClose, onPromote }: ProductDeta
 
   if (!product) return null;
 
-  const skills = (product.skills as { name: string; description: string }[] | null) || [];
-  const prompts = (product.prompts as { title: string; content: string }[] | null) || [];
-  const hasSkillsOrPrompts = skills.length > 0 || prompts.length > 0;
+  const skills = ((product.skills as { name: string; description: string }[] | null) || []).length > 0
+    ? (product.skills as { name: string; description: string }[])
+    : fallbackSkills;
+  const prompts = ((product.prompts as { title: string; content: string }[] | null) || []).length > 0
+    ? (product.prompts as { title: string; content: string }[])
+    : fallbackPrompts;
+  const hasSkillsOrPrompts = true;
 
   const isUpvoted = userUpvotes instanceof Set ? userUpvotes.has(product.id) : false;
 
