@@ -153,6 +153,13 @@ export function ProductDetail({ product, open, onClose, onPromote }: ProductDeta
                     <div className="aspect-video rounded-lg bg-secondary/50 border border-border/40 flex items-center justify-center">
                       <span className="text-muted-foreground text-sm">🎬 产品演示视频</span>
                     </div>
+                    {(product.tags && product.tags.length > 0) && (
+                      <div className="flex flex-wrap gap-2">
+                        {product.tags.map((tag, i) => (
+                          <Badge key={i} variant="secondary" className="text-xs">{tag}</Badge>
+                        ))}
+                      </div>
+                    )}
                     <div>
                       <h3 className="font-semibold text-foreground mb-2">产品介绍</h3>
                       <div className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">{product.description}</div>
