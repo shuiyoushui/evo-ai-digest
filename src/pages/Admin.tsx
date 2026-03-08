@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { TopNav } from "@/components/layout/TopNav";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -22,6 +22,7 @@ import { useAllProducts, useUpdateProduct } from "@/hooks/useProducts";
 import { useAuth } from "@/contexts/AuthContext";
 import { defaultBannerSlides, type BannerSlide } from "@/components/home/HomeBanner";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const sidebarItems = [
   { id: "overview", label: "数据总览", icon: LayoutDashboard },
@@ -54,6 +55,14 @@ const PIE_COLORS = [
   "hsl(350, 80%, 55%)",
 ];
 
+const AI_MODELS = [
+  { value: "google/gemini-3-flash-preview", label: "Gemini 3 Flash (推荐)" },
+  { value: "google/gemini-2.5-flash", label: "Gemini 2.5 Flash" },
+  { value: "google/gemini-2.5-pro", label: "Gemini 2.5 Pro" },
+  { value: "openai/gpt-5-mini", label: "GPT-5 Mini" },
+  { value: "openai/gpt-5", label: "GPT-5" },
+];
+
 const Admin = () => {
   const { isAdmin, isLoggedIn } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
@@ -63,12 +72,49 @@ const Admin = () => {
   const { data: allProducts = [], isLoading } = useAllProducts();
   const updateProduct = useUpdateProduct();
 
+  // AI Config state
+  const [aiModel, setAiModel] = useState("google/gemini-3-flash-preview");
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [aiEnabled, setAiEnabled] = useState(true);
+  const [aiConfigLoaded, setAiConfigLoaded] = useState(false);
+
+  useEffect(() => {
+    const loadAiConfig = async () => {
+      const { data } = await supabase
+        .from("ai_config")
+        .select("*")
+        .eq("config_key", "analyze_url")
+        .single();
+      if (data) {
+        setAiModel((data as any).model || "google/gemini-3-flash-preview");
+        setAiPrompt((data as any).system_prompt || "");
+        setAiEnabled((data as any).enabled ?? true);
+        setAiConfigLoaded(true);
+      }
+    };
+    loadAiConfig();
+  }, []);
+
   const updateBanner = (index: number, field: keyof BannerSlide, value: string | boolean) => {
     setBannerSlides((prev) => prev.map((s, i) => i === index ? { ...s, [field]: value } : s));
   };
 
-  const handleSaveConfig = () => {
-    toast.success("系统配置已保存", { description: "所有更改将在下次刷新时生效" });
+  const handleSaveConfig = async () => {
+    try {
+      const { error } = await supabase
+        .from("ai_config")
+        .update({
+          model: aiModel,
+          system_prompt: aiPrompt,
+          enabled: aiEnabled,
+          updated_at: new Date().toISOString(),
+        } as any)
+        .eq("config_key", "analyze_url");
+      if (error) throw error;
+      toast.success("系统配置已保存");
+    } catch (e: any) {
+      toast.error("保存失败", { description: e.message });
+    }
   };
 
   return (
@@ -283,15 +329,42 @@ const Admin = () => {
                 </CardContent>
               </Card>
 
+              {/* AI Config - Database-backed */}
               <Card className="bg-card border-border">
-                <CardHeader className="pb-3"><CardTitle className="text-sm">AI 配置</CardTitle><CardDescription className="text-xs">配置产品分析使用的AI模型</CardDescription></CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1.5"><label className="text-xs text-muted-foreground">模型名称</label><Input defaultValue="deepseek-v3" className="bg-secondary font-mono text-sm" /></div>
-                    <div className="space-y-1.5"><label className="text-xs text-muted-foreground">API Key</label><Input type="password" defaultValue="sk-xxxxxxxxxx" className="bg-secondary font-mono text-sm" /></div>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-sm">AI 智能解析配置</CardTitle>
+                      <CardDescription className="text-xs">配置产品URL解析使用的AI模型和提示词</CardDescription>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">启用</span>
+                      <Switch checked={aiEnabled} onCheckedChange={setAiEnabled} />
+                    </div>
                   </div>
-                  <div className="space-y-1.5"><label className="text-xs text-muted-foreground">System Prompt</label>
-                    <Textarea defaultValue="你是一个AI产品分析专家。根据提供的产品URL或GitHub仓库链接，分析产品的核心功能、目标用户、技术特点，并生成结构化的产品信息。请用中文回答。" className="bg-secondary font-mono text-xs min-h-[120px] leading-relaxed" />
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs text-muted-foreground">AI 模型</label>
+                    <Select value={aiModel} onValueChange={setAiModel}>
+                      <SelectTrigger className="bg-secondary">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {AI_MODELS.map((m) => (
+                          <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs text-muted-foreground">System Prompt</label>
+                    <Textarea
+                      value={aiPrompt}
+                      onChange={(e) => setAiPrompt(e.target.value)}
+                      className="bg-secondary font-mono text-xs min-h-[120px] leading-relaxed"
+                      placeholder="输入系统提示词..."
+                    />
                   </div>
                 </CardContent>
               </Card>

@@ -33,36 +33,15 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 type SubmitStep = "choose" | "analyzing" | "form";
 
 interface SkillItem { name: string; description: string }
 interface PromptItem { title: string; content: string }
 
-// Mock AI-prefilled data
-const mockAIData = {
-  name: "我的AI产品",
-  slogan: "用AI重新定义工作方式",
-  category: "efficiency",
-  tags: ["AI助手", "Web", "Freemium"],
-  description: "这是一款基于大语言模型的AI产品，致力于帮助用户通过智能化工具提升日常工作效率。核心功能包括智能问答、文档分析和任务自动化。",
-  website: "",
-  github: "",
-  founderName: "张三",
-  founderTitle: "CEO & Co-founder",
-  companyName: "AI科技有限公司",
-  companyFounded: "2024",
-  companyLocation: "北京",
-  companyFunding: "种子轮",
-  companyBio: "一家专注于AI应用的初创公司",
-  skills: [
-    { name: "智能问答", description: "基于RAG的上下文问答能力" },
-    { name: "文档分析", description: "支持PDF、Word等文档解析与总结" },
-  ] as SkillItem[],
-  prompts: [
-    { title: "总结文档", content: "请阅读以下文档内容，提取核心观点并生成一份不超过500字的中文摘要..." },
-  ] as PromptItem[],
-};
+
+
 
 const emptyFormData = {
   name: "", slogan: "", category: "", tags: [] as string[], description: "",
@@ -160,14 +139,40 @@ const MakerStudio = () => {
     }
   }, [searchParams]);
 
-  const handleAIAnalyze = () => {
+  const handleAIAnalyze = async () => {
     if (!url) return;
     setIsAIMode(true);
     setSubmitStep("analyzing");
-    setTimeout(() => {
-      setFormData({ ...mockAIData, website: url });
+    try {
+      const { data, error } = await supabase.functions.invoke("analyze-url", {
+        body: { url },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      const info = data?.data;
+      if (!info) throw new Error("未能解析产品信息");
+      setFormData({
+        ...emptyFormData,
+        name: info.name || "",
+        slogan: info.slogan || "",
+        category: info.category || "",
+        tags: info.tags || [],
+        description: info.description || "",
+        website: url,
+        founderName: info.founderName || "",
+        founderTitle: info.founderTitle || "",
+        companyName: info.companyName || "",
+        companyFounded: info.companyFounded || "",
+        companyLocation: info.companyLocation || "",
+        companyFunding: info.companyFunding || "",
+      });
       setSubmitStep("form");
-    }, 2500);
+      toast.success("AI 解析完成", { description: "请核对并补充产品信息" });
+    } catch (e: any) {
+      console.error("AI analyze error:", e);
+      toast.error("AI 解析失败", { description: e.message || "请稍后重试或手动填写" });
+      setSubmitStep("choose");
+    }
   };
 
   const handleManualEntry = () => {

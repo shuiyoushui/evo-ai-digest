@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_config: {
+        Row: {
+          config_key: string
+          enabled: boolean
+          id: string
+          model: string
+          system_prompt: string
+          updated_at: string
+        }
+        Insert: {
+          config_key: string
+          enabled?: boolean
+          id?: string
+          model?: string
+          system_prompt?: string
+          updated_at?: string
+        }
+        Update: {
+          config_key?: string
+          enabled?: boolean
+          id?: string
+          model?: string
+          system_prompt?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           icon: string
