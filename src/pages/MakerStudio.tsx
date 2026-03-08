@@ -26,7 +26,8 @@ import {
   Radio, LayoutGrid, Newspaper, Target, Rocket,
   Sprout, Star, TrendingUp, Upload, Shield, AlertTriangle, User,
 } from "lucide-react";
-import { categories, products } from "@/data/mockData";
+import { useCategories } from "@/hooks/useCategories";
+import { useMyProducts, useSubmitProduct, useDeleteProduct, useUpdateProduct } from "@/hooks/useProducts";
 import { toast } from "sonner";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
