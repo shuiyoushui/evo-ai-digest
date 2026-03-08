@@ -26,7 +26,8 @@ import {
   Radio, LayoutGrid, Newspaper, Target, Rocket,
   Sprout, Star, TrendingUp, Upload, Shield, AlertTriangle, User,
 } from "lucide-react";
-import { categories, products } from "@/data/mockData";
+import { useCategories } from "@/hooks/useCategories";
+import { useMyProducts, useSubmitProduct, useDeleteProduct, useUpdateProduct } from "@/hooks/useProducts";
 import { toast } from "sonner";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -90,30 +91,26 @@ const techServiceCards = [
   { id: "cloud", title: "其他模型/云服务等", desc: "GPU computing resources, RAG, and data processing.", icon: Globe },
 ];
 
-const mockProjects = [
-  { id: "p1", name: "我的AI助手", slogan: "你的智能工作伙伴", status: "已上线", date: "2024-03-15" },
-  { id: "p2", name: "代码审查Bot", slogan: "AI自动代码审查", status: "审核中", date: "2024-03-10" },
-  { id: "p3", name: "智能翻译工具", slogan: "多语言实时翻译", status: "已上线", date: "2024-02-20" },
-  ...products.slice(0, 3).map((p) => ({ id: p.id, name: p.name, slogan: p.slogan, status: "已上线", date: p.launchDate })),
-];
-
-const uniqueProjects = mockProjects.filter((p, i, arr) => arr.findIndex((x) => x.name === p.name) === i);
+const statusMap: Record<string, string> = { approved: "已上线", pending: "审核中", rejected: "已拒绝" };
 
 const MakerStudio = () => {
   const [searchParams] = useSearchParams();
   const { user, isLoggedIn } = useAuth();
+  const { data: categories = [] } = useCategories();
+  const { data: myProducts = [], isLoading: loadingProducts } = useMyProducts(user?.id);
+  const submitProduct = useSubmitProduct();
+  const deleteProduct = useDeleteProduct();
+  const updateProduct = useUpdateProduct();
   const [submitStep, setSubmitStep] = useState<SubmitStep>("choose");
   const [url, setUrl] = useState("");
   const [activeTab, setActiveTab] = useState("submit");
-  const [selectedProject, setSelectedProject] = useState(uniqueProjects[0]);
-  const [myProjects, setMyProjects] = useState(uniqueProjects);
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
   const [editFormData, setEditFormData] = useState(emptyFormData);
   const [editNewTag, setEditNewTag] = useState("");
   const [formData, setFormData] = useState(emptyFormData);
   const [newTag, setNewTag] = useState("");
   const [isAIMode, setIsAIMode] = useState(false);
-
+  const selectedProject = myProducts[0] || { id: "", name: "未选择项目" };
 
   // Generic inquiry dialog (for non-promotion services)
   const [inquiryOpen, setInquiryOpen] = useState(false);
@@ -158,13 +155,8 @@ const MakerStudio = () => {
 
   useEffect(() => {
     const tab = searchParams.get("tab");
-    const projectName = searchParams.get("project");
     if (tab === "promotion") {
       setActiveTab("promotion");
-      if (projectName) {
-        const found = uniqueProjects.find((p) => p.name === projectName);
-        if (found) setSelectedProject(found);
-      }
     }
   }, [searchParams]);
 
@@ -189,27 +181,57 @@ const MakerStudio = () => {
     toast.success("咨询请求已发送给管理员", { description: "我们将在1-2个工作日内联系您" });
   };
 
-  const handleDeleteProject = (id: string) => {
-    setMyProjects((prev) => prev.filter((p) => p.id !== id));
-    toast.success("项目已删除");
+  const handleDeleteProject = async (id: string) => {
+    try {
+      await deleteProduct.mutateAsync(id);
+      toast.success("项目已删除");
+    } catch {
+      toast.error("删除失败");
+    }
   };
 
-  const handleEditProject = (proj: typeof uniqueProjects[0]) => {
+  const handleEditProject = (proj: any) => {
     setEditingProjectId(proj.id);
     setEditFormData({
       ...emptyFormData,
       name: proj.name,
-      slogan: proj.slogan,
+      slogan: proj.slogan || "",
+      category: proj.category_id || "",
+      description: proj.description || "",
+      website: proj.website || "",
+      founderName: proj.maker_name || "",
+      founderTitle: proj.maker_title || "",
+      companyName: proj.company_name || "",
+      companyFounded: proj.company_founded || "",
+      companyLocation: proj.company_location || "",
+      companyFunding: proj.company_funding || "",
     });
     setActiveTab("edit");
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (!editingProjectId) return;
-    setMyProjects((prev) => prev.map((p) => p.id === editingProjectId ? { ...p, name: editFormData.name, slogan: editFormData.slogan } : p));
-    setEditingProjectId(null);
-    setActiveTab("projects");
-    toast.success("产品信息已更新");
+    try {
+      await updateProduct.mutateAsync({
+        id: editingProjectId,
+        name: editFormData.name,
+        slogan: editFormData.slogan,
+        category_id: editFormData.category || null,
+        description: editFormData.description,
+        website: editFormData.website,
+        maker_name: editFormData.founderName,
+        maker_title: editFormData.founderTitle,
+        company_name: editFormData.companyName,
+        company_founded: editFormData.companyFounded,
+        company_location: editFormData.companyLocation,
+        company_funding: editFormData.companyFunding,
+      });
+      setEditingProjectId(null);
+      setActiveTab("projects");
+      toast.success("产品信息已更新");
+    } catch {
+      toast.error("更新失败");
+    }
   };
 
 
@@ -260,11 +282,33 @@ const MakerStudio = () => {
     setFormData({ ...formData, prompts: formData.prompts.filter((_, i) => i !== idx) });
   };
 
-  const handleSubmitProduct = () => {
-    toast.success("产品已提交审核", { description: "我们将在1-2个工作日内完成审核" });
-    setSubmitStep("choose");
-    setFormData(emptyFormData);
-    setUrl("");
+  const handleSubmitProduct = async () => {
+    if (!user) { toast.error("请先登录"); return; }
+    if (!formData.name) { toast.error("请填写产品名称"); return; }
+    try {
+      await submitProduct.mutateAsync({
+        name: formData.name,
+        slogan: formData.slogan,
+        description: formData.description,
+        category_id: formData.category || "devcode",
+        tags: formData.tags,
+        website: formData.website,
+        maker_name: formData.founderName,
+        maker_title: formData.founderTitle,
+        company_name: formData.companyName,
+        company_founded: formData.companyFounded,
+        company_location: formData.companyLocation,
+        company_funding: formData.companyFunding,
+        benefits: [],
+        user_id: user.id,
+      });
+      toast.success("产品已提交审核", { description: "我们将在1-2个工作日内完成审核" });
+      setSubmitStep("choose");
+      setFormData(emptyFormData);
+      setUrl("");
+    } catch (e: any) {
+      toast.error(e.message || "提交失败");
+    }
   };
 
   const handleCardClick = (cardId: string) => {
@@ -627,11 +671,15 @@ const MakerStudio = () => {
           {/* MY PROJECTS TAB */}
           <TabsContent value="projects" className="animate-fade-in">
             <h3 className="text-lg font-bold text-foreground mb-4">产品管理</h3>
-            {myProjects.length === 0 ? (
+            {!isLoggedIn ? (
+              <div className="text-center py-16 text-muted-foreground text-sm">请先登录查看您的产品</div>
+            ) : loadingProducts ? (
+              <div className="text-center py-16 text-muted-foreground text-sm">加载中...</div>
+            ) : myProducts.length === 0 ? (
               <div className="text-center py-16 text-muted-foreground text-sm">暂无项目，去提交一个吧</div>
             ) : (
               <div className="space-y-3">
-                {myProjects.map((proj) => (
+                {myProducts.map((proj: any) => (
                   <Card key={proj.id} className="bg-card border-border">
                     <CardContent className="p-4 flex items-center gap-4">
                       <div className="h-11 w-11 rounded-xl bg-secondary flex items-center justify-center font-bold text-sm shrink-0 border border-border/40">
@@ -641,9 +689,8 @@ const MakerStudio = () => {
                         <h4 className="text-sm font-semibold text-foreground truncate">{proj.name}</h4>
                         <p className="text-xs text-muted-foreground truncate">{proj.slogan}</p>
                       </div>
-                      <Badge variant={proj.status === "已上线" ? "default" : "secondary"} className="text-[10px] shrink-0">{proj.status}</Badge>
+                      <Badge variant={proj.status === "approved" ? "default" : "secondary"} className="text-[10px] shrink-0">{statusMap[proj.status] || proj.status}</Badge>
                       <div className="flex items-center gap-1 shrink-0">
-                        <Button variant="ghost" size="icon" className="h-8 w-8" title="查看"><Eye className="h-3.5 w-3.5 text-muted-foreground" /></Button>
                         <Button variant="ghost" size="icon" className="h-8 w-8" title="编辑" onClick={() => handleEditProject(proj)}><Pencil className="h-3.5 w-3.5 text-muted-foreground" /></Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
@@ -747,12 +794,12 @@ const MakerStudio = () => {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="gap-2">
-                    {selectedProject.name} <ChevronDown className="h-3.5 w-3.5" />
+                    {selectedProject?.name || "无项目"} <ChevronDown className="h-3.5 w-3.5" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="bg-popover border-border z-50 max-h-60 overflow-y-auto">
-                  {uniqueProjects.map((proj) => (
-                    <DropdownMenuItem key={proj.id} onClick={() => setSelectedProject(proj)} className="text-sm cursor-pointer">
+                  {myProducts.map((proj: any) => (
+                    <DropdownMenuItem key={proj.id} className="text-sm cursor-pointer">
                       {proj.name}
                     </DropdownMenuItem>
                   ))}

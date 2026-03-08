@@ -16,7 +16,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { LayoutDashboard, FileText, Megaphone, Settings, Plus, Eye, ThumbsUp, Clock, MessageCircle, Save, Image, Upload, Pencil, Trash2, AlertTriangle, Lock } from "lucide-react";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-import { mockInquiries, categories } from "@/data/mockData";
+import { mockInquiries } from "@/data/mockData";
+import { useCategories } from "@/hooks/useCategories";
+import { useAllProducts, useUpdateProduct } from "@/hooks/useProducts";
+import { useAuth } from "@/contexts/AuthContext";
 import { defaultBannerSlides, type BannerSlide } from "@/components/home/HomeBanner";
 import { toast } from "sonner";
 
@@ -27,12 +30,7 @@ const sidebarItems = [
   { id: "config", label: "系统配置", icon: Settings },
 ];
 
-const mockSubmissions = [
-  { id: "1", name: "AutoGPT Pro", status: "待审核", date: "2024-03-20", maker: "张三" },
-  { id: "2", name: "AI翻译官", status: "已通过", date: "2024-03-19", maker: "李四" },
-  { id: "3", name: "智能客服Bot", status: "待审核", date: "2024-03-18", maker: "王五" },
-  { id: "4", name: "代码审查AI", status: "已拒绝", date: "2024-03-17", maker: "赵六" },
-];
+const statusMap: Record<string, string> = { pending: "待审核", approved: "已通过", rejected: "已拒绝" };
 
 const categoryInquiryData = [
   { name: "开发与编程", value: 45 },
@@ -57,9 +55,13 @@ const PIE_COLORS = [
 ];
 
 const Admin = () => {
+  const { isAdmin, isLoggedIn } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
   const [weights, setWeights] = useState({ upvotes: 40, views: 25, comments: 20, decay: 15 });
   const [bannerSlides, setBannerSlides] = useState<BannerSlide[]>(defaultBannerSlides);
+  const { data: categories = [] } = useCategories();
+  const { data: allProducts = [], isLoading } = useAllProducts();
+  const updateProduct = useUpdateProduct();
 
   const updateBanner = (index: number, field: keyof BannerSlide, value: string | boolean) => {
     setBannerSlides((prev) => prev.map((s, i) => i === index ? { ...s, [field]: value } : s));
@@ -127,13 +129,25 @@ const Admin = () => {
                     <TableHead className="text-xs">产品名称</TableHead><TableHead className="text-xs">提交者</TableHead><TableHead className="text-xs">日期</TableHead><TableHead className="text-xs">状态</TableHead><TableHead className="text-xs text-right">操作</TableHead>
                   </TableRow></TableHeader>
                   <TableBody>
-                    {mockSubmissions.map((s) => (
+                    {isLoading ? (
+                      <TableRow><TableCell colSpan={5} className="text-center text-sm text-muted-foreground py-8">加载中...</TableCell></TableRow>
+                    ) : allProducts.length === 0 ? (
+                      <TableRow><TableCell colSpan={5} className="text-center text-sm text-muted-foreground py-8">暂无产品</TableCell></TableRow>
+                    ) : allProducts.map((s: any) => (
                       <TableRow key={s.id} className="border-border">
                         <TableCell className="text-sm font-medium">{s.name}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{s.maker}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{s.date}</TableCell>
-                        <TableCell><Badge variant={s.status === "已通过" ? "default" : s.status === "已拒绝" ? "destructive" : "secondary"} className="text-[10px]">{s.status}</Badge></TableCell>
-                        <TableCell className="text-right"><Button size="sm" variant="ghost" className="text-xs h-7">审核</Button></TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{s.maker_name || "—"}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{new Date(s.created_at).toLocaleDateString()}</TableCell>
+                        <TableCell><Badge variant={s.status === "approved" ? "default" : s.status === "rejected" ? "destructive" : "secondary"} className="text-[10px]">{statusMap[s.status] || s.status}</Badge></TableCell>
+                        <TableCell className="text-right space-x-1">
+                          {s.status === "pending" && (
+                            <>
+                              <Button size="sm" variant="ghost" className="text-xs h-7 text-green-500" onClick={() => updateProduct.mutate({ id: s.id, status: "approved" })}>通过</Button>
+                              <Button size="sm" variant="ghost" className="text-xs h-7 text-destructive" onClick={() => updateProduct.mutate({ id: s.id, status: "rejected" })}>拒绝</Button>
+                            </>
+                          )}
+                          {s.status !== "pending" && <span className="text-xs text-muted-foreground">已处理</span>}
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -310,7 +324,7 @@ const Admin = () => {
                             <TableCell className="text-xs font-mono text-muted-foreground">{cat.id}</TableCell>
                             <TableCell className="text-sm font-medium">{cat.label}</TableCell>
                             <TableCell className="text-center">
-                              <Badge variant="secondary" className="text-[10px] font-mono">{cat.count}</Badge>
+                              <Badge variant="secondary" className="text-[10px] font-mono">—</Badge>
                             </TableCell>
                             <TableCell className="text-center">
                               <span className="text-xs text-muted-foreground/50">暂无</span>

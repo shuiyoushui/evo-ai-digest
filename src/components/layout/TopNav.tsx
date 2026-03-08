@@ -1,13 +1,12 @@
 import { useState } from "react";
-import { Search, Plus, LogIn, Hexagon, User, Settings, LogOut, Rocket } from "lucide-react";
+import { Search, Plus, LogIn, Hexagon, Settings, LogOut, Rocket } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
-import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+  Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
@@ -22,33 +21,46 @@ interface TopNavProps {
 
 export function TopNav({ onSearch }: TopNavProps) {
   const location = useLocation();
-  const { user, isLoggedIn, login, register, logout } = useAuth();
+  const { profile, isLoggedIn, login, register, logout, isAdmin } = useAuth();
   const [authOpen, setAuthOpen] = useState(false);
   const [authTab, setAuthTab] = useState<"login" | "register">("login");
-
-  // Form state
-  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [nickname, setNickname] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleLogin = () => {
-    if (!phone || !password) { toast.error("请填写手机号和密码"); return; }
-    login(phone, password);
-    setAuthOpen(false);
-    setPhone(""); setPassword("");
-    toast.success("登录成功");
+  const handleLogin = async () => {
+    if (!email || !password) { toast.error("请填写邮箱和密码"); return; }
+    setSubmitting(true);
+    try {
+      await login(email, password);
+      setAuthOpen(false);
+      setEmail(""); setPassword("");
+      toast.success("登录成功");
+    } catch (e: any) {
+      toast.error(e.message || "登录失败");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const handleRegister = () => {
-    if (!phone || !password || !nickname) { toast.error("请填写所有字段"); return; }
-    register(phone, password, nickname);
-    setAuthOpen(false);
-    setPhone(""); setPassword(""); setNickname("");
-    toast.success("注册成功");
+  const handleRegister = async () => {
+    if (!email || !password || !nickname) { toast.error("请填写所有字段"); return; }
+    setSubmitting(true);
+    try {
+      await register(email, password, nickname);
+      setAuthOpen(false);
+      setEmail(""); setPassword(""); setNickname("");
+      toast.success("注册成功");
+    } catch (e: any) {
+      toast.error(e.message || "注册失败");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     toast.success("已退出登录");
   };
 
@@ -67,64 +79,44 @@ export function TopNav({ onSearch }: TopNavProps) {
           </Link>
 
           <nav className="hidden md:flex items-center gap-1 ml-4">
-            <Link to="/">
-              <Button variant={location.pathname === "/" ? "secondary" : "ghost"} size="sm" className="text-sm">发现</Button>
-            </Link>
-            <Link to="/news">
-              <Button variant={location.pathname === "/news" ? "secondary" : "ghost"} size="sm" className="text-sm">AI 资讯</Button>
-            </Link>
-            <Link to="/about">
-              <Button variant={location.pathname === "/about" ? "secondary" : "ghost"} size="sm" className="text-sm">关于我们</Button>
-            </Link>
-            <Link to="/admin">
-              <Button variant={location.pathname === "/admin" ? "secondary" : "ghost"} size="sm" className="text-sm">管理后台</Button>
-            </Link>
+            <Link to="/"><Button variant={location.pathname === "/" ? "secondary" : "ghost"} size="sm" className="text-sm">发现</Button></Link>
+            <Link to="/news"><Button variant={location.pathname === "/news" ? "secondary" : "ghost"} size="sm" className="text-sm">AI 资讯</Button></Link>
+            <Link to="/about"><Button variant={location.pathname === "/about" ? "secondary" : "ghost"} size="sm" className="text-sm">关于我们</Button></Link>
+            {isAdmin && (
+              <Link to="/admin"><Button variant={location.pathname === "/admin" ? "secondary" : "ghost"} size="sm" className="text-sm">管理后台</Button></Link>
+            )}
           </nav>
 
           <div className="flex-1 max-w-md mx-auto">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="搜索AI产品..."
-                className="pl-9 bg-secondary border-border/60 h-9 text-sm"
-                onChange={(e) => onSearch?.(e.target.value)}
-              />
+              <Input placeholder="搜索AI产品..." className="pl-9 bg-secondary border-border/60 h-9 text-sm" onChange={(e) => onSearch?.(e.target.value)} />
             </div>
           </div>
 
-          {/* Right side: Submit -> Publisher Center -> User */}
           <div className="flex items-center gap-2 shrink-0">
             <Link to="/maker">
               <Button size="sm" className="gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground">
-                <Plus className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">提交产品</span>
+                <Plus className="h-3.5 w-3.5" /><span className="hidden sm:inline">提交产品</span>
               </Button>
             </Link>
             <Link to="/maker">
-              <Button variant={location.pathname === "/maker" ? "secondary" : "ghost"} size="sm" className="text-sm">
-                发布者中心
-              </Button>
+              <Button variant={location.pathname === "/maker" ? "secondary" : "ghost"} size="sm" className="text-sm">发布者中心</Button>
             </Link>
 
-            {isLoggedIn && user ? (
+            {isLoggedIn && profile ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" className="gap-2 text-sm">
                     <Avatar className="h-6 w-6">
-                      <AvatarFallback className="text-[10px] bg-primary/15 text-primary">
-                        {user.nickname.slice(0, 1)}
-                      </AvatarFallback>
+                      <AvatarFallback className="text-[10px] bg-primary/15 text-primary">{profile.nickname.slice(0, 1)}</AvatarFallback>
                     </Avatar>
-                    <span className="hidden sm:inline">{user.nickname}</span>
-                    {user.csdnBound && (
+                    <span className="hidden sm:inline">{profile.nickname}</span>
+                    {profile.csdn_bound && (
                       <TooltipProvider delayDuration={200}>
                         <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Rocket className="h-4 w-4 text-[hsl(25,95%,53%)] animate-in fade-in duration-300 cursor-pointer" />
-                          </TooltipTrigger>
-                          <TooltipContent className="text-xs">
-                            csdn 助力新产品曝光中
-                          </TooltipContent>
+                          <TooltipTrigger asChild><Rocket className="h-4 w-4 text-[hsl(25,95%,53%)] cursor-pointer" /></TooltipTrigger>
+                          <TooltipContent className="text-xs">csdn 助力新产品曝光中</TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
                     )}
@@ -132,9 +124,7 @@ export function TopNav({ onSearch }: TopNavProps) {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
                   <DropdownMenuItem asChild className="cursor-pointer">
-                    <Link to="/profile" className="flex items-center gap-2">
-                      <Settings className="h-3.5 w-3.5" /> 个人信息维护
-                    </Link>
+                    <Link to="/profile" className="flex items-center gap-2"><Settings className="h-3.5 w-3.5" /> 个人信息维护</Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive focus:text-destructive">
@@ -144,15 +134,13 @@ export function TopNav({ onSearch }: TopNavProps) {
               </DropdownMenu>
             ) : (
               <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground" onClick={() => setAuthOpen(true)}>
-                <LogIn className="h-4 w-4" />
-                <span className="hidden sm:inline text-sm">登录/注册</span>
+                <LogIn className="h-4 w-4" /><span className="hidden sm:inline text-sm">登录/注册</span>
               </Button>
             )}
           </div>
         </div>
       </header>
 
-      {/* Login / Register Dialog */}
       <Dialog open={authOpen} onOpenChange={setAuthOpen}>
         <DialogContent className="bg-card border-border max-w-sm">
           <DialogHeader>
@@ -165,14 +153,14 @@ export function TopNav({ onSearch }: TopNavProps) {
             </TabsList>
             <TabsContent value="login" className="space-y-4 mt-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">手机号</label>
-                <Input placeholder="输入手机号" value={phone} onChange={(e) => setPhone(e.target.value)} className="bg-secondary" />
+                <label className="text-xs font-medium text-muted-foreground">邮箱</label>
+                <Input placeholder="输入邮箱" value={email} onChange={(e) => setEmail(e.target.value)} className="bg-secondary" />
               </div>
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-muted-foreground">密码</label>
-                <Input type="password" placeholder="输入密码" value={password} onChange={(e) => setPassword(e.target.value)} className="bg-secondary" />
+                <Input type="password" placeholder="输入密码" value={password} onChange={(e) => setPassword(e.target.value)} className="bg-secondary" onKeyDown={(e) => e.key === "Enter" && handleLogin()} />
               </div>
-              <Button className="w-full bg-primary" onClick={handleLogin}>登录</Button>
+              <Button className="w-full bg-primary" onClick={handleLogin} disabled={submitting}>{submitting ? "登录中..." : "登录"}</Button>
             </TabsContent>
             <TabsContent value="register" className="space-y-4 mt-4">
               <div className="space-y-1.5">
@@ -180,14 +168,14 @@ export function TopNav({ onSearch }: TopNavProps) {
                 <Input placeholder="设置昵称" value={nickname} onChange={(e) => setNickname(e.target.value)} className="bg-secondary" />
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">手机号</label>
-                <Input placeholder="输入手机号" value={phone} onChange={(e) => setPhone(e.target.value)} className="bg-secondary" />
+                <label className="text-xs font-medium text-muted-foreground">邮箱</label>
+                <Input placeholder="输入邮箱" value={email} onChange={(e) => setEmail(e.target.value)} className="bg-secondary" />
               </div>
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-muted-foreground">密码</label>
-                <Input type="password" placeholder="设置密码" value={password} onChange={(e) => setPassword(e.target.value)} className="bg-secondary" />
+                <Input type="password" placeholder="设置密码（至少6位）" value={password} onChange={(e) => setPassword(e.target.value)} className="bg-secondary" onKeyDown={(e) => e.key === "Enter" && handleRegister()} />
               </div>
-              <Button className="w-full bg-primary" onClick={handleRegister}>注册</Button>
+              <Button className="w-full bg-primary" onClick={handleRegister} disabled={submitting}>{submitting ? "注册中..." : "注册"}</Button>
             </TabsContent>
           </Tabs>
         </DialogContent>
