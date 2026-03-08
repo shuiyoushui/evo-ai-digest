@@ -209,12 +209,29 @@ const MakerStudio = () => {
     setActiveTab("edit");
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (!editingProjectId) return;
-    setMyProjects((prev) => prev.map((p) => p.id === editingProjectId ? { ...p, name: editFormData.name, slogan: editFormData.slogan } : p));
-    setEditingProjectId(null);
-    setActiveTab("projects");
-    toast.success("产品信息已更新");
+    try {
+      await updateProduct.mutateAsync({
+        id: editingProjectId,
+        name: editFormData.name,
+        slogan: editFormData.slogan,
+        category_id: editFormData.category || null,
+        description: editFormData.description,
+        website: editFormData.website,
+        maker_name: editFormData.founderName,
+        maker_title: editFormData.founderTitle,
+        company_name: editFormData.companyName,
+        company_founded: editFormData.companyFounded,
+        company_location: editFormData.companyLocation,
+        company_funding: editFormData.companyFunding,
+      });
+      setEditingProjectId(null);
+      setActiveTab("projects");
+      toast.success("产品信息已更新");
+    } catch {
+      toast.error("更新失败");
+    }
   };
 
 
