@@ -13,10 +13,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { ShareDialog } from "./ShareDialog";
-import type { Product } from "@/data/mockData";
-import { relatedProducts, mockComments } from "@/data/mockData";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToggleUpvote, useUserUpvotes } from "@/hooks/useUpvotes";
+import { toast } from "sonner";
+import type { DbProduct } from "@/hooks/useProducts";
+import { mockComments } from "@/data/mockData";
 
-// Mock skills data per product type
 const mockSkills = [
   { icon: Globe, name: "联网搜索", desc: "实时搜索互联网获取最新数据和信息" },
   { icon: Code, name: "代码解释器", desc: "运行 Python 代码进行数据分析和计算" },
@@ -27,39 +29,37 @@ const mockSkills = [
 ];
 
 const mockPrompts = [
-  { id: "p1", title: "修复 Bug", prompt: "分析以下 React 代码片段，找出导致重复渲染的问题并给出修复方案。请逐步解释问题根因，并提供优化后的完整代码。" },
-  { id: "p2", title: "编写测试", prompt: "为以下函数生成 Jest 单元测试用例，覆盖正常输入、边界条件和异常情况。每个测试用例需包含清晰的描述。" },
-  { id: "p3", title: "代码审查", prompt: "对以下代码进行 Code Review，从性能、安全性、可读性三个维度给出改进建议，并按优先级排序。" },
-  { id: "p4", title: "架构设计", prompt: "我需要设计一个支持百万用户的实时聊天系统，请给出技术架构方案，包括数据库选型、消息队列、缓存策略等。" },
-];
-
-const audienceTags = [
-  { label: "开发者", icon: Code },
-  { label: "产品经理", icon: FileText },
-  { label: "设计师", icon: ImageIcon },
-  { label: "学生", icon: Users },
+  { id: "p1", title: "修复 Bug", prompt: "分析以下 React 代码片段，找出导致重复渲染的问题并给出修复方案。" },
+  { id: "p2", title: "编写测试", prompt: "为以下函数生成 Jest 单元测试用例，覆盖正常输入、边界条件和异常情况。" },
+  { id: "p3", title: "代码审查", prompt: "对以下代码进行 Code Review，从性能、安全性、可读性三个维度给出改进建议。" },
+  { id: "p4", title: "架构设计", prompt: "我需要设计一个支持百万用户的实时聊天系统，请给出技术架构方案。" },
 ];
 
 interface ProductDetailProps {
-  product: Product | null;
+  product: DbProduct | null;
   open: boolean;
   onClose: () => void;
   onPromote?: (productId: string) => void;
 }
 
 export function ProductDetail({ product, open, onClose, onPromote }: ProductDetailProps) {
-  const [upvoted, setUpvoted] = useState(false);
-  const [count, setCount] = useState(0);
+  const { user, isLoggedIn } = useAuth();
   const [shareOpen, setShareOpen] = useState(false);
   const [commentText, setCommentText] = useState("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const toggleUpvote = useToggleUpvote();
+  const { data: userUpvotes = new Set<string>() } = useUserUpvotes(user?.id);
 
   if (!product) return null;
-  const currentCount = count || product.upvotes;
+
+  const isUpvoted = userUpvotes instanceof Set ? userUpvotes.has(product.id) : false;
 
   const handleUpvote = () => {
-    setUpvoted(!upvoted);
-    setCount(upvoted ? currentCount - 1 : currentCount + 1);
+    if (!isLoggedIn || !user) {
+      toast.error("请先登录后再投票");
+      return;
+    }
+    toggleUpvote.mutate({ userId: user.id, productId: product.id, isUpvoted });
   };
 
   const handleCopy = (id: string, text: string) => {
@@ -68,11 +68,32 @@ export function ProductDetail({ product, open, onClose, onPromote }: ProductDeta
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  // Convert DbProduct to ShareDialog format
+  const shareProduct = {
+    id: product.id,
+    name: product.name,
+    slogan: product.slogan,
+    description: product.description,
+    logo: product.logo_url,
+    tags: product.tags || [],
+    category: product.category_id,
+    upvotes: product.upvote_count || 0,
+    views: product.views,
+    comments: 0,
+    website: product.website,
+    verified: product.verified,
+    featured: product.featured,
+    maker: { name: product.maker_name, avatar: product.maker_avatar, title: product.maker_title },
+    company: { name: product.company_name, founded: product.company_founded, location: product.company_location, funding: product.company_funding },
+    benefits: product.benefits || [],
+    launchDate: product.launch_date,
+    rank: 0,
+  };
+
   return (
     <>
       <Dialog open={open} onOpenChange={onClose}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-card border-border p-0">
-          {/* Header */}
           <div className="p-6 pb-4">
             <DialogHeader className="mb-0">
               <div className="flex items-start gap-4">
@@ -86,12 +107,8 @@ export function ProductDetail({ product, open, onClose, onPromote }: ProductDeta
                     {product.featured && (
                       <TooltipProvider delayDuration={200}>
                         <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Rocket className="h-4 w-4 text-[hsl(25,95%,53%)] cursor-pointer" />
-                          </TooltipTrigger>
-                          <TooltipContent className="text-xs">
-                            csdn 助力新产品曝光中
-                          </TooltipContent>
+                          <TooltipTrigger asChild><Rocket className="h-4 w-4 text-[hsl(25,95%,53%)] cursor-pointer" /></TooltipTrigger>
+                          <TooltipContent className="text-xs">csdn 助力新产品曝光中</TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
                     )}
@@ -99,19 +116,17 @@ export function ProductDetail({ product, open, onClose, onPromote }: ProductDeta
                   <p className="text-muted-foreground text-sm mt-1">{product.slogan}</p>
                   <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1"><Eye className="h-3 w-3" />{product.views.toLocaleString()}</span>
-                    <span className="flex items-center gap-1"><MessageCircle className="h-3 w-3" />{product.comments}</span>
+                    <span className="flex items-center gap-1"><ChevronUp className="h-3 w-3" />{(product.upvote_count || 0).toLocaleString()}</span>
                   </div>
                 </div>
               </div>
             </DialogHeader>
             <div className="flex items-center gap-2 mt-4 flex-wrap">
-              <Button onClick={handleUpvote} className={`gap-1.5 ${upvoted ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground hover:bg-secondary/80"}`}>
-                <ChevronUp className="h-4 w-4" /> {currentCount}
+              <Button onClick={handleUpvote} disabled={toggleUpvote.isPending} className={`gap-1.5 ${isUpvoted ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground hover:bg-secondary/80"}`}>
+                <ChevronUp className="h-4 w-4" /> {(product.upvote_count || 0).toLocaleString()}
               </Button>
               <Button variant="outline" size="sm" asChild>
-                <a href={product.website} target="_blank" rel="noopener noreferrer" className="gap-1.5">
-                  访问官网 <ExternalLink className="h-3 w-3" />
-                </a>
+                <a href={product.website} target="_blank" rel="noopener noreferrer" className="gap-1.5">访问官网 <ExternalLink className="h-3 w-3" /></a>
               </Button>
               <Button variant="outline" size="sm" className="gap-1.5 border-primary/40 text-primary hover:bg-primary/10" onClick={() => { onClose(); onPromote?.(product.id); }}>
                 <Rocket className="h-3.5 w-3.5" /> 推广此项目
@@ -124,7 +139,6 @@ export function ProductDetail({ product, open, onClose, onPromote }: ProductDeta
 
           <Separator />
 
-          {/* Smart Tabs */}
           <div className="p-6">
             <Tabs defaultValue="overview" className="w-full">
               <TabsList className="w-full justify-start bg-secondary/50 mb-6">
@@ -133,7 +147,6 @@ export function ProductDetail({ product, open, onClose, onPromote }: ProductDeta
                 <TabsTrigger value="community" className="gap-1.5"><MessageCircle className="h-3.5 w-3.5" /> 社区评价</TabsTrigger>
               </TabsList>
 
-              {/* Tab 1: Overview */}
               <TabsContent value="overview">
                 <div className="grid grid-cols-1 md:grid-cols-[1fr_280px] gap-6">
                   <div className="space-y-5">
@@ -147,38 +160,23 @@ export function ProductDetail({ product, open, onClose, onPromote }: ProductDeta
                     <div>
                       <h3 className="font-semibold text-foreground mb-2">核心优势</h3>
                       <ul className="space-y-2">
-                        {product.benefits.map((b, i) => (
+                        {(product.benefits || []).map((b, i) => (
                           <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
                             <span className="text-primary mt-0.5">✦</span>{b}
                           </li>
                         ))}
                       </ul>
                     </div>
-                    {/* Target Audience */}
-                    <div>
-                      <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-                        <Users className="h-4 w-4 text-primary" /> 目标用户
-                      </h3>
-                      <div className="flex flex-wrap gap-2">
-                        {audienceTags.map((tag) => (
-                          <Badge key={tag.label} variant="secondary" className="gap-1.5 px-3 py-1.5 text-xs">
-                            <tag.icon className="h-3 w-3" /> {tag.label}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
                   </div>
-
-                  {/* Right sidebar - Meta */}
                   <div className="space-y-4">
                     <Card className="bg-secondary/30 border-border/40">
                       <CardContent className="p-4">
                         <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">创始人</h4>
                         <div className="flex items-center gap-3">
-                          <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center text-sm font-semibold">{product.maker.name[0]}</div>
+                          <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center text-sm font-semibold">{product.maker_name[0]}</div>
                           <div>
-                            <p className="text-sm font-medium text-foreground">{product.maker.name}</p>
-                            <p className="text-xs text-muted-foreground">{product.maker.title}</p>
+                            <p className="text-sm font-medium text-foreground">{product.maker_name}</p>
+                            <p className="text-xs text-muted-foreground">{product.maker_title}</p>
                           </div>
                         </div>
                       </CardContent>
@@ -187,26 +185,10 @@ export function ProductDetail({ product, open, onClose, onPromote }: ProductDeta
                       <CardContent className="p-4">
                         <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">公司信息</h4>
                         <div className="space-y-2 text-sm">
-                          <div className="flex justify-between"><span className="text-muted-foreground">公司</span><span className="text-foreground">{product.company.name}</span></div>
-                          <div className="flex justify-between"><span className="text-muted-foreground">成立</span><span className="text-foreground">{product.company.founded}</span></div>
-                          <div className="flex justify-between"><span className="text-muted-foreground">地点</span><span className="text-foreground">{product.company.location}</span></div>
-                          {product.company.funding && <div className="flex justify-between"><span className="text-muted-foreground">融资</span><span className="text-foreground">{product.company.funding}</span></div>}
-                        </div>
-                      </CardContent>
-                    </Card>
-                    <Card className="bg-secondary/30 border-border/40">
-                      <CardContent className="p-4">
-                        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">相关产品</h4>
-                        <div className="space-y-2">
-                          {relatedProducts.map((rp) => (
-                            <div key={rp.id} className="flex items-center gap-2 p-2 rounded-md hover:bg-secondary/50 cursor-pointer">
-                              <div className="h-7 w-7 rounded-md bg-secondary flex items-center justify-center text-[10px] font-bold">{rp.name.slice(0, 2)}</div>
-                              <div>
-                                <p className="text-xs font-medium text-foreground">{rp.name}</p>
-                                <p className="text-[10px] text-muted-foreground truncate">{rp.slogan}</p>
-                              </div>
-                            </div>
-                          ))}
+                          <div className="flex justify-between"><span className="text-muted-foreground">公司</span><span className="text-foreground">{product.company_name}</span></div>
+                          <div className="flex justify-between"><span className="text-muted-foreground">成立</span><span className="text-foreground">{product.company_founded}</span></div>
+                          <div className="flex justify-between"><span className="text-muted-foreground">地点</span><span className="text-foreground">{product.company_location}</span></div>
+                          {product.company_funding && <div className="flex justify-between"><span className="text-muted-foreground">融资</span><span className="text-foreground">{product.company_funding}</span></div>}
                         </div>
                       </CardContent>
                     </Card>
@@ -214,150 +196,67 @@ export function ProductDetail({ product, open, onClose, onPromote }: ProductDeta
                 </div>
               </TabsContent>
 
-              {/* Tab 2: Skills & Prompts */}
               <TabsContent value="skills">
-                <div className="grid grid-cols-1 md:grid-cols-[1fr_280px] gap-6">
-                  <div className="space-y-6">
-                    {/* Agent Skills */}
-                    <div>
-                      <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-                        <Zap className="h-4 w-4 text-primary" /> Agent 技能
-                      </h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {mockSkills.map((skill) => (
-                          <Card key={skill.name} className="bg-secondary/30 border-border/40 hover:border-primary/30 transition-colors">
-                            <CardContent className="p-4 flex items-start gap-3">
-                              <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                                <skill.icon className="h-4.5 w-4.5 text-primary" />
-                              </div>
-                              <div>
-                                <p className="text-sm font-medium text-foreground">{skill.name}</p>
-                                <p className="text-xs text-muted-foreground mt-0.5">{skill.desc}</p>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Prompts Library */}
-                    <div>
-                      <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-                        <Terminal className="h-4 w-4 text-primary" /> 最佳 Prompt 库
-                      </h3>
-                      <div className="space-y-3">
-                        {mockPrompts.map((p) => (
-                          <div key={p.id} className="rounded-lg border border-border/40 overflow-hidden">
-                            <div className="flex items-center justify-between px-4 py-2 bg-secondary/40">
-                              <span className="text-sm font-medium text-foreground">{p.title}</span>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-7 gap-1.5 text-xs"
-                                onClick={() => handleCopy(p.id, p.prompt)}
-                              >
-                                {copiedId === p.id ? <><Check className="h-3 w-3 text-primary" /> 已复制</> : <><Copy className="h-3 w-3" /> 复制</>}
-                              </Button>
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2"><Zap className="h-4 w-4 text-primary" /> Agent 技能</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {mockSkills.map((skill) => (
+                        <Card key={skill.name} className="bg-secondary/30 border-border/40 hover:border-primary/30 transition-colors">
+                          <CardContent className="p-4 flex items-start gap-3">
+                            <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0"><skill.icon className="h-4 w-4 text-primary" /></div>
+                            <div>
+                              <p className="text-sm font-medium text-foreground">{skill.name}</p>
+                              <p className="text-xs text-muted-foreground mt-0.5">{skill.desc}</p>
                             </div>
-                            <div className="px-4 py-3 bg-secondary font-mono text-xs text-muted-foreground leading-relaxed">
-                              {p.prompt}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                          </CardContent>
+                        </Card>
+                      ))}
                     </div>
                   </div>
-
-                  {/* Right sidebar */}
-                  <div className="space-y-4">
-                    <Card className="bg-secondary/30 border-border/40">
-                      <CardContent className="p-4">
-                        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">技能统计</h4>
-                        <div className="space-y-2 text-sm">
-                          <div className="flex justify-between"><span className="text-muted-foreground">技能数量</span><span className="text-foreground font-medium">{mockSkills.length}</span></div>
-                          <div className="flex justify-between"><span className="text-muted-foreground">Prompt 模板</span><span className="text-foreground font-medium">{mockPrompts.length}</span></div>
-                          <div className="flex justify-between"><span className="text-muted-foreground">社区贡献</span><span className="text-foreground font-medium">26</span></div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                    <Card className="bg-secondary/30 border-border/40">
-                      <CardContent className="p-4">
-                        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">相关产品</h4>
-                        <div className="space-y-2">
-                          {relatedProducts.map((rp) => (
-                            <div key={rp.id} className="flex items-center gap-2 p-2 rounded-md hover:bg-secondary/50 cursor-pointer">
-                              <div className="h-7 w-7 rounded-md bg-secondary flex items-center justify-center text-[10px] font-bold">{rp.name.slice(0, 2)}</div>
-                              <div>
-                                <p className="text-xs font-medium text-foreground">{rp.name}</p>
-                                <p className="text-[10px] text-muted-foreground truncate">{rp.slogan}</p>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </div>
-              </TabsContent>
-
-              {/* Tab 3: Community */}
-              <TabsContent value="community">
-                <div className="grid grid-cols-1 md:grid-cols-[1fr_280px] gap-6">
-                  <div className="space-y-4">
-                    <h3 className="font-semibold text-foreground flex items-center gap-2">
-                      <MessageCircle className="h-4 w-4 text-primary" /> 评论
-                    </h3>
-                    <div className="flex gap-3">
-                      <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center text-xs font-semibold shrink-0">我</div>
-                      <div className="flex-1 space-y-2">
-                        <Textarea
-                          placeholder="写下你的评论..."
-                          className="bg-secondary border-border/60 min-h-[72px] text-sm"
-                          value={commentText}
-                          onChange={(e) => setCommentText(e.target.value)}
-                        />
-                        <div className="flex justify-end">
-                          <Button size="sm" className="bg-primary text-xs">发表评论</Button>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="space-y-4 mt-4">
-                      {mockComments.map((c) => (
-                        <div key={c.id} className="flex gap-3">
-                          <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center text-xs font-semibold shrink-0">{c.avatar}</div>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm font-medium text-foreground">{c.user}</span>
-                              <span className="text-[10px] text-muted-foreground">{c.time}</span>
-                            </div>
-                            <p className="text-sm text-muted-foreground mt-1">{c.text}</p>
-                            <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mt-1.5 transition-colors">
-                              <Reply className="h-3 w-3" /> 回复
-                            </button>
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2"><Terminal className="h-4 w-4 text-primary" /> 最佳 Prompt 库</h3>
+                    <div className="space-y-3">
+                      {mockPrompts.map((p) => (
+                        <div key={p.id} className="rounded-lg border border-border/40 overflow-hidden">
+                          <div className="flex items-center justify-between px-4 py-2 bg-secondary/40">
+                            <span className="text-sm font-medium text-foreground">{p.title}</span>
+                            <Button variant="ghost" size="sm" className="h-7 gap-1.5 text-xs" onClick={() => handleCopy(p.id, p.prompt)}>
+                              {copiedId === p.id ? <><Check className="h-3 w-3 text-primary" /> 已复制</> : <><Copy className="h-3 w-3" /> 复制</>}
+                            </Button>
                           </div>
+                          <div className="px-4 py-3 bg-secondary font-mono text-xs text-muted-foreground leading-relaxed">{p.prompt}</div>
                         </div>
                       ))}
                     </div>
                   </div>
+                </div>
+              </TabsContent>
 
-                  {/* Right sidebar */}
-                  <div>
-                    <Card className="bg-secondary/30 border-border/40">
-                      <CardContent className="p-4">
-                        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">相关产品</h4>
-                        <div className="space-y-2">
-                          {relatedProducts.map((rp) => (
-                            <div key={rp.id} className="flex items-center gap-2 p-2 rounded-md hover:bg-secondary/50 cursor-pointer">
-                              <div className="h-7 w-7 rounded-md bg-secondary flex items-center justify-center text-[10px] font-bold">{rp.name.slice(0, 2)}</div>
-                              <div>
-                                <p className="text-xs font-medium text-foreground">{rp.name}</p>
-                                <p className="text-[10px] text-muted-foreground truncate">{rp.slogan}</p>
-                              </div>
-                            </div>
-                          ))}
+              <TabsContent value="community">
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-foreground flex items-center gap-2"><MessageCircle className="h-4 w-4 text-primary" /> 评论</h3>
+                  <div className="flex gap-3">
+                    <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center text-xs font-semibold shrink-0">我</div>
+                    <div className="flex-1 space-y-2">
+                      <Textarea placeholder="写下你的评论..." className="bg-secondary border-border/60 min-h-[72px] text-sm" value={commentText} onChange={(e) => setCommentText(e.target.value)} />
+                      <div className="flex justify-end"><Button size="sm" className="bg-primary text-xs">发表评论</Button></div>
+                    </div>
+                  </div>
+                  <div className="space-y-4 mt-4">
+                    {mockComments.map((c) => (
+                      <div key={c.id} className="flex gap-3">
+                        <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center text-xs font-semibold shrink-0">{c.avatar}</div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-foreground">{c.user}</span>
+                            <span className="text-[10px] text-muted-foreground">{c.time}</span>
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-1">{c.text}</p>
+                          <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mt-1.5 transition-colors"><Reply className="h-3 w-3" /> 回复</button>
                         </div>
-                      </CardContent>
-                    </Card>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </TabsContent>
@@ -366,7 +265,7 @@ export function ProductDetail({ product, open, onClose, onPromote }: ProductDeta
         </DialogContent>
       </Dialog>
 
-      <ShareDialog product={product} open={shareOpen} onClose={() => setShareOpen(false)} />
+      <ShareDialog product={shareProduct} open={shareOpen} onClose={() => setShareOpen(false)} />
     </>
   );
 }

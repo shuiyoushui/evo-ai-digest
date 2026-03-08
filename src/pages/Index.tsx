@@ -6,22 +6,28 @@ import { HomeBanner } from "@/components/home/HomeBanner";
 import { HeroBanner } from "@/components/home/HeroBanner";
 import { ProductCard } from "@/components/home/ProductCard";
 import { ProductDetail } from "@/components/product/ProductDetail";
-import { products } from "@/data/mockData";
+import { useProducts } from "@/hooks/useProducts";
+import { useUserUpvotes } from "@/hooks/useUpvotes";
+import { useAuth } from "@/contexts/AuthContext";
 import { TrendingUp, Rocket, Lock } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Index = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [timeFilter, setTimeFilter] = useState("total");
 
+  const { data: products = [], isLoading } = useProducts(selectedCategory);
+  const { data: userUpvotes = new Set<string>() } = useUserUpvotes(user?.id);
+
   const filtered = useMemo(() => {
     let list = products;
-    if (selectedCategory) list = list.filter((p) => p.category === selectedCategory);
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       list = list.filter((p) => p.name.toLowerCase().includes(q) || p.slogan.toLowerCase().includes(q));
@@ -30,38 +36,28 @@ const Index = () => {
       list = [...list].sort((a, b) => b.views - a.views);
     }
     return list;
-  }, [selectedCategory, searchQuery, timeFilter]);
+  }, [products, searchQuery, timeFilter]);
 
   const newArrivals = useMemo(() => {
-    return [...products].sort((a, b) => new Date(b.launchDate).getTime() - new Date(a.launchDate).getTime()).slice(0, 5);
-  }, []);
+    return [...products].sort((a, b) => new Date(b.launch_date).getTime() - new Date(a.launch_date).getTime()).slice(0, 5);
+  }, [products]);
 
   const product = products.find((p) => p.id === selectedProduct) || null;
 
   const handlePromote = (productId: string) => {
     const p = products.find((x) => x.id === productId);
-    if (p) {
-      navigate(`/maker?tab=promotion&project=${encodeURIComponent(p.name)}`);
-    }
+    if (p) navigate(`/maker?tab=promotion&project=${encodeURIComponent(p.name)}`);
   };
 
   return (
     <div className="min-h-screen bg-background">
       <TopNav onSearch={setSearchQuery} />
-
-      {/* Ambient hero glow */}
       <div className="hero-glow h-48 -mt-1 pointer-events-none" />
-
       <div className="max-w-7xl mx-auto px-6 -mt-32 relative z-10">
-        {/* 2-column layout: Sidebar stays full-height on left */}
         <div className="flex gap-8">
           <CategorySidebar selected={selectedCategory} onSelect={setSelectedCategory} />
-
-          {/* Right column: Banner + Content */}
           <main className="flex-1 min-w-0 pb-16">
-            {/* Banner Carousel inside right column */}
             <HomeBanner />
-
             <HeroBanner onProductClick={setSelectedProduct} />
 
             <Tabs defaultValue="hot" className="mb-4">
@@ -93,12 +89,26 @@ const Index = () => {
                   </ToggleGroup>
                 </div>
 
-                <div className="rounded-2xl border border-border/30 bg-card/30 backdrop-blur-sm divide-y divide-border/20 overflow-hidden">
-                  {filtered.map((p) => (
-                    <ProductCard key={p.id} product={p} onClick={() => setSelectedProduct(p.id)} />
-                  ))}
-                </div>
-                {filtered.length === 0 && (
+                {isLoading ? (
+                  <div className="space-y-4">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Skeleton key={i} className="h-20 w-full rounded-xl" />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border border-border/30 bg-card/30 backdrop-blur-sm divide-y divide-border/20 overflow-hidden">
+                    {filtered.map((p, i) => (
+                      <ProductCard
+                        key={p.id}
+                        product={p}
+                        rank={i + 1}
+                        onClick={() => setSelectedProduct(p.id)}
+                        isUpvoted={userUpvotes instanceof Set ? userUpvotes.has(p.id) : false}
+                      />
+                    ))}
+                  </div>
+                )}
+                {!isLoading && filtered.length === 0 && (
                   <div className="text-center py-24 text-muted-foreground/60 text-sm">暂无匹配的产品</div>
                 )}
               </TabsContent>
@@ -106,7 +116,13 @@ const Index = () => {
               <TabsContent value="new" className="mt-0">
                 <div className="rounded-2xl border border-border/30 bg-card/30 backdrop-blur-sm divide-y divide-border/20 overflow-hidden">
                   {newArrivals.map((p, i) => (
-                    <ProductCard key={p.id} product={{ ...p, rank: i + 1 }} onClick={() => setSelectedProduct(p.id)} />
+                    <ProductCard
+                      key={p.id}
+                      product={p}
+                      rank={i + 1}
+                      onClick={() => setSelectedProduct(p.id)}
+                      isUpvoted={userUpvotes instanceof Set ? userUpvotes.has(p.id) : false}
+                    />
                   ))}
                 </div>
               </TabsContent>
