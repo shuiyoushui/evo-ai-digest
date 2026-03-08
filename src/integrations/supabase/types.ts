@@ -264,6 +264,8 @@ export type Database = {
           maker_name: string
           maker_title: string
           name: string
+          prompts: Json
+          skills: Json
           slogan: string
           status: string
           tags: string[]
