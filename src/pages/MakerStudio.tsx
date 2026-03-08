@@ -160,14 +160,40 @@ const MakerStudio = () => {
     }
   }, [searchParams]);
 
-  const handleAIAnalyze = () => {
+  const handleAIAnalyze = async () => {
     if (!url) return;
     setIsAIMode(true);
     setSubmitStep("analyzing");
-    setTimeout(() => {
-      setFormData({ ...mockAIData, website: url });
+    try {
+      const { data, error } = await supabase.functions.invoke("analyze-url", {
+        body: { url },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      const info = data?.data;
+      if (!info) throw new Error("未能解析产品信息");
+      setFormData({
+        ...emptyFormData,
+        name: info.name || "",
+        slogan: info.slogan || "",
+        category: info.category || "",
+        tags: info.tags || [],
+        description: info.description || "",
+        website: url,
+        founderName: info.founderName || "",
+        founderTitle: info.founderTitle || "",
+        companyName: info.companyName || "",
+        companyFounded: info.companyFounded || "",
+        companyLocation: info.companyLocation || "",
+        companyFunding: info.companyFunding || "",
+      });
       setSubmitStep("form");
-    }, 2500);
+      toast.success("AI 解析完成", { description: "请核对并补充产品信息" });
+    } catch (e: any) {
+      console.error("AI analyze error:", e);
+      toast.error("AI 解析失败", { description: e.message || "请稍后重试或手动填写" });
+      setSubmitStep("choose");
+    }
   };
 
   const handleManualEntry = () => {
