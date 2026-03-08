@@ -1,8 +1,8 @@
 import { useState } from "react";
 import {
   ChevronUp, ExternalLink, CheckCircle, Share2, Eye, MessageCircle,
-  Reply, Rocket, Globe, Code, ImageIcon, Terminal, Zap, Users,
-  Copy, Check, Brain, FileText, Sparkles
+  Reply, Rocket, Terminal, Zap,
+  Copy, Check
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
