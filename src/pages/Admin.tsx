@@ -129,13 +129,25 @@ const Admin = () => {
                     <TableHead className="text-xs">产品名称</TableHead><TableHead className="text-xs">提交者</TableHead><TableHead className="text-xs">日期</TableHead><TableHead className="text-xs">状态</TableHead><TableHead className="text-xs text-right">操作</TableHead>
                   </TableRow></TableHeader>
                   <TableBody>
-                    {mockSubmissions.map((s) => (
+                    {isLoading ? (
+                      <TableRow><TableCell colSpan={5} className="text-center text-sm text-muted-foreground py-8">加载中...</TableCell></TableRow>
+                    ) : allProducts.length === 0 ? (
+                      <TableRow><TableCell colSpan={5} className="text-center text-sm text-muted-foreground py-8">暂无产品</TableCell></TableRow>
+                    ) : allProducts.map((s: any) => (
                       <TableRow key={s.id} className="border-border">
                         <TableCell className="text-sm font-medium">{s.name}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{s.maker}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{s.date}</TableCell>
-                        <TableCell><Badge variant={s.status === "已通过" ? "default" : s.status === "已拒绝" ? "destructive" : "secondary"} className="text-[10px]">{s.status}</Badge></TableCell>
-                        <TableCell className="text-right"><Button size="sm" variant="ghost" className="text-xs h-7">审核</Button></TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{s.maker_name || "—"}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{new Date(s.created_at).toLocaleDateString()}</TableCell>
+                        <TableCell><Badge variant={s.status === "approved" ? "default" : s.status === "rejected" ? "destructive" : "secondary"} className="text-[10px]">{statusMap[s.status] || s.status}</Badge></TableCell>
+                        <TableCell className="text-right space-x-1">
+                          {s.status === "pending" && (
+                            <>
+                              <Button size="sm" variant="ghost" className="text-xs h-7 text-green-500" onClick={() => updateProduct.mutate({ id: s.id, status: "approved" })}>通过</Button>
+                              <Button size="sm" variant="ghost" className="text-xs h-7 text-destructive" onClick={() => updateProduct.mutate({ id: s.id, status: "rejected" })}>拒绝</Button>
+                            </>
+                          )}
+                          {s.status !== "pending" && <span className="text-xs text-muted-foreground">已处理</span>}
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
