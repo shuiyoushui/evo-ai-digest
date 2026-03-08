@@ -80,6 +80,8 @@ export type Database = {
           maker_name: string | null
           maker_title: string | null
           name: string
+          prompts: Json | null
+          skills: Json | null
           slogan: string | null
           status: string | null
           tags: string[] | null
@@ -107,6 +109,8 @@ export type Database = {
           maker_name?: string | null
           maker_title?: string | null
           name: string
+          prompts?: Json | null
+          skills?: Json | null
           slogan?: string | null
           status?: string | null
           tags?: string[] | null
@@ -134,6 +138,8 @@ export type Database = {
           maker_name?: string | null
           maker_title?: string | null
           name?: string
+          prompts?: Json | null
+          skills?: Json | null
           slogan?: string | null
           status?: string | null
           tags?: string[] | null
