@@ -102,12 +102,7 @@ export function TopNav({ onSearch }: TopNavProps) {
     setSubmitting(true);
     try {
       await setPasswordAfterOtp(regPassword);
-      // Update profile with nickname
-      const { useAuth: _ , ...rest } = await import("@/contexts/AuthContext").then(() => ({})) as any;
-      // Just use supabase directly to update nickname
-      const { supabase } = await import("@/integrations/supabase/client");
       await supabase.auth.updateUser({ data: { nickname: regNickname } });
-      // The profile trigger should have created a profile, update nickname
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         await supabase.from("profiles").update({ nickname: regNickname }).eq("id", user.id);
