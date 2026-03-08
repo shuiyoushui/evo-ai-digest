@@ -110,7 +110,7 @@ const MakerStudio = () => {
   const [formData, setFormData] = useState(emptyFormData);
   const [newTag, setNewTag] = useState("");
   const [isAIMode, setIsAIMode] = useState(false);
-
+  const selectedProject = myProducts[0] || { id: "", name: "未选择项目" };
 
   // Generic inquiry dialog (for non-promotion services)
   const [inquiryOpen, setInquiryOpen] = useState(false);
