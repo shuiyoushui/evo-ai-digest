@@ -324,7 +324,7 @@ const Admin = () => {
                             <TableCell className="text-xs font-mono text-muted-foreground">{cat.id}</TableCell>
                             <TableCell className="text-sm font-medium">{cat.label}</TableCell>
                             <TableCell className="text-center">
-                              <Badge variant="secondary" className="text-[10px] font-mono">{cat.count}</Badge>
+                              <Badge variant="secondary" className="text-[10px] font-mono">—</Badge>
                             </TableCell>
                             <TableCell className="text-center">
                               <span className="text-xs text-muted-foreground/50">暂无</span>
