@@ -91,14 +91,7 @@ const techServiceCards = [
   { id: "cloud", title: "其他模型/云服务等", desc: "GPU computing resources, RAG, and data processing.", icon: Globe },
 ];
 
-const mockProjects = [
-  { id: "p1", name: "我的AI助手", slogan: "你的智能工作伙伴", status: "已上线", date: "2024-03-15" },
-  { id: "p2", name: "代码审查Bot", slogan: "AI自动代码审查", status: "审核中", date: "2024-03-10" },
-  { id: "p3", name: "智能翻译工具", slogan: "多语言实时翻译", status: "已上线", date: "2024-02-20" },
-  ...products.slice(0, 3).map((p) => ({ id: p.id, name: p.name, slogan: p.slogan, status: "已上线", date: p.launchDate })),
-];
-
-const uniqueProjects = mockProjects.filter((p, i, arr) => arr.findIndex((x) => x.name === p.name) === i);
+const statusMap: Record<string, string> = { approved: "已上线", pending: "审核中", rejected: "已拒绝" };
 
 const MakerStudio = () => {
   const [searchParams] = useSearchParams();
