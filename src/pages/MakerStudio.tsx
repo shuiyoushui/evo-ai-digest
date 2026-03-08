@@ -181,9 +181,13 @@ const MakerStudio = () => {
     toast.success("咨询请求已发送给管理员", { description: "我们将在1-2个工作日内联系您" });
   };
 
-  const handleDeleteProject = (id: string) => {
-    setMyProjects((prev) => prev.filter((p) => p.id !== id));
-    toast.success("项目已删除");
+  const handleDeleteProject = async (id: string) => {
+    try {
+      await deleteProduct.mutateAsync(id);
+      toast.success("项目已删除");
+    } catch {
+      toast.error("删除失败");
+    }
   };
 
   const handleEditProject = (proj: typeof uniqueProjects[0]) => {
