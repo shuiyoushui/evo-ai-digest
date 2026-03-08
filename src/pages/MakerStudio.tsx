@@ -96,11 +96,14 @@ const statusMap: Record<string, string> = { approved: "已上线", pending: "审
 const MakerStudio = () => {
   const [searchParams] = useSearchParams();
   const { user, isLoggedIn } = useAuth();
+  const { data: categories = [] } = useCategories();
+  const { data: myProducts = [], isLoading: loadingProducts } = useMyProducts(user?.id);
+  const submitProduct = useSubmitProduct();
+  const deleteProduct = useDeleteProduct();
+  const updateProduct = useUpdateProduct();
   const [submitStep, setSubmitStep] = useState<SubmitStep>("choose");
   const [url, setUrl] = useState("");
   const [activeTab, setActiveTab] = useState("submit");
-  const [selectedProject, setSelectedProject] = useState(uniqueProjects[0]);
-  const [myProjects, setMyProjects] = useState(uniqueProjects);
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
   const [editFormData, setEditFormData] = useState(emptyFormData);
   const [editNewTag, setEditNewTag] = useState("");
