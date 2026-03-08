@@ -19,6 +19,10 @@ interface AuthContextType {
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, nickname: string) => Promise<void>;
+  sendOtp: (email: string) => Promise<void>;
+  verifyOtp: (email: string, token: string) => Promise<{ isNewUser: boolean }>;
+  loginWithOtp: (email: string, token: string) => Promise<void>;
+  setPasswordAfterOtp: (password: string) => Promise<void>;
   logout: () => Promise<void>;
   updateProfile: (data: Partial<Profile>) => Promise<void>;
   bindCSDN: (username: string) => Promise<void>;
