@@ -16,7 +16,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { LayoutDashboard, FileText, Megaphone, Settings, Plus, Eye, ThumbsUp, Clock, MessageCircle, Save, Image, Upload, Pencil, Trash2, AlertTriangle, Lock } from "lucide-react";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-import { mockInquiries, categories } from "@/data/mockData";
+import { mockInquiries } from "@/data/mockData";
+import { useCategories } from "@/hooks/useCategories";
+import { useAllProducts, useUpdateProduct } from "@/hooks/useProducts";
+import { useAuth } from "@/contexts/AuthContext";
 import { defaultBannerSlides, type BannerSlide } from "@/components/home/HomeBanner";
 import { toast } from "sonner";
 
