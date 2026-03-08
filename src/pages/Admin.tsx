@@ -30,12 +30,7 @@ const sidebarItems = [
   { id: "config", label: "系统配置", icon: Settings },
 ];
 
-const mockSubmissions = [
-  { id: "1", name: "AutoGPT Pro", status: "待审核", date: "2024-03-20", maker: "张三" },
-  { id: "2", name: "AI翻译官", status: "已通过", date: "2024-03-19", maker: "李四" },
-  { id: "3", name: "智能客服Bot", status: "待审核", date: "2024-03-18", maker: "王五" },
-  { id: "4", name: "代码审查AI", status: "已拒绝", date: "2024-03-17", maker: "赵六" },
-];
+const statusMap: Record<string, string> = { pending: "待审核", approved: "已通过", rejected: "已拒绝" };
 
 const categoryInquiryData = [
   { name: "开发与编程", value: 45 },
