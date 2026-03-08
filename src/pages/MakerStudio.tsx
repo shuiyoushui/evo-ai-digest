@@ -671,11 +671,15 @@ const MakerStudio = () => {
           {/* MY PROJECTS TAB */}
           <TabsContent value="projects" className="animate-fade-in">
             <h3 className="text-lg font-bold text-foreground mb-4">产品管理</h3>
-            {myProjects.length === 0 ? (
+            {!isLoggedIn ? (
+              <div className="text-center py-16 text-muted-foreground text-sm">请先登录查看您的产品</div>
+            ) : loadingProducts ? (
+              <div className="text-center py-16 text-muted-foreground text-sm">加载中...</div>
+            ) : myProducts.length === 0 ? (
               <div className="text-center py-16 text-muted-foreground text-sm">暂无项目，去提交一个吧</div>
             ) : (
               <div className="space-y-3">
-                {myProjects.map((proj) => (
+                {myProducts.map((proj: any) => (
                   <Card key={proj.id} className="bg-card border-border">
                     <CardContent className="p-4 flex items-center gap-4">
                       <div className="h-11 w-11 rounded-xl bg-secondary flex items-center justify-center font-bold text-sm shrink-0 border border-border/40">
@@ -685,9 +689,8 @@ const MakerStudio = () => {
                         <h4 className="text-sm font-semibold text-foreground truncate">{proj.name}</h4>
                         <p className="text-xs text-muted-foreground truncate">{proj.slogan}</p>
                       </div>
-                      <Badge variant={proj.status === "已上线" ? "default" : "secondary"} className="text-[10px] shrink-0">{proj.status}</Badge>
+                      <Badge variant={proj.status === "approved" ? "default" : "secondary"} className="text-[10px] shrink-0">{statusMap[proj.status] || proj.status}</Badge>
                       <div className="flex items-center gap-1 shrink-0">
-                        <Button variant="ghost" size="icon" className="h-8 w-8" title="查看"><Eye className="h-3.5 w-3.5 text-muted-foreground" /></Button>
                         <Button variant="ghost" size="icon" className="h-8 w-8" title="编辑" onClick={() => handleEditProject(proj)}><Pencil className="h-3.5 w-3.5 text-muted-foreground" /></Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
