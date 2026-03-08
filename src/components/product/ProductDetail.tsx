@@ -35,7 +35,9 @@ export function ProductDetail({ product, open, onClose, onPromote }: ProductDeta
   const toggleUpvote = useToggleUpvote();
   const { data: userUpvotes = new Set<string>() } = useUserUpvotes(user?.id);
 
-  if (!product) return null;
+  const skills = (product.skills as { name: string; description: string }[] | null) || [];
+  const prompts = (product.prompts as { title: string; content: string }[] | null) || [];
+  const hasSkillsOrPrompts = skills.length > 0 || prompts.length > 0;
 
   const isUpvoted = userUpvotes instanceof Set ? userUpvotes.has(product.id) : false;
 
