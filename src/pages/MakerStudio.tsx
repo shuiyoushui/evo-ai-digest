@@ -794,12 +794,12 @@ const MakerStudio = () => {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="gap-2">
-                    {selectedProject.name} <ChevronDown className="h-3.5 w-3.5" />
+                    {selectedProject?.name || "无项目"} <ChevronDown className="h-3.5 w-3.5" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="bg-popover border-border z-50 max-h-60 overflow-y-auto">
-                  {uniqueProjects.map((proj) => (
-                    <DropdownMenuItem key={proj.id} onClick={() => setSelectedProject(proj)} className="text-sm cursor-pointer">
+                  {myProducts.map((proj: any) => (
+                    <DropdownMenuItem key={proj.id} className="text-sm cursor-pointer">
                       {proj.name}
                     </DropdownMenuItem>
                   ))}
