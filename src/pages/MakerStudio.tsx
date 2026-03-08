@@ -155,13 +155,8 @@ const MakerStudio = () => {
 
   useEffect(() => {
     const tab = searchParams.get("tab");
-    const projectName = searchParams.get("project");
     if (tab === "promotion") {
       setActiveTab("promotion");
-      if (projectName) {
-        const found = uniqueProjects.find((p) => p.name === projectName);
-        if (found) setSelectedProject(found);
-      }
     }
   }, [searchParams]);
 
