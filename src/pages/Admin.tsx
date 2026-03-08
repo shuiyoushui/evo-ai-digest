@@ -55,9 +55,13 @@ const PIE_COLORS = [
 ];
 
 const Admin = () => {
+  const { isAdmin, isLoggedIn } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
   const [weights, setWeights] = useState({ upvotes: 40, views: 25, comments: 20, decay: 15 });
   const [bannerSlides, setBannerSlides] = useState<BannerSlide[]>(defaultBannerSlides);
+  const { data: categories = [] } = useCategories();
+  const { data: allProducts = [], isLoading } = useAllProducts();
+  const updateProduct = useUpdateProduct();
 
   const updateBanner = (index: number, field: keyof BannerSlide, value: string | boolean) => {
     setBannerSlides((prev) => prev.map((s, i) => i === index ? { ...s, [field]: value } : s));
