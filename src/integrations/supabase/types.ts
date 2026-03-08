@@ -14,16 +14,245 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      categories: {
+        Row: {
+          icon: string
+          id: string
+          label: string
+          sort_order: number | null
+        }
+        Insert: {
+          icon?: string
+          id: string
+          label: string
+          sort_order?: number | null
+        }
+        Update: {
+          icon?: string
+          id?: string
+          label?: string
+          sort_order?: number | null
+        }
+        Relationships: []
+      }
+      products: {
+        Row: {
+          benefits: string[] | null
+          category_id: string | null
+          company_founded: string | null
+          company_funding: string | null
+          company_location: string | null
+          company_name: string | null
+          created_at: string | null
+          description: string | null
+          featured: boolean | null
+          id: string
+          launch_date: string | null
+          logo_url: string | null
+          maker_avatar: string | null
+          maker_name: string | null
+          maker_title: string | null
+          name: string
+          slogan: string | null
+          status: string | null
+          tags: string[] | null
+          updated_at: string | null
+          user_id: string | null
+          verified: boolean | null
+          video_url: string | null
+          views: number | null
+          website: string | null
+        }
+        Insert: {
+          benefits?: string[] | null
+          category_id?: string | null
+          company_founded?: string | null
+          company_funding?: string | null
+          company_location?: string | null
+          company_name?: string | null
+          created_at?: string | null
+          description?: string | null
+          featured?: boolean | null
+          id?: string
+          launch_date?: string | null
+          logo_url?: string | null
+          maker_avatar?: string | null
+          maker_name?: string | null
+          maker_title?: string | null
+          name: string
+          slogan?: string | null
+          status?: string | null
+          tags?: string[] | null
+          updated_at?: string | null
+          user_id?: string | null
+          verified?: boolean | null
+          video_url?: string | null
+          views?: number | null
+          website?: string | null
+        }
+        Update: {
+          benefits?: string[] | null
+          category_id?: string | null
+          company_founded?: string | null
+          company_funding?: string | null
+          company_location?: string | null
+          company_name?: string | null
+          created_at?: string | null
+          description?: string | null
+          featured?: boolean | null
+          id?: string
+          launch_date?: string | null
+          logo_url?: string | null
+          maker_avatar?: string | null
+          maker_name?: string | null
+          maker_title?: string | null
+          name?: string
+          slogan?: string | null
+          status?: string | null
+          tags?: string[] | null
+          updated_at?: string | null
+          user_id?: string | null
+          verified?: boolean | null
+          video_url?: string | null
+          views?: number | null
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          csdn_bound: boolean | null
+          csdn_username: string | null
+          email: string | null
+          id: string
+          nickname: string
+          phone: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          csdn_bound?: boolean | null
+          csdn_username?: string | null
+          email?: string | null
+          id: string
+          nickname?: string
+          phone?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          csdn_bound?: boolean | null
+          csdn_username?: string | null
+          email?: string | null
+          id?: string
+          nickname?: string
+          phone?: string | null
+        }
+        Relationships: []
+      }
+      upvotes: {
+        Row: {
+          created_at: string | null
+          id: string
+          product_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          product_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          product_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upvotes_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_products_with_upvotes: {
+        Args: { filter_category?: string; filter_status?: string }
+        Returns: {
+          benefits: string[]
+          category_id: string
+          company_founded: string
+          company_funding: string
+          company_location: string
+          company_name: string
+          created_at: string
+          description: string
+          featured: boolean
+          id: string
+          launch_date: string
+          logo_url: string
+          maker_avatar: string
+          maker_name: string
+          maker_title: string
+          name: string
+          slogan: string
+          status: string
+          tags: string[]
+          updated_at: string
+          upvote_count: number
+          user_id: string
+          verified: boolean
+          video_url: string
+          views: number
+          website: string
+        }[]
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +379,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+    },
   },
 } as const
