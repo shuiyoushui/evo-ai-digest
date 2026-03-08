@@ -19,6 +19,10 @@ interface AuthContextType {
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, nickname: string) => Promise<void>;
+  sendOtp: (email: string) => Promise<void>;
+  verifyOtp: (email: string, token: string) => Promise<{ isNewUser: boolean }>;
+  loginWithOtp: (email: string, token: string) => Promise<void>;
+  setPasswordAfterOtp: (password: string) => Promise<void>;
   logout: () => Promise<void>;
   updateProfile: (data: Partial<Profile>) => Promise<void>;
   bindCSDN: (username: string) => Promise<void>;
@@ -100,6 +104,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw error;
   };
 
+  const sendOtp = async (email: string) => {
+    const { error } = await supabase.auth.signInWithOtp({ email });
+    if (error) throw error;
+  };
+
+  const verifyOtp = async (email: string, token: string): Promise<{ isNewUser: boolean }> => {
+    const { data, error } = await supabase.auth.verifyOtp({ email, token, type: "email" });
+    if (error) throw error;
+    // Check if this user has a profile already (existing user) or is new
+    if (data.user) {
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("id", data.user.id)
+        .maybeSingle();
+      return { isNewUser: !profileData };
+    }
+    return { isNewUser: true };
+  };
+
+  const loginWithOtp = async (email: string, token: string) => {
+    const { error } = await supabase.auth.verifyOtp({ email, token, type: "email" });
+    if (error) throw error;
+  };
+
+  const setPasswordAfterOtp = async (password: string) => {
+    if (!user) throw new Error("未登录");
+    const { error } = await supabase.auth.updateUser({ password });
+    if (error) throw error;
+  };
+
   const logout = async () => {
     await supabase.auth.signOut();
     setUser(null);
@@ -131,6 +166,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loading,
         login,
         register,
+        sendOtp,
+        verifyOtp,
+        loginWithOtp,
+        setPasswordAfterOtp,
         logout,
         updateProfile,
         bindCSDN,
