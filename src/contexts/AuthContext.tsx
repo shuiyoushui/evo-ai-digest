@@ -18,7 +18,9 @@ interface AuthContextType {
   isLoggedIn: boolean;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  loginWithPhone: (phone: string, password: string) => Promise<void>;
   register: (email: string, password: string, nickname: string) => Promise<void>;
+  registerWithPhone: (nickname: string, phone: string, password: string) => Promise<void>;
   sendOtp: (email: string) => Promise<void>;
   verifyOtp: (email: string, token: string) => Promise<{ isNewUser: boolean }>;
   loginWithOtp: (email: string, token: string) => Promise<void>;
@@ -90,8 +92,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
+  const phoneToEmail = (phone: string) => `${phone}@phone.agenthunt.local`;
+
   const login = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+  };
+
+  const loginWithPhone = async (phone: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({ email: phoneToEmail(phone), password });
     if (error) throw error;
   };
 
@@ -100,6 +109,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email,
       password,
       options: { data: { nickname } },
+    });
+    if (error) throw error;
+  };
+
+  const registerWithPhone = async (nickname: string, phone: string, password: string) => {
+    const { error } = await supabase.auth.signUp({
+      email: phoneToEmail(phone),
+      password,
+      options: { data: { nickname, phone } },
     });
     if (error) throw error;
   };
@@ -165,7 +183,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isLoggedIn: !!user,
         loading,
         login,
+        loginWithPhone,
         register,
+        registerWithPhone,
         sendOtp,
         verifyOtp,
         loginWithOtp,

@@ -93,6 +93,22 @@ describe("AuthContext", () => {
     expect(result.current.isAdmin).toBe(false);
   });
 
+  it("loginWithPhone calls signInWithPassword with phone-email", async () => {
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    await result.current.loginWithPhone("13800138000", "password123");
+    expect(mockSignIn).toHaveBeenCalledWith({ email: "13800138000@phone.agenthunt.local", password: "password123" });
+  });
+
+  it("registerWithPhone calls signUp with phone-email and metadata", async () => {
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    await result.current.registerWithPhone("TestUser", "13800138000", "password123");
+    expect(mockSignUp).toHaveBeenCalledWith({
+      email: "13800138000@phone.agenthunt.local",
+      password: "password123",
+      options: { data: { nickname: "TestUser", phone: "13800138000" } },
+    });
+  });
+
   it("throws error when useAuth is used outside AuthProvider", () => {
     expect(() => { renderHook(() => useAuth()); }).toThrow("useAuth must be used within AuthProvider");
   });
