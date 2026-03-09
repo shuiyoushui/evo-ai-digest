@@ -62,6 +62,33 @@ export type Database = {
         }
         Relationships: []
       }
+      llm_recommendations: {
+        Row: {
+          created_at: string | null
+          enabled: boolean | null
+          id: string
+          name: string
+          sort_order: number | null
+          tag: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          enabled?: boolean | null
+          id?: string
+          name: string
+          sort_order?: number | null
+          tag?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          enabled?: boolean | null
+          id?: string
+          name?: string
+          sort_order?: number | null
+          tag?: string | null
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           benefits: string[] | null
