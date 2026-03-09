@@ -199,12 +199,12 @@ export function TopNav({ onSearch }: TopNavProps) {
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <Link to="/maker">
+            <Link to="/maker?tab=submit">
               <Button size="sm" className="gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground">
                 <Plus className="h-3.5 w-3.5" /><span className="hidden sm:inline">提交产品</span>
               </Button>
             </Link>
-            <Link to="/maker">
+            <Link to="/maker?tab=projects">
               <Button variant={location.pathname === "/maker" ? "secondary" : "ghost"} size="sm" className="text-sm">发布者中心</Button>
             </Link>
 

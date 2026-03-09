@@ -83,7 +83,11 @@ const MakerStudio = () => {
   const updateProduct = useUpdateProduct();
   const [submitStep, setSubmitStep] = useState<SubmitStep>("choose");
   const [url, setUrl] = useState("");
-  const [activeTab, setActiveTab] = useState("submit");
+  const [activeTab, setActiveTab] = useState(() => {
+    const tab = new URLSearchParams(window.location.search).get("tab");
+    if (tab === "submit" || tab === "projects" || tab === "promotion" || tab === "services") return tab;
+    return "projects";
+  });
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
   const [editFormData, setEditFormData] = useState(emptyFormData);
   const [editNewTag, setEditNewTag] = useState("");
@@ -140,8 +144,8 @@ const MakerStudio = () => {
 
   useEffect(() => {
     const tab = searchParams.get("tab");
-    if (tab === "promotion") {
-      setActiveTab("promotion");
+    if (tab === "submit" || tab === "projects" || tab === "promotion" || tab === "services") {
+      setActiveTab(tab);
     }
   }, [searchParams]);
 
