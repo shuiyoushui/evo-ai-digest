@@ -144,8 +144,8 @@ const MakerStudio = () => {
 
   useEffect(() => {
     const tab = searchParams.get("tab");
-    if (tab === "promotion") {
-      setActiveTab("promotion");
+    if (tab === "submit" || tab === "projects" || tab === "promotion" || tab === "services") {
+      setActiveTab(tab);
     }
   }, [searchParams]);
 
