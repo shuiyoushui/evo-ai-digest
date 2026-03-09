@@ -18,7 +18,9 @@ interface AuthContextType {
   isLoggedIn: boolean;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  loginWithPhone: (phone: string, password: string) => Promise<void>;
   register: (email: string, password: string, nickname: string) => Promise<void>;
+  registerWithPhone: (nickname: string, phone: string, password: string) => Promise<void>;
   sendOtp: (email: string) => Promise<void>;
   verifyOtp: (email: string, token: string) => Promise<{ isNewUser: boolean }>;
   loginWithOtp: (email: string, token: string) => Promise<void>;
