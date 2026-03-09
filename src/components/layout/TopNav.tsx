@@ -21,33 +21,28 @@ interface TopNavProps {
   onSearch?: (query: string) => void;
 }
 
-type RegisterStep = "email" | "otp" | "password";
-type LoginMode = "password" | "otp";
-type LoginOtpStep = "email" | "otp";
-
 export function TopNav({ onSearch }: TopNavProps) {
   const location = useLocation();
-  const { profile, isLoggedIn, login, register, sendOtp, verifyOtp, loginWithOtp, setPasswordAfterOtp, logout, isAdmin } = useAuth();
+  const { profile, isLoggedIn, loginWithPhone, registerWithPhone, logout, isAdmin } = useAuth();
   const [authOpen, setAuthOpen] = useState(false);
   const [authTab, setAuthTab] = useState<"login" | "register">("login");
 
   // Register state
-  const [regStep, setRegStep] = useState<RegisterStep>("email");
-  const [regEmail, setRegEmail] = useState("");
-  const [regOtp, setRegOtp] = useState("");
-  const [regPassword, setRegPassword] = useState("");
   const [regNickname, setRegNickname] = useState("");
+  const [regPhone, setRegPhone] = useState("");
+  const [regPassword, setRegPassword] = useState("");
 
   // Login state
-  const [loginMode, setLoginMode] = useState<LoginMode>("password");
-  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPhone, setLoginPhone] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
-  const [loginOtpStep, setLoginOtpStep] = useState<LoginOtpStep>("email");
-  const [loginOtpCode, setLoginOtpCode] = useState("");
 
   const [submitting, setSubmitting] = useState(false);
-  const [otpSending, setOtpSending] = useState(false);
-  const [countdown, setCountdown] = useState(0);
+
+  const resetState = () => {
+    setRegNickname(""); setRegPhone(""); setRegPassword("");
+    setLoginPhone(""); setLoginPassword("");
+    setSubmitting(false);
+  };
 
   const startCountdown = () => {
     setCountdown(60);
