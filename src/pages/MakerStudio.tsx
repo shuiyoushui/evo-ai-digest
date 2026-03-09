@@ -864,7 +864,16 @@ const MakerStudio = () => {
                     <Card
                       key={svc.id}
                       className="bg-card border-border hover:border-primary/40 transition-all cursor-pointer group"
-                      onClick={() => { setInquiryService(svc.title); setInquiryOpen(true); }}
+                      onClick={() => {
+                        if (svc.id === "llm") {
+                          const firstTagged = llmRecs.find((r) => r.tag);
+                          setSelectedLlm(firstTagged?.id || llmRecs[0]?.id || "");
+                          setLlmDialogOpen(true);
+                        } else {
+                          setInquiryService(svc.title);
+                          setInquiryOpen(true);
+                        }
+                      }}
                     >
                       <CardContent className="p-5 flex flex-col items-center text-center gap-3">
                         <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
