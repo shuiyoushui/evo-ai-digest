@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { useCategories } from "@/hooks/useCategories";
 import { useMyProducts, useSubmitProduct, useDeleteProduct, useUpdateProduct } from "@/hooks/useProducts";
+import { useRecommendations } from "@/hooks/useRecommendations";
 import { toast } from "sonner";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
