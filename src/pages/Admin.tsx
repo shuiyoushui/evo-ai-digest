@@ -85,7 +85,31 @@ const Admin = () => {
   const [llmEditTag, setLlmEditTag] = useState("");
   const [llmEditOrder, setLlmEditOrder] = useState(0);
 
-  // AI Config state
+  // Category sort order
+  const [catOrderList, setCatOrderList] = useState<Array<{ id: string; label: string; icon: string; sort_order: number }>>([]);
+  const [savingCatOrder, setSavingCatOrder] = useState(false);
+
+  useEffect(() => {
+    if (categories.length > 0) {
+      setCatOrderList(categories.map(c => ({ ...c })));
+    }
+  }, [categories]);
+
+  const handleSaveCategoryOrder = async () => {
+    setSavingCatOrder(true);
+    try {
+      for (const cat of catOrderList) {
+        const { error } = await supabase.from("categories").update({ sort_order: cat.sort_order }).eq("id", cat.id);
+        if (error) throw error;
+      }
+      toast.success("分类排序已保存");
+    } catch (e: any) {
+      toast.error("保存失败", { description: e.message });
+    } finally {
+      setSavingCatOrder(false);
+    }
+  };
+
   const [aiModel, setAiModel] = useState("google/gemini-3-flash-preview");
   const [aiPrompt, setAiPrompt] = useState("");
   const [aiEnabled, setAiEnabled] = useState(true);
