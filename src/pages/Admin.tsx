@@ -423,6 +423,60 @@ const Admin = () => {
                 </CardContent>
               </Card>
 
+              {/* LLM Recommendations Management */}
+              <Card className="bg-card border-border">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Cpu className="h-4 w-4 text-primary" />
+                      <CardTitle className="text-sm">大模型优选推荐</CardTitle>
+                    </div>
+                    <Button size="sm" variant="outline" className="text-xs gap-1" onClick={() => { setLlmEditId(null); setLlmEditName(""); setLlmEditTag(""); setLlmEditOrder(llmRecs.length + 1); setLlmEditOpen(true); }}>
+                      <Plus className="h-3 w-3" /> 新增
+                    </Button>
+                  </div>
+                  <CardDescription className="text-xs">管理大模型接入的优选推荐列表（名称、标签、排序、启用状态）</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="rounded-md border border-border overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="border-border bg-secondary/30">
+                          <TableHead className="text-xs font-medium">模型名称</TableHead>
+                          <TableHead className="text-xs font-medium">推荐标签</TableHead>
+                          <TableHead className="text-xs font-medium text-center">排序</TableHead>
+                          <TableHead className="text-xs font-medium text-center">启用</TableHead>
+                          <TableHead className="text-xs font-medium text-right">操作</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {llmRecs.map((rec) => (
+                          <TableRow key={rec.id} className="border-border">
+                            <TableCell className="text-sm font-medium">{rec.name}</TableCell>
+                            <TableCell>{rec.tag ? <Badge variant="secondary" className="text-[10px]">{rec.tag}</Badge> : <span className="text-xs text-muted-foreground">—</span>}</TableCell>
+                            <TableCell className="text-center text-xs text-muted-foreground">{rec.sort_order}</TableCell>
+                            <TableCell className="text-center">
+                              <Switch checked={rec.enabled} onCheckedChange={(v) => updateRec.mutate({ id: rec.id, enabled: v })} />
+                            </TableCell>
+                            <TableCell className="text-right space-x-1">
+                              <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => { setLlmEditId(rec.id); setLlmEditName(rec.name); setLlmEditTag(rec.tag); setLlmEditOrder(rec.sort_order); setLlmEditOpen(true); }}>
+                                <Pencil className="h-3 w-3" />
+                              </Button>
+                              <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive" onClick={() => { deleteRec.mutate(rec.id); toast.success("已删除"); }}>
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                        {llmRecs.length === 0 && (
+                          <TableRow><TableCell colSpan={5} className="text-center text-sm text-muted-foreground py-6">暂无推荐数据</TableCell></TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Service Types Management */}
               <Card className="bg-card border-border">
                 <CardHeader className="pb-3">
