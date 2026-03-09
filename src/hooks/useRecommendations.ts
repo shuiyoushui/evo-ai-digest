@@ -14,7 +14,7 @@ export function useRecommendations() {
   return useQuery({
     queryKey: ["llm_recommendations"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("llm_recommendations")
         .select("*")
         .eq("enabled", true)
@@ -29,7 +29,7 @@ export function useAllRecommendations() {
   return useQuery({
     queryKey: ["llm_recommendations_all"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("llm_recommendations")
         .select("*")
         .order("sort_order");
@@ -44,9 +44,9 @@ export function useUpdateRecommendation() {
   return useMutation({
     mutationFn: async (rec: Partial<LlmRecommendation> & { id: string }) => {
       const { id, ...updates } = rec;
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("llm_recommendations")
-        .update(updates as any)
+        .update(updates)
         .eq("id", id);
       if (error) throw error;
     },
@@ -61,9 +61,9 @@ export function useCreateRecommendation() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (rec: { name: string; tag: string; sort_order: number }) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("llm_recommendations")
-        .insert(rec as any);
+        .insert(rec);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -77,7 +77,7 @@ export function useDeleteRecommendation() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("llm_recommendations")
         .delete()
         .eq("id", id);
