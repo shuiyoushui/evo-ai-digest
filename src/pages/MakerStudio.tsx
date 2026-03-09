@@ -1040,6 +1040,61 @@ const MakerStudio = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* LLM Recommendation Dialog */}
+      <Dialog open={llmDialogOpen} onOpenChange={setLlmDialogOpen}>
+        <DialogContent className="bg-card border-border max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-base">大模型接入 — 高性价比优选推荐</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-2">
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">选择大模型</label>
+              <Select value={selectedLlm} onValueChange={setSelectedLlm}>
+                <SelectTrigger className="bg-secondary">
+                  <SelectValue placeholder="选择推荐模型" />
+                </SelectTrigger>
+                <SelectContent className="bg-popover border-border z-50">
+                  {llmRecs.map((rec) => (
+                    <SelectItem key={rec.id} value={rec.id}>
+                      {rec.name} {rec.tag && `— ${rec.tag}`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {(() => {
+              const sel = llmRecs.find((r) => r.id === selectedLlm);
+              return sel?.tag ? (
+                <div className="flex items-center gap-2">
+                  <Badge variant="default" className="text-xs">{sel.tag}</Badge>
+                  <span className="text-xs text-muted-foreground">优选推荐</span>
+                </div>
+              ) : null;
+            })()}
+            <Separator />
+            <div className="text-xs text-muted-foreground">推广项目: <span className="text-foreground font-medium">{selectedProject.name}</span></div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">联系人</label>
+              <Input placeholder="您的姓名" className="bg-secondary" />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">电话 / 微信</label>
+              <Input placeholder="方便联系的方式" className="bg-secondary" />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">具体需求</label>
+              <Textarea placeholder="请描述您的接入需求..." className="bg-secondary min-h-[80px]" />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setLlmDialogOpen(false)}>取消</Button>
+              <Button onClick={() => { setLlmDialogOpen(false); toast.success("大模型接入咨询已提交", { description: `已选模型: ${llmRecs.find((r) => r.id === selectedLlm)?.name || ""}` }); }} className="bg-primary gap-2">
+                <Send className="h-3.5 w-3.5" /> 提交需求
+              </Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
