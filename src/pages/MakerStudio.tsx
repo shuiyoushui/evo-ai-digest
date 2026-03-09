@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { useCategories } from "@/hooks/useCategories";
 import { useMyProducts, useSubmitProduct, useDeleteProduct, useUpdateProduct } from "@/hooks/useProducts";
+import { useRecommendations } from "@/hooks/useRecommendations";
 import { toast } from "sonner";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -94,6 +95,11 @@ const MakerStudio = () => {
   // Generic inquiry dialog (for non-promotion services)
   const [inquiryOpen, setInquiryOpen] = useState(false);
   const [inquiryService, setInquiryService] = useState("");
+
+  // LLM recommendation state
+  const { data: llmRecs = [] } = useRecommendations();
+  const [llmDialogOpen, setLlmDialogOpen] = useState(false);
+  const [selectedLlm, setSelectedLlm] = useState<string>("");
 
   // Self-service modals
   const [seedOpen, setSeedOpen] = useState(false);
@@ -858,7 +864,16 @@ const MakerStudio = () => {
                     <Card
                       key={svc.id}
                       className="bg-card border-border hover:border-primary/40 transition-all cursor-pointer group"
-                      onClick={() => { setInquiryService(svc.title); setInquiryOpen(true); }}
+                      onClick={() => {
+                        if (svc.id === "llm") {
+                          const firstTagged = llmRecs.find((r) => r.tag);
+                          setSelectedLlm(firstTagged?.id || llmRecs[0]?.id || "");
+                          setLlmDialogOpen(true);
+                        } else {
+                          setInquiryService(svc.title);
+                          setInquiryOpen(true);
+                        }
+                      }}
                     >
                       <CardContent className="p-5 flex flex-col items-center text-center gap-3">
                         <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
@@ -1021,6 +1036,61 @@ const MakerStudio = () => {
             <DialogFooter>
               <Button variant="outline" onClick={() => setGrowthOpen(false)}>取消</Button>
               <Button onClick={handleSubmitGrowth} className="bg-primary">提交需求</Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* LLM Recommendation Dialog */}
+      <Dialog open={llmDialogOpen} onOpenChange={setLlmDialogOpen}>
+        <DialogContent className="bg-card border-border max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-base">大模型接入 — 高性价比优选推荐</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-2">
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">选择大模型</label>
+              <Select value={selectedLlm} onValueChange={setSelectedLlm}>
+                <SelectTrigger className="bg-secondary">
+                  <SelectValue placeholder="选择推荐模型" />
+                </SelectTrigger>
+                <SelectContent className="bg-popover border-border z-50">
+                  {llmRecs.map((rec) => (
+                    <SelectItem key={rec.id} value={rec.id}>
+                      {rec.name} {rec.tag && `— ${rec.tag}`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {(() => {
+              const sel = llmRecs.find((r) => r.id === selectedLlm);
+              return sel?.tag ? (
+                <div className="flex items-center gap-2">
+                  <Badge variant="default" className="text-xs">{sel.tag}</Badge>
+                  <span className="text-xs text-muted-foreground">优选推荐</span>
+                </div>
+              ) : null;
+            })()}
+            <Separator />
+            <div className="text-xs text-muted-foreground">推广项目: <span className="text-foreground font-medium">{selectedProject.name}</span></div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">联系人</label>
+              <Input placeholder="您的姓名" className="bg-secondary" />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">电话 / 微信</label>
+              <Input placeholder="方便联系的方式" className="bg-secondary" />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">具体需求</label>
+              <Textarea placeholder="请描述您的接入需求..." className="bg-secondary min-h-[80px]" />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setLlmDialogOpen(false)}>取消</Button>
+              <Button onClick={() => { setLlmDialogOpen(false); toast.success("大模型接入咨询已提交", { description: `已选模型: ${llmRecs.find((r) => r.id === selectedLlm)?.name || ""}` }); }} className="bg-primary gap-2">
+                <Send className="h-3.5 w-3.5" /> 提交需求
+              </Button>
             </DialogFooter>
           </div>
         </DialogContent>
