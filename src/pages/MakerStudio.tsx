@@ -96,6 +96,11 @@ const MakerStudio = () => {
   const [inquiryOpen, setInquiryOpen] = useState(false);
   const [inquiryService, setInquiryService] = useState("");
 
+  // LLM recommendation state
+  const { data: llmRecs = [] } = useRecommendations();
+  const [llmDialogOpen, setLlmDialogOpen] = useState(false);
+  const [selectedLlm, setSelectedLlm] = useState<string>("");
+
   // Self-service modals
   const [seedOpen, setSeedOpen] = useState(false);
   const [reviewOpen, setReviewOpen] = useState(false);
