@@ -529,6 +529,41 @@ const Admin = () => {
           </div>
         </div>
       )}
+      {/* LLM Recommendation Edit/Create Dialog */}
+      <Dialog open={llmEditOpen} onOpenChange={setLlmEditOpen}>
+        <DialogContent className="bg-card border-border max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-base">{llmEditId ? "编辑推荐模型" : "新增推荐模型"}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-2">
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">模型名称</label>
+              <Input value={llmEditName} onChange={(e) => setLlmEditName(e.target.value)} className="bg-secondary" placeholder="如 DeepSeek V3" />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">推荐标签</label>
+              <Input value={llmEditTag} onChange={(e) => setLlmEditTag(e.target.value)} className="bg-secondary" placeholder="如 性价比之王（留空则无标签）" />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">排序</label>
+              <Input type="number" value={llmEditOrder} onChange={(e) => setLlmEditOrder(Number(e.target.value))} className="bg-secondary" />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setLlmEditOpen(false)}>取消</Button>
+              <Button className="bg-primary" onClick={() => {
+                if (!llmEditName.trim()) { toast.error("请填写模型名称"); return; }
+                if (llmEditId) {
+                  updateRec.mutate({ id: llmEditId, name: llmEditName, tag: llmEditTag, sort_order: llmEditOrder });
+                } else {
+                  createRec.mutate({ name: llmEditName, tag: llmEditTag, sort_order: llmEditOrder });
+                }
+                setLlmEditOpen(false);
+                toast.success(llmEditId ? "已更新" : "已新增");
+              }}>保存</Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
