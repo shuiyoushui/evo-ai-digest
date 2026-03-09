@@ -172,162 +172,57 @@ export function TopNav({ onSearch }: TopNavProps) {
 
             {/* ===== 登录 ===== */}
             <TabsContent value="login" className="space-y-4 mt-4">
-              {/* 登录方式切换 */}
-              <div className="flex gap-2">
-                <Button
-                  variant={loginMode === "password" ? "default" : "outline"}
-                  size="sm"
-                  className="flex-1 gap-1.5 text-xs"
-                  onClick={() => { setLoginMode("password"); setLoginOtpStep("email"); setLoginOtpCode(""); }}
-                >
-                  <Lock className="h-3.5 w-3.5" /> 密码登录
-                </Button>
-                <Button
-                  variant={loginMode === "otp" ? "default" : "outline"}
-                  size="sm"
-                  className="flex-1 gap-1.5 text-xs"
-                  onClick={() => { setLoginMode("otp"); setLoginOtpStep("email"); }}
-                >
-                  <KeyRound className="h-3.5 w-3.5" /> 验证码登录
-                </Button>
-              </div>
-
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">邮箱</label>
+                <label className="text-xs font-medium text-muted-foreground">手机号</label>
                 <Input
-                  placeholder="输入邮箱"
-                  value={loginEmail}
-                  onChange={(e) => setLoginEmail(e.target.value)}
+                  placeholder="输入手机号"
+                  value={loginPhone}
+                  onChange={(e) => setLoginPhone(e.target.value)}
                   className="bg-secondary"
                 />
               </div>
-
-              {loginMode === "password" ? (
-                <>
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-muted-foreground">密码</label>
-                    <Input
-                      type="password"
-                      placeholder="输入密码"
-                      value={loginPassword}
-                      onChange={(e) => setLoginPassword(e.target.value)}
-                      className="bg-secondary"
-                      onKeyDown={(e) => e.key === "Enter" && handleLoginWithPassword()}
-                    />
-                  </div>
-                  <Button className="w-full bg-primary" onClick={handleLoginWithPassword} disabled={submitting}>
-                    {submitting ? "登录中..." : "登录"}
-                  </Button>
-                </>
-              ) : (
-                <>
-                  {loginOtpStep === "email" ? (
-                    <Button className="w-full bg-primary" onClick={handleLoginSendOtp} disabled={otpSending || countdown > 0}>
-                      {otpSending ? "发送中..." : countdown > 0 ? `重新发送 (${countdown}s)` : "发送验证码"}
-                    </Button>
-                  ) : (
-                    <>
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-medium text-muted-foreground">验证码</label>
-                        <div className="flex justify-center">
-                          <InputOTP maxLength={6} value={loginOtpCode} onChange={setLoginOtpCode}>
-                            <InputOTPGroup>
-                              <InputOTPSlot index={0} />
-                              <InputOTPSlot index={1} />
-                              <InputOTPSlot index={2} />
-                              <InputOTPSlot index={3} />
-                              <InputOTPSlot index={4} />
-                              <InputOTPSlot index={5} />
-                            </InputOTPGroup>
-                          </InputOTP>
-                        </div>
-                        <button
-                          className="text-xs text-primary hover:underline mt-1 disabled:text-muted-foreground"
-                          disabled={countdown > 0}
-                          onClick={handleLoginSendOtp}
-                        >
-                          {countdown > 0 ? `${countdown}s 后可重发` : "重新发送"}
-                        </button>
-                      </div>
-                      <Button className="w-full bg-primary" onClick={handleLoginWithOtp} disabled={submitting}>
-                        {submitting ? "验证中..." : "验证并登录"}
-                      </Button>
-                    </>
-                  )}
-                </>
-              )}
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">密码</label>
+                <Input
+                  type="password"
+                  placeholder="输入密码"
+                  value={loginPassword}
+                  onChange={(e) => setLoginPassword(e.target.value)}
+                  className="bg-secondary"
+                  onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+                />
+              </div>
+              <Button className="w-full bg-primary" onClick={handleLogin} disabled={submitting}>
+                <Lock className="h-4 w-4 mr-1.5" />
+                {submitting ? "登录中..." : "登录"}
+              </Button>
             </TabsContent>
 
             {/* ===== 注册 ===== */}
             <TabsContent value="register" className="space-y-4 mt-4">
-              {regStep === "email" && (
-                <>
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-muted-foreground">邮箱</label>
-                    <Input placeholder="输入邮箱" value={regEmail} onChange={(e) => setRegEmail(e.target.value)} className="bg-secondary" />
-                  </div>
-                  <Button className="w-full bg-primary" onClick={handleRegSendOtp} disabled={otpSending || countdown > 0}>
-                    <Mail className="h-4 w-4 mr-1.5" />
-                    {otpSending ? "发送中..." : countdown > 0 ? `重新发送 (${countdown}s)` : "发送验证码"}
-                  </Button>
-                </>
-              )}
-
-              {regStep === "otp" && (
-                <>
-                  <p className="text-xs text-muted-foreground text-center">
-                    验证码已发送至 <span className="text-foreground font-medium">{regEmail}</span>
-                  </p>
-                  <div className="flex justify-center">
-                    <InputOTP maxLength={6} value={regOtp} onChange={setRegOtp}>
-                      <InputOTPGroup>
-                        <InputOTPSlot index={0} />
-                        <InputOTPSlot index={1} />
-                        <InputOTPSlot index={2} />
-                        <InputOTPSlot index={3} />
-                        <InputOTPSlot index={4} />
-                        <InputOTPSlot index={5} />
-                      </InputOTPGroup>
-                    </InputOTP>
-                  </div>
-                  <button
-                    className="text-xs text-primary hover:underline disabled:text-muted-foreground block mx-auto"
-                    disabled={countdown > 0}
-                    onClick={handleRegSendOtp}
-                  >
-                    {countdown > 0 ? `${countdown}s 后可重发` : "重新发送"}
-                  </button>
-                  <Button className="w-full bg-primary" onClick={handleRegVerifyOtp} disabled={submitting}>
-                    {submitting ? "验证中..." : "验证邮箱"}
-                  </Button>
-                </>
-              )}
-
-              {regStep === "password" && (
-                <>
-                  <p className="text-xs text-muted-foreground text-center">
-                    邮箱 <span className="text-foreground font-medium">{regEmail}</span> 已验证 ✓
-                  </p>
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-muted-foreground">昵称</label>
-                    <Input placeholder="设置昵称" value={regNickname} onChange={(e) => setRegNickname(e.target.value)} className="bg-secondary" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-muted-foreground">密码</label>
-                    <Input
-                      type="password"
-                      placeholder="设置密码（至少6位）"
-                      value={regPassword}
-                      onChange={(e) => setRegPassword(e.target.value)}
-                      className="bg-secondary"
-                      onKeyDown={(e) => e.key === "Enter" && handleRegSetPassword()}
-                    />
-                  </div>
-                  <Button className="w-full bg-primary" onClick={handleRegSetPassword} disabled={submitting}>
-                    {submitting ? "注册中..." : "完成注册"}
-                  </Button>
-                </>
-              )}
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">用户名</label>
+                <Input placeholder="设置用户名" value={regNickname} onChange={(e) => setRegNickname(e.target.value)} className="bg-secondary" />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">手机号</label>
+                <Input placeholder="输入手机号" value={regPhone} onChange={(e) => setRegPhone(e.target.value)} className="bg-secondary" />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">密码</label>
+                <Input
+                  type="password"
+                  placeholder="设置密码（至少6位）"
+                  value={regPassword}
+                  onChange={(e) => setRegPassword(e.target.value)}
+                  className="bg-secondary"
+                  onKeyDown={(e) => e.key === "Enter" && handleRegister()}
+                />
+              </div>
+              <Button className="w-full bg-primary" onClick={handleRegister} disabled={submitting}>
+                <User className="h-4 w-4 mr-1.5" />
+                {submitting ? "注册中..." : "完成注册"}
+              </Button>
             </TabsContent>
           </Tabs>
         </DialogContent>
