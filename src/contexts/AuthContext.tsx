@@ -92,8 +92,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
+  const phoneToEmail = (phone: string) => `${phone}@phone.agenthunt.local`;
+
   const login = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+  };
+
+  const loginWithPhone = async (phone: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({ email: phoneToEmail(phone), password });
     if (error) throw error;
   };
 
@@ -102,6 +109,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email,
       password,
       options: { data: { nickname } },
+    });
+    if (error) throw error;
+  };
+
+  const registerWithPhone = async (nickname: string, phone: string, password: string) => {
+    const { error } = await supabase.auth.signUp({
+      email: phoneToEmail(phone),
+      password,
+      options: { data: { nickname, phone } },
     });
     if (error) throw error;
   };
