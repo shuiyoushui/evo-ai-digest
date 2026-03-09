@@ -43,115 +43,35 @@ export function TopNav({ onSearch }: TopNavProps) {
     setSubmitting(false);
   };
 
-  const startCountdown = () => {
-    setCountdown(60);
-    const timer = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) { clearInterval(timer); return 0; }
-        return prev - 1;
-      });
-    }, 1000);
-  };
-
-  const resetState = () => {
-    setRegStep("email"); setRegEmail(""); setRegOtp(""); setRegPassword(""); setRegNickname("");
-    setLoginMode("password"); setLoginEmail(""); setLoginPassword("");
-    setLoginOtpStep("email"); setLoginOtpCode("");
-    setSubmitting(false); setOtpSending(false);
-  };
-
-  // ===== Register Flow =====
-  const handleRegSendOtp = async () => {
-    if (!regEmail) { toast.error("请输入邮箱"); return; }
-    setOtpSending(true);
-    try {
-      await sendOtp(regEmail);
-      setRegStep("otp");
-      startCountdown();
-      toast.success("验证码已发送到邮箱");
-    } catch (e: any) {
-      toast.error(e.message || "发送验证码失败");
-    } finally {
-      setOtpSending(false);
-    }
-  };
-
-  const handleRegVerifyOtp = async () => {
-    if (regOtp.length !== 6) { toast.error("请输入6位验证码"); return; }
-    setSubmitting(true);
-    try {
-      await verifyOtp(regEmail, regOtp);
-      setRegStep("password");
-      toast.success("邮箱验证成功，请设置密码和昵称");
-    } catch (e: any) {
-      toast.error(e.message || "验证码错误");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleRegSetPassword = async () => {
+  // ===== Register =====
+  const handleRegister = async () => {
+    if (!regNickname) { toast.error("请输入用户名"); return; }
+    if (!regPhone) { toast.error("请输入手机号"); return; }
     if (!regPassword || regPassword.length < 6) { toast.error("密码至少6位"); return; }
-    if (!regNickname) { toast.error("请输入昵称"); return; }
     setSubmitting(true);
     try {
-      await setPasswordAfterOtp(regPassword);
-      await supabase.auth.updateUser({ data: { nickname: regNickname } });
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        await supabase.from("profiles").update({ nickname: regNickname }).eq("id", user.id);
-      }
+      await registerWithPhone(regNickname, regPhone, regPassword);
       resetState();
       setAuthOpen(false);
       toast.success("注册成功！");
     } catch (e: any) {
-      toast.error(e.message || "设置密码失败");
+      toast.error(e.message || "注册失败");
     } finally {
       setSubmitting(false);
     }
   };
 
-  // ===== Login Flow =====
-  const handleLoginWithPassword = async () => {
-    if (!loginEmail || !loginPassword) { toast.error("请填写邮箱和密码"); return; }
+  // ===== Login =====
+  const handleLogin = async () => {
+    if (!loginPhone || !loginPassword) { toast.error("请填写手机号和密码"); return; }
     setSubmitting(true);
     try {
-      await login(loginEmail, loginPassword);
+      await loginWithPhone(loginPhone, loginPassword);
       resetState();
       setAuthOpen(false);
       toast.success("登录成功");
     } catch (e: any) {
       toast.error(e.message || "登录失败");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleLoginSendOtp = async () => {
-    if (!loginEmail) { toast.error("请输入邮箱"); return; }
-    setOtpSending(true);
-    try {
-      await sendOtp(loginEmail);
-      setLoginOtpStep("otp");
-      startCountdown();
-      toast.success("验证码已发送到邮箱");
-    } catch (e: any) {
-      toast.error(e.message || "发送验证码失败");
-    } finally {
-      setOtpSending(false);
-    }
-  };
-
-  const handleLoginWithOtp = async () => {
-    if (loginOtpCode.length !== 6) { toast.error("请输入6位验证码"); return; }
-    setSubmitting(true);
-    try {
-      await loginWithOtp(loginEmail, loginOtpCode);
-      resetState();
-      setAuthOpen(false);
-      toast.success("登录成功");
-    } catch (e: any) {
-      toast.error(e.message || "验证码错误");
     } finally {
       setSubmitting(false);
     }
