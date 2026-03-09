@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Search, Plus, LogIn, Hexagon, Settings, LogOut, Rocket, Phone, Lock, User } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
