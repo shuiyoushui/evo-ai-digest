@@ -73,6 +73,17 @@ const Admin = () => {
   const { data: categories = [] } = useCategories();
   const { data: allProducts = [], isLoading } = useAllProducts();
   const updateProduct = useUpdateProduct();
+  const { data: llmRecs = [], isLoading: llmLoading } = useAllRecommendations();
+  const updateRec = useUpdateRecommendation();
+  const createRec = useCreateRecommendation();
+  const deleteRec = useDeleteRecommendation();
+
+  // LLM rec editing
+  const [llmEditOpen, setLlmEditOpen] = useState(false);
+  const [llmEditId, setLlmEditId] = useState<string | null>(null);
+  const [llmEditName, setLlmEditName] = useState("");
+  const [llmEditTag, setLlmEditTag] = useState("");
+  const [llmEditOrder, setLlmEditOrder] = useState(0);
 
   // AI Config state
   const [aiModel, setAiModel] = useState("google/gemini-3-flash-preview");
