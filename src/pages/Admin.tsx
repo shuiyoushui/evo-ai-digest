@@ -382,14 +382,19 @@ const Admin = () => {
                 </CardContent>
               </Card>
 
-              {/* Category Enums - Read Only */}
+              {/* Category Sort Management */}
               <Card className="bg-card border-border">
                 <CardHeader className="pb-3">
-                  <div className="flex items-center gap-2">
-                    <Lock className="h-4 w-4 text-muted-foreground" />
-                    <CardTitle className="text-sm">产品分类体系</CardTitle>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Settings className="h-4 w-4 text-primary" />
+                      <CardTitle className="text-sm">产品分类排序</CardTitle>
+                    </div>
+                    <Button size="sm" variant="outline" className="text-xs gap-1" onClick={handleSaveCategoryOrder} disabled={savingCatOrder}>
+                      <Save className="h-3 w-3" /> {savingCatOrder ? "保存中..." : "保存排序"}
+                    </Button>
                   </div>
-                  <CardDescription className="text-xs">全局分类枚举（一级分类，当前为只读），二级分类待扩展</CardDescription>
+                  <CardDescription className="text-xs">拖动排序值调整分类在导航栏的显示顺序（数值越小越靠前）</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="rounded-md border border-border overflow-hidden">
@@ -399,21 +404,47 @@ const Admin = () => {
                           <TableHead className="text-xs font-medium">图标</TableHead>
                           <TableHead className="text-xs font-medium">分类ID</TableHead>
                           <TableHead className="text-xs font-medium">分类名称</TableHead>
-                          <TableHead className="text-xs font-medium text-center">关联产品数</TableHead>
-                          <TableHead className="text-xs font-medium text-center">二级分类</TableHead>
+                          <TableHead className="text-xs font-medium text-center">排序值</TableHead>
+                          <TableHead className="text-xs font-medium text-center">操作</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {categories.map((cat) => (
+                        {catOrderList.map((cat, idx) => (
                           <TableRow key={cat.id} className="border-border">
                             <TableCell className="text-base">{cat.icon}</TableCell>
                             <TableCell className="text-xs font-mono text-muted-foreground">{cat.id}</TableCell>
                             <TableCell className="text-sm font-medium">{cat.label}</TableCell>
                             <TableCell className="text-center">
-                              <Badge variant="secondary" className="text-[10px] font-mono">—</Badge>
+                              <Input
+                                type="number"
+                                value={cat.sort_order}
+                                onChange={(e) => {
+                                  const newList = [...catOrderList];
+                                  newList[idx] = { ...newList[idx], sort_order: parseInt(e.target.value) || 0 };
+                                  setCatOrderList(newList);
+                                }}
+                                className="w-16 h-7 text-xs text-center bg-secondary mx-auto"
+                              />
                             </TableCell>
                             <TableCell className="text-center">
-                              <span className="text-xs text-muted-foreground/50">暂无</span>
+                              <div className="flex justify-center gap-1">
+                                <Button size="sm" variant="ghost" className="h-6 px-1.5 text-xs" disabled={idx === 0} onClick={() => {
+                                  const newList = [...catOrderList];
+                                  const prevOrder = newList[idx - 1].sort_order;
+                                  newList[idx - 1] = { ...newList[idx - 1], sort_order: newList[idx].sort_order };
+                                  newList[idx] = { ...newList[idx], sort_order: prevOrder };
+                                  newList.sort((a, b) => a.sort_order - b.sort_order);
+                                  setCatOrderList(newList);
+                                }}>↑</Button>
+                                <Button size="sm" variant="ghost" className="h-6 px-1.5 text-xs" disabled={idx === catOrderList.length - 1} onClick={() => {
+                                  const newList = [...catOrderList];
+                                  const nextOrder = newList[idx + 1].sort_order;
+                                  newList[idx + 1] = { ...newList[idx + 1], sort_order: newList[idx].sort_order };
+                                  newList[idx] = { ...newList[idx], sort_order: nextOrder };
+                                  newList.sort((a, b) => a.sort_order - b.sort_order);
+                                  setCatOrderList(newList);
+                                }}>↓</Button>
+                              </div>
                             </TableCell>
                           </TableRow>
                         ))}
