@@ -50,12 +50,18 @@ export function ProductDetail({ product, open, onClose, onPromote }: ProductDeta
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const toggleUpvote = useToggleUpvote();
   const { data: userUpvotes = new Set<string>() } = useUserUpvotes(user?.id);
+  const { data: displayModules = [] } = useDisplayModules();
 
   if (!product) return null;
 
+  // Build a set of enabled module IDs
+  const enabledModules = new Set(displayModules.filter(m => m.enabled).map(m => m.id));
+  // If no modules loaded yet, show all by default
+  const isModuleOn = (id: string) => displayModules.length === 0 || enabledModules.has(id);
+
   const skills = (product.skills as { name: string; description: string }[] | null) || fallbackSkills;
   const prompts = (product.prompts as { title: string; content: string }[] | null) || fallbackPrompts;
-  const hasSkillsOrPrompts = skills.length > 0 || prompts.length > 0;
+  const hasSkillsOrPrompts = isModuleOn('skills') && (skills.length > 0 || prompts.length > 0);
 
   const isUpvoted = userUpvotes instanceof Set ? userUpvotes.has(product.id) : false;
 
