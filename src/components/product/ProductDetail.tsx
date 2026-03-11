@@ -157,7 +157,9 @@ export function ProductDetail({ product, open, onClose, onPromote }: ProductDeta
                 {hasSkillsOrPrompts && (
                   <TabsTrigger value="skills" className="gap-1.5"><Zap className="h-3.5 w-3.5" /> 技能 & Prompts</TabsTrigger>
                 )}
-                <TabsTrigger value="community" className="gap-1.5"><MessageCircle className="h-3.5 w-3.5" /> 社区评价</TabsTrigger>
+                {isModuleOn('community') && (
+                  <TabsTrigger value="community" className="gap-1.5"><MessageCircle className="h-3.5 w-3.5" /> 社区评价</TabsTrigger>
+                )}
               </TabsList>
 
               <TabsContent value="overview">
