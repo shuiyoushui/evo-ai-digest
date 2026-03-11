@@ -20,32 +20,32 @@ export function CategorySidebar({ selected, onSelect }: CategorySidebarProps) {
           <button
             onClick={() => onSelect(null)}
             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 ${
-              selected === null
-                ? "bg-primary/10 text-primary font-medium border border-primary/20 shadow-[0_0_15px_hsl(238_83%_67%/0.08)]"
-                : "text-muted-foreground hover:text-foreground hover:bg-secondary/50 border border-transparent"
-            }`}
-          >
-            <span className="text-base">🔥</span>
+            selected === null ?
+            "bg-primary/10 text-primary font-medium border border-primary/20 shadow-[0_0_15px_hsl(238_83%_67%/0.08)]" :
+            "text-muted-foreground hover:text-foreground hover:bg-secondary/50 border border-transparent"}`
+            }>
+            
+            <span className="text-base">
+</span>
             <span>全部</span>
           </button>
-          {categories.map((cat) => (
-            <button
+          {categories.map((cat) => <button
               key={cat.id}
               onClick={() => onSelect(cat.id)}
               className={`w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 ${
-                selected === cat.id
-                  ? "bg-primary/10 text-primary font-medium border border-primary/20 shadow-[0_0_15px_hsl(238_83%_67%/0.08)]"
-                  : "text-muted-foreground hover:text-foreground hover:bg-secondary/50 border border-transparent"
-              }`}
-            >
+              selected === cat.id ?
+              "bg-primary/10 text-primary font-medium border border-primary/20 shadow-[0_0_15px_hsl(238_83%_67%/0.08)]" :
+              "text-muted-foreground hover:text-foreground hover:bg-secondary/50 border border-transparent"}`
+              }>
+            
               <span className="flex items-center gap-3">
                 <span className="text-base">{cat.icon}</span>
                 <span>{cat.label}</span>
               </span>
             </button>
-          ))}
+          )}
         </nav>
       </div>
-    </aside>
-  );
+    </aside>);
+
 }
