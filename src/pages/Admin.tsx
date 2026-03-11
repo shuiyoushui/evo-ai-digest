@@ -23,8 +23,9 @@ import { useAllProducts, useUpdateProduct } from "@/hooks/useProducts";
 import { useAllRecommendations, useUpdateRecommendation, useCreateRecommendation, useDeleteRecommendation } from "@/hooks/useRecommendations";
 import { useServiceCategories, useCreateServiceCategory, useUpdateServiceCategory, useDeleteServiceCategory } from "@/hooks/useServiceCategories";
 import { useDisplayModules, useUpdateDisplayModule } from "@/hooks/useDisplayModules";
+import { useBannerSlides, useCreateBannerSlide, useUpdateBannerSlide, useDeleteBannerSlide, type BannerSlide } from "@/hooks/useBannerSlides";
+import { useRankingWeights, useUpdateRankingWeights } from "@/hooks/useRankingWeights";
 import { useAuth } from "@/contexts/AuthContext";
-import { defaultBannerSlides, type BannerSlide } from "@/components/home/HomeBanner";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 

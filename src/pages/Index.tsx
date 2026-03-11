@@ -59,7 +59,7 @@ const Index = () => {
         <div className="flex gap-8">
           <CategorySidebar selected={selectedCategory} onSelect={setSelectedCategory} />
           <main className="flex-1 min-w-0 pb-16">
-            <HomeBanner />
+            <HomeBanner slides={bannerSlides} isLoading={bannerLoading} />
             <HeroBanner onProductClick={setSelectedProduct} />
 
             <Tabs defaultValue="hot" className="mb-4">
