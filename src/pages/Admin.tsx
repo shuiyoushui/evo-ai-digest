@@ -24,9 +24,12 @@ import { useAllProducts, useUpdateProduct } from "@/hooks/useProducts";
 import { useAllRecommendations, useUpdateRecommendation, useCreateRecommendation, useDeleteRecommendation } from "@/hooks/useRecommendations";
 import { useServiceCategories, useCreateServiceCategory, useUpdateServiceCategory, useDeleteServiceCategory } from "@/hooks/useServiceCategories";
 import { useAuth } from "@/contexts/AuthContext";
-import { defaultBannerSlides, type BannerSlide } from "@/components/home/HomeBanner";
+import { type BannerSlide } from "@/components/home/HomeBanner";
+import { useBannerSlides } from "@/hooks/useBannerSlides";
+import { useDisplayModules } from "@/hooks/useDisplayModules";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 
 const sidebarItems = [
   { id: "overview", label: "数据总览", icon: LayoutDashboard },
@@ -69,9 +72,12 @@ const AI_MODELS = [
 
 const Admin = () => {
   const { isAdmin, isLoggedIn } = useAuth();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("overview");
   const [weights, setWeights] = useState({ upvotes: 40, views: 25, comments: 20, decay: 15 });
-  const [bannerSlides, setBannerSlides] = useState<BannerSlide[]>(defaultBannerSlides);
+  const [savingWeights, setSavingWeights] = useState(false);
+  const [bannerSlides, setBannerSlides] = useState<BannerSlide[]>([]);
+  const [savingBanners, setSavingBanners] = useState(false);
   const { data: categories = [] } = useCategories();
   const { data: allProducts = [], isLoading } = useAllProducts();
   const updateProduct = useUpdateProduct();
@@ -83,6 +89,28 @@ const Admin = () => {
   const createSc = useCreateServiceCategory();
   const updateSc = useUpdateServiceCategory();
   const deleteSc = useDeleteServiceCategory();
+
+  // Load banner slides from DB
+  const { data: dbBannerSlides } = useBannerSlides();
+  useEffect(() => {
+    if (dbBannerSlides && dbBannerSlides.length > 0) {
+      setBannerSlides(dbBannerSlides);
+    }
+  }, [dbBannerSlides]);
+
+  // Load display modules from DB
+  const { data: displayModules = [] } = useDisplayModules();
+
+  // Load ranking weights from DB
+  useEffect(() => {
+    const loadWeights = async () => {
+      const { data } = await supabase.from("ranking_weights").select("*").eq("id", "default").single();
+      if (data) {
+        setWeights({ upvotes: data.upvotes, views: data.views, comments: data.comments, decay: data.decay });
+      }
+    };
+    loadWeights();
+  }, []);
 
   // Service category editing
   const [scEditOpen, setScEditOpen] = useState(false);
@@ -129,6 +157,63 @@ const Admin = () => {
     }
   };
 
+  // Banner save
+  const handleSaveBanners = async () => {
+    setSavingBanners(true);
+    try {
+      for (const slide of bannerSlides) {
+        const { error } = await supabase.from("banner_slides").upsert({
+          id: slide.id,
+          title: slide.title,
+          cta: slide.cta,
+          link: slide.link,
+          active: slide.active,
+          gradient: slide.gradient,
+          sort_order: slide.sort_order || 0,
+        });
+        if (error) throw error;
+      }
+      queryClient.invalidateQueries({ queryKey: ["banner_slides"] });
+      toast.success("Banner 配置已保存");
+    } catch (e: any) {
+      toast.error("保存失败", { description: e.message });
+    } finally {
+      setSavingBanners(false);
+    }
+  };
+
+  // Ranking weights save
+  const handleSaveWeights = async () => {
+    setSavingWeights(true);
+    try {
+      const { error } = await supabase.from("ranking_weights").update({
+        upvotes: weights.upvotes,
+        views: weights.views,
+        comments: weights.comments,
+        decay: weights.decay,
+        updated_at: new Date().toISOString(),
+      }).eq("id", "default");
+      if (error) throw error;
+      toast.success("排名权重已保存");
+    } catch (e: any) {
+      toast.error("保存失败", { description: e.message });
+    } finally {
+      setSavingWeights(false);
+    }
+  };
+
+  // Display module toggle - save immediately
+  const handleToggleModule = async (id: string, enabled: boolean) => {
+    try {
+      const { error } = await supabase.from("display_modules").update({ enabled }).eq("id", id);
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ["display_modules"] });
+      toast.success("已更新");
+    } catch (e: any) {
+      toast.error("更新失败", { description: e.message });
+    }
+  };
+
   const [aiModel, setAiModel] = useState("google/gemini-3-flash-preview");
   const [aiCustomModel, setAiCustomModel] = useState("");
   const [aiPrompt, setAiPrompt] = useState("");
@@ -138,6 +223,7 @@ const Admin = () => {
   const [aiApiKeyName, setAiApiKeyName] = useState("LOVABLE_API_KEY");
   const [scraperApiKeyName, setScraperApiKeyName] = useState("FIRECRAWL_API_KEY");
   const [aiConfigLoaded, setAiConfigLoaded] = useState(false);
+  const [savingAi, setSavingAi] = useState(false);
 
   useEffect(() => {
     const loadAiConfig = async () => {
@@ -174,6 +260,7 @@ const Admin = () => {
       toast.error("请填写 AI 模型");
       return;
     }
+    setSavingAi(true);
     try {
       const { error } = await supabase
         .from("ai_config")
@@ -189,9 +276,11 @@ const Admin = () => {
         } as any)
         .eq("config_key", "analyze_url");
       if (error) throw error;
-      toast.success("系统配置已保存");
+      toast.success("AI 配置已保存");
     } catch (e: any) {
       toast.error("保存失败", { description: e.message });
+    } finally {
+      setSavingAi(false);
     }
   };
 
@@ -219,7 +308,7 @@ const Admin = () => {
           </Tabs>
         </div>
 
-        <main className="flex-1 p-6 pb-24">
+        <main className="flex-1 p-6">
           {/* OVERVIEW */}
           {activeTab === "overview" && (
             <div className="space-y-6 animate-fade-in">
@@ -347,9 +436,14 @@ const Admin = () => {
                   {/* Banner Config */}
                   <Card className="bg-card border-border">
                     <CardHeader className="pb-3">
-                      <div className="flex items-center gap-2">
-                        <Image className="h-4 w-4 text-primary" />
-                        <CardTitle className="text-sm">首页Banner配置</CardTitle>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Image className="h-4 w-4 text-primary" />
+                          <CardTitle className="text-sm">首页Banner配置</CardTitle>
+                        </div>
+                        <Button size="sm" variant="outline" className="text-xs gap-1" onClick={handleSaveBanners} disabled={savingBanners}>
+                          <Save className="h-3 w-3" /> {savingBanners ? "保存中..." : "保存Banner"}
+                        </Button>
                       </div>
                       <CardDescription className="text-xs">管理首页轮播图的展示内容和状态</CardDescription>
                     </CardHeader>
@@ -376,29 +470,43 @@ const Admin = () => {
                           </div>
                         </div>
                       ))}
+                      {bannerSlides.length === 0 && (
+                        <p className="text-sm text-muted-foreground text-center py-4">暂无 Banner 数据</p>
+                      )}
                     </CardContent>
                   </Card>
 
+                  {/* Function Switches - from display_modules */}
                   <Card className="bg-card border-border">
-                    <CardHeader className="pb-3"><CardTitle className="text-sm">功能开关</CardTitle><CardDescription className="text-xs">控制平台功能模块的启用状态</CardDescription></CardHeader>
+                    <CardHeader className="pb-3"><CardTitle className="text-sm">功能开关</CardTitle><CardDescription className="text-xs">控制产品详情页各模块的启用状态（实时生效）</CardDescription></CardHeader>
                     <CardContent className="space-y-4">
-                      {[
-                        { label: "启用融资模块", desc: "显示公司融资信息", defaultOn: true },
-                        { label: "最新上线模块", desc: "在首页显示「最新上线」Tab", defaultOn: true },
-                        { label: "评论功能", desc: "启用产品评论区", defaultOn: false },
-                        { label: "是否启用演示视频", desc: "在产品详情页显示演示视频模块", defaultOn: false },
-                        { label: "是否启用社区评价", desc: "在产品页面启用社区评价与讨论功能", defaultOn: false },
-                      ].map((toggle) => (
-                        <div key={toggle.label} className="flex items-center justify-between">
-                          <div><p className="text-sm text-foreground">{toggle.label}</p><p className="text-xs text-muted-foreground">{toggle.desc}</p></div>
-                          <Switch defaultChecked={toggle.defaultOn} />
+                      {displayModules.length === 0 ? (
+                        <p className="text-sm text-muted-foreground text-center py-4">加载中...</p>
+                      ) : displayModules.map((mod) => (
+                        <div key={mod.id} className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm text-foreground">{mod.label}</p>
+                            <p className="text-xs text-muted-foreground">{mod.description}</p>
+                          </div>
+                          <Switch checked={mod.enabled} onCheckedChange={(v) => handleToggleModule(mod.id, v)} />
                         </div>
                       ))}
                     </CardContent>
                   </Card>
 
+                  {/* Ranking Weights */}
                   <Card className="bg-card border-border">
-                    <CardHeader className="pb-3"><CardTitle className="text-sm">排名算法权重</CardTitle><CardDescription className="text-xs">调整各因素在排名中的权重占比（总和需为100%）</CardDescription></CardHeader>
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <CardTitle className="text-sm">排名算法权重</CardTitle>
+                          <CardDescription className="text-xs">调整各因素在排名中的权重占比（总和需为100%）</CardDescription>
+                        </div>
+                        <Button size="sm" variant="outline" className="text-xs gap-1" onClick={handleSaveWeights} disabled={savingWeights}>
+                          <Save className="h-3 w-3" /> {savingWeights ? "保存中..." : "保存权重"}
+                        </Button>
+                      </div>
+                    </CardHeader>
                     <CardContent className="space-y-5">
                       {([
                         { key: "upvotes" as const, label: "投票权重", icon: ThumbsUp },
@@ -518,7 +626,6 @@ const Admin = () => {
                           const isLlmService = (label: string) => label.includes("大模型接入");
                           return (
                             <div key={parent.id} className="rounded-lg border border-border overflow-hidden">
-                              {/* Parent category header */}
                               <div className="flex items-center gap-2 px-4 py-3 bg-secondary/40 hover:bg-secondary/60 transition-colors">
                                 <button className="shrink-0" onClick={() => {
                                   const next = new Set(expandedCategories);
@@ -541,7 +648,6 @@ const Admin = () => {
                                   setScEditId(null); setScEditLabel(""); setScEditIcon("Cpu"); setScEditDesc(""); setScEditOrder(children.length); setScEditParentId(parent.id); setScEditOpen(true);
                                 }}><Plus className="h-3 w-3" /> 子项</Button>
                               </div>
-                              {/* Children */}
                               {isExpanded && (
                                 <div className="divide-y divide-border">
                                   {children.length === 0 && (
@@ -562,7 +668,6 @@ const Admin = () => {
                                           <Trash2 className="h-3 w-3" />
                                         </Button>
                                       </div>
-                                      {/* LLM Recommendations inline for 大模型接入 */}
                                       {isLlmService(child.label) && (
                                         <div className="bg-secondary/20 border-t border-border px-6 py-4 space-y-3">
                                           <div className="flex items-center justify-between">
@@ -634,9 +739,14 @@ const Admin = () => {
                           <CardTitle className="text-sm">AI 智能解析配置</CardTitle>
                           <CardDescription className="text-xs">配置产品URL解析使用的AI模型和提示词</CardDescription>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground">启用</span>
-                          <Switch checked={aiEnabled} onCheckedChange={setAiEnabled} />
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-muted-foreground">启用</span>
+                            <Switch checked={aiEnabled} onCheckedChange={setAiEnabled} />
+                          </div>
+                          <Button size="sm" variant="outline" className="text-xs gap-1" onClick={handleSaveConfig} disabled={savingAi}>
+                            <Save className="h-3 w-3" /> {savingAi ? "保存中..." : "保存配置"}
+                          </Button>
                         </div>
                       </div>
                     </CardHeader>
@@ -685,17 +795,6 @@ const Admin = () => {
         </main>
       </div>
 
-      {/* Sticky footer for Config page */}
-      {activeTab === "config" && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-background/90 backdrop-blur-md">
-          <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-end gap-3">
-            <Button variant="ghost" className="text-sm">取消</Button>
-            <Button className="bg-primary text-sm gap-1.5" onClick={handleSaveConfig}>
-              <Save className="h-3.5 w-3.5" /> 保存配置
-            </Button>
-          </div>
-        </div>
-      )}
       {/* LLM Recommendation Edit/Create Dialog */}
       <Dialog open={llmEditOpen} onOpenChange={setLlmEditOpen}>
         <DialogContent className="bg-card border-border max-w-sm">
@@ -783,7 +882,6 @@ const Admin = () => {
             <AlertDialogCancel>取消</AlertDialogCancel>
             <AlertDialogAction onClick={() => {
               if (scDeleteConfirmId) {
-                // Delete children first
                 const children = serviceCategories.filter(c => c.parent_id === scDeleteConfirmId);
                 children.forEach(c => deleteSc.mutate(c.id));
                 deleteSc.mutate(scDeleteConfirmId);
