@@ -339,6 +339,7 @@ const Admin = () => {
                 <TabsList className="bg-secondary">
                   <TabsTrigger value="display" className="text-xs">展示配置</TabsTrigger>
                   <TabsTrigger value="service" className="text-xs">服务中心配置</TabsTrigger>
+                  <TabsTrigger value="ai" className="text-xs">AI 配置</TabsTrigger>
                 </TabsList>
 
                 {/* ========== 展示配置 ========== */}
