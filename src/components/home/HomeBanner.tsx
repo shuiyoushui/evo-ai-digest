@@ -2,15 +2,49 @@ import { useState, useEffect, useCallback } from "react";
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext, type CarouselApi } from "@/components/ui/carousel";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
-import type { BannerSlide } from "@/hooks/useBannerSlides";
+
+export interface BannerSlide {
+  id: string;
+  title: string;
+  cta: string;
+  link: string;
+  active: boolean;
+  gradient: string;
+}
+
+// Simulating data fetched from Admin Config
+export const defaultBannerSlides: BannerSlide[] = [
+  {
+    id: "b1",
+    title: "上架 Agent Hunt 即可免费瓜分万亿曝光",
+    cta: "立即体验",
+    link: "#",
+    active: true,
+    gradient: "from-blue-600/90 via-indigo-600/80 to-violet-700/90",
+  },
+  {
+    id: "b2",
+    title: "CSDN 创作者计划 — 加入 AI 流量扶持计划",
+    cta: "了解详情",
+    link: "#",
+    active: true,
+    gradient: "from-emerald-600/90 via-teal-600/80 to-cyan-700/90",
+  },
+  {
+    id: "b3",
+    title: "Vibe Coding 时代 — 非程序员的顶级工具推荐",
+    cta: "查看推荐",
+    link: "#",
+    active: true,
+    gradient: "from-amber-600/90 via-orange-600/80 to-rose-700/90",
+  },
+];
 
 interface HomeBannerProps {
   slides?: BannerSlide[];
-  isLoading?: boolean;
 }
 
-export function HomeBanner({ slides = [], isLoading = false }: HomeBannerProps) {
+export function HomeBanner({ slides = defaultBannerSlides }: HomeBannerProps) {
   const activeSlides = slides.filter((s) => s.active);
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
@@ -30,14 +64,6 @@ export function HomeBanner({ slides = [], isLoading = false }: HomeBannerProps) 
   }, [api, activeSlides.length]);
 
   const goTo = useCallback((i: number) => api?.scrollTo(i), [api]);
-
-  if (isLoading) {
-    return (
-      <div className="mb-6">
-        <Skeleton className="w-full aspect-[3/1] rounded-2xl" />
-      </div>
-    );
-  }
 
   if (activeSlides.length === 0) return null;
 

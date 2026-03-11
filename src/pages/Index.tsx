@@ -8,7 +8,6 @@ import { ProductCard } from "@/components/home/ProductCard";
 import { ProductDetail } from "@/components/product/ProductDetail";
 import { useProducts } from "@/hooks/useProducts";
 import { useUserUpvotes } from "@/hooks/useUpvotes";
-import { useBannerSlides } from "@/hooks/useBannerSlides";
 import { useAuth } from "@/contexts/AuthContext";
 import { TrendingUp, Rocket, Lock } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -26,7 +25,6 @@ const Index = () => {
 
   const { data: products = [], isLoading } = useProducts(selectedCategory);
   const { data: userUpvotes = new Set<string>() } = useUserUpvotes(user?.id);
-  const { data: bannerSlides = [], isLoading: bannerLoading } = useBannerSlides();
 
   const filtered = useMemo(() => {
     let list = products;
@@ -59,7 +57,7 @@ const Index = () => {
         <div className="flex gap-8">
           <CategorySidebar selected={selectedCategory} onSelect={setSelectedCategory} />
           <main className="flex-1 min-w-0 pb-16">
-            <HomeBanner slides={bannerSlides} isLoading={bannerLoading} />
+            <HomeBanner />
             <HeroBanner onProductClick={setSelectedProduct} />
 
             <Tabs defaultValue="hot" className="mb-4">

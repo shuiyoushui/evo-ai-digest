@@ -15,7 +15,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ShareDialog } from "./ShareDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToggleUpvote, useUserUpvotes } from "@/hooks/useUpvotes";
-import { useDisplayModules } from "@/hooks/useDisplayModules";
 import { toast } from "sonner";
 import type { DbProduct } from "@/hooks/useProducts";
 import { mockComments } from "@/data/mockData";
@@ -50,18 +49,12 @@ export function ProductDetail({ product, open, onClose, onPromote }: ProductDeta
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const toggleUpvote = useToggleUpvote();
   const { data: userUpvotes = new Set<string>() } = useUserUpvotes(user?.id);
-  const { data: displayModules = [] } = useDisplayModules();
 
   if (!product) return null;
 
-  // Build a set of enabled module IDs
-  const enabledModules = new Set(displayModules.filter(m => m.enabled).map(m => m.id));
-  // If no modules loaded yet, show all by default
-  const isModuleOn = (id: string) => displayModules.length === 0 || enabledModules.has(id);
-
   const skills = (product.skills as { name: string; description: string }[] | null) || fallbackSkills;
   const prompts = (product.prompts as { title: string; content: string }[] | null) || fallbackPrompts;
-  const hasSkillsOrPrompts = isModuleOn('skills') && (skills.length > 0 || prompts.length > 0);
+  const hasSkillsOrPrompts = skills.length > 0 || prompts.length > 0;
 
   const isUpvoted = userUpvotes instanceof Set ? userUpvotes.has(product.id) : false;
 
@@ -157,19 +150,15 @@ export function ProductDetail({ product, open, onClose, onPromote }: ProductDeta
                 {hasSkillsOrPrompts && (
                   <TabsTrigger value="skills" className="gap-1.5"><Zap className="h-3.5 w-3.5" /> 技能 & Prompts</TabsTrigger>
                 )}
-                {isModuleOn('community') && (
-                  <TabsTrigger value="community" className="gap-1.5"><MessageCircle className="h-3.5 w-3.5" /> 社区评价</TabsTrigger>
-                )}
+                <TabsTrigger value="community" className="gap-1.5"><MessageCircle className="h-3.5 w-3.5" /> 社区评价</TabsTrigger>
               </TabsList>
 
               <TabsContent value="overview">
                 <div className="grid grid-cols-1 md:grid-cols-[1fr_280px] gap-6">
                   <div className="space-y-5">
-                    {isModuleOn('video') && (
-                      <div className="aspect-video rounded-lg bg-secondary/50 border border-border/40 flex items-center justify-center">
-                        <span className="text-muted-foreground text-sm">🎬 产品演示视频</span>
-                      </div>
-                    )}
+                    <div className="aspect-video rounded-lg bg-secondary/50 border border-border/40 flex items-center justify-center">
+                      <span className="text-muted-foreground text-sm">🎬 产品演示视频</span>
+                    </div>
                     {(product.tags && product.tags.length > 0) && (
                       <div className="flex flex-wrap gap-2">
                         {product.tags.map((tag, i) => (
@@ -181,47 +170,41 @@ export function ProductDetail({ product, open, onClose, onPromote }: ProductDeta
                       <h3 className="font-semibold text-foreground mb-2">产品介绍</h3>
                       <div className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">{product.description}</div>
                     </div>
-                    {isModuleOn('benefits') && (
-                      <div>
-                        <h3 className="font-semibold text-foreground mb-2">核心优势</h3>
-                        <ul className="space-y-2">
-                          {(product.benefits || []).map((b, i) => (
-                            <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                              <span className="text-primary mt-0.5">✦</span>{b}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
+                    <div>
+                      <h3 className="font-semibold text-foreground mb-2">核心优势</h3>
+                      <ul className="space-y-2">
+                        {(product.benefits || []).map((b, i) => (
+                          <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
+                            <span className="text-primary mt-0.5">✦</span>{b}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   </div>
                   <div className="space-y-4">
-                    {isModuleOn('founder') && (
-                      <Card className="bg-secondary/30 border-border/40">
-                        <CardContent className="p-4">
-                          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">创始人</h4>
-                          <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center text-sm font-semibold">{product.maker_name[0]}</div>
-                            <div>
-                              <p className="text-sm font-medium text-foreground">{product.maker_name}</p>
-                              <p className="text-xs text-muted-foreground">{product.maker_title}</p>
-                            </div>
+                    <Card className="bg-secondary/30 border-border/40">
+                      <CardContent className="p-4">
+                        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">创始人</h4>
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center text-sm font-semibold">{product.maker_name[0]}</div>
+                          <div>
+                            <p className="text-sm font-medium text-foreground">{product.maker_name}</p>
+                            <p className="text-xs text-muted-foreground">{product.maker_title}</p>
                           </div>
-                        </CardContent>
-                      </Card>
-                    )}
-                    {isModuleOn('company') && (
-                      <Card className="bg-secondary/30 border-border/40">
-                        <CardContent className="p-4">
-                          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">公司信息</h4>
-                          <div className="space-y-2 text-sm">
-                            <div className="flex justify-between"><span className="text-muted-foreground">公司</span><span className="text-foreground">{product.company_name}</span></div>
-                            <div className="flex justify-between"><span className="text-muted-foreground">成立</span><span className="text-foreground">{product.company_founded}</span></div>
-                            <div className="flex justify-between"><span className="text-muted-foreground">地点</span><span className="text-foreground">{product.company_location}</span></div>
-                            {product.company_funding && <div className="flex justify-between"><span className="text-muted-foreground">融资</span><span className="text-foreground">{product.company_funding}</span></div>}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                    <Card className="bg-secondary/30 border-border/40">
+                      <CardContent className="p-4">
+                        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">公司信息</h4>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between"><span className="text-muted-foreground">公司</span><span className="text-foreground">{product.company_name}</span></div>
+                          <div className="flex justify-between"><span className="text-muted-foreground">成立</span><span className="text-foreground">{product.company_founded}</span></div>
+                          <div className="flex justify-between"><span className="text-muted-foreground">地点</span><span className="text-foreground">{product.company_location}</span></div>
+                          {product.company_funding && <div className="flex justify-between"><span className="text-muted-foreground">融资</span><span className="text-foreground">{product.company_funding}</span></div>}
+                        </div>
+                      </CardContent>
+                    </Card>
                   </div>
                 </div>
               </TabsContent>
@@ -269,35 +252,33 @@ export function ProductDetail({ product, open, onClose, onPromote }: ProductDeta
                 </TabsContent>
               )}
 
-              {isModuleOn('community') && (
-                <TabsContent value="community">
-                  <div className="space-y-4">
-                    <h3 className="font-semibold text-foreground flex items-center gap-2"><MessageCircle className="h-4 w-4 text-primary" /> 评论</h3>
-                    <div className="flex gap-3">
-                      <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center text-xs font-semibold shrink-0">我</div>
-                      <div className="flex-1 space-y-2">
-                        <Textarea placeholder="写下你的评论..." className="bg-secondary border-border/60 min-h-[72px] text-sm" value={commentText} onChange={(e) => setCommentText(e.target.value)} />
-                        <div className="flex justify-end"><Button size="sm" className="bg-primary text-xs">发表评论</Button></div>
-                      </div>
-                    </div>
-                    <div className="space-y-4 mt-4">
-                      {mockComments.map((c) => (
-                        <div key={c.id} className="flex gap-3">
-                          <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center text-xs font-semibold shrink-0">{c.avatar}</div>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm font-medium text-foreground">{c.user}</span>
-                              <span className="text-[10px] text-muted-foreground">{c.time}</span>
-                            </div>
-                            <p className="text-sm text-muted-foreground mt-1">{c.text}</p>
-                            <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mt-1.5 transition-colors"><Reply className="h-3 w-3" /> 回复</button>
-                          </div>
-                        </div>
-                      ))}
+              <TabsContent value="community">
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-foreground flex items-center gap-2"><MessageCircle className="h-4 w-4 text-primary" /> 评论</h3>
+                  <div className="flex gap-3">
+                    <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center text-xs font-semibold shrink-0">我</div>
+                    <div className="flex-1 space-y-2">
+                      <Textarea placeholder="写下你的评论..." className="bg-secondary border-border/60 min-h-[72px] text-sm" value={commentText} onChange={(e) => setCommentText(e.target.value)} />
+                      <div className="flex justify-end"><Button size="sm" className="bg-primary text-xs">发表评论</Button></div>
                     </div>
                   </div>
-                </TabsContent>
-              )}
+                  <div className="space-y-4 mt-4">
+                    {mockComments.map((c) => (
+                      <div key={c.id} className="flex gap-3">
+                        <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center text-xs font-semibold shrink-0">{c.avatar}</div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-foreground">{c.user}</span>
+                            <span className="text-[10px] text-muted-foreground">{c.time}</span>
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-1">{c.text}</p>
+                          <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mt-1.5 transition-colors"><Reply className="h-3 w-3" /> 回复</button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </TabsContent>
             </Tabs>
           </div>
         </DialogContent>
