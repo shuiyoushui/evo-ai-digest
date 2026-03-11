@@ -5,7 +5,19 @@ import type { BannerSlide } from "@/hooks/useBannerSlides";
 
 // Mock embla-carousel-react
 vi.mock("embla-carousel-react", () => ({
-  default: vi.fn().mockReturnValue([vi.fn(), { on: vi.fn(), off: vi.fn(), selectedScrollSnap: vi.fn().mockReturnValue(0), scrollTo: vi.fn(), scrollNext: vi.fn() }]),
+  default: vi.fn().mockReturnValue([
+    vi.fn(),
+    {
+      on: vi.fn(),
+      off: vi.fn(),
+      selectedScrollSnap: vi.fn().mockReturnValue(0),
+      scrollTo: vi.fn(),
+      scrollNext: vi.fn(),
+      scrollPrev: vi.fn(),
+      canScrollPrev: vi.fn().mockReturnValue(false),
+      canScrollNext: vi.fn().mockReturnValue(true),
+    },
+  ]),
 }));
 
 const mockSlides: BannerSlide[] = [
