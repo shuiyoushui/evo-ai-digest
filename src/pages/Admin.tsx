@@ -450,7 +450,22 @@ const Admin = () => {
               </Card>
 
               <Card className="bg-card border-border">
-                <CardHeader className="pb-3"><CardTitle className="text-sm">排名算法权重</CardTitle><CardDescription className="text-xs">调整各因素在排名中的权重占比（总和需为100%）</CardDescription></CardHeader>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-sm">排名算法权重</CardTitle>
+                      <CardDescription className="text-xs">调整各因素在排名中的权重占比（总和需为100%）</CardDescription>
+                    </div>
+                    <Button size="sm" variant="outline" className="text-xs gap-1" onClick={() => {
+                      updateRankingWeights.mutate(weights, {
+                        onSuccess: () => toast.success("排名权重已保存"),
+                        onError: (e: any) => toast.error("保存失败", { description: e.message }),
+                      });
+                    }}>
+                      <Save className="h-3 w-3" /> 保存权重
+                    </Button>
+                  </div>
+                </CardHeader>
                 <CardContent className="space-y-5">
                   {([
                     { key: "upvotes" as const, label: "投票权重", icon: ThumbsUp },
