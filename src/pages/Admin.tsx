@@ -339,6 +339,7 @@ const Admin = () => {
                 <TabsList className="bg-secondary">
                   <TabsTrigger value="display" className="text-xs">展示配置</TabsTrigger>
                   <TabsTrigger value="service" className="text-xs">服务中心配置</TabsTrigger>
+                  <TabsTrigger value="ai" className="text-xs">AI 配置</TabsTrigger>
                 </TabsList>
 
                 {/* ========== 展示配置 ========== */}
@@ -622,7 +623,10 @@ const Admin = () => {
                     </CardContent>
                   </Card>
 
-                  {/* AI Config - kept in service center */}
+                </TabsContent>
+
+                {/* ========== AI 配置 ========== */}
+                <TabsContent value="ai" className="space-y-6 mt-4">
                   <Card className="bg-card border-border">
                     <CardHeader className="pb-3">
                       <div className="flex items-center justify-between">
