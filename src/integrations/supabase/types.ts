@@ -16,26 +16,38 @@ export type Database = {
     Tables: {
       ai_config: {
         Row: {
+          ai_api_key_name: string
+          ai_endpoint: string
           config_key: string
           enabled: boolean
           id: string
           model: string
+          scraper_api_key_name: string
+          scraper_endpoint: string
           system_prompt: string
           updated_at: string
         }
         Insert: {
+          ai_api_key_name?: string
+          ai_endpoint?: string
           config_key: string
           enabled?: boolean
           id?: string
           model?: string
+          scraper_api_key_name?: string
+          scraper_endpoint?: string
           system_prompt?: string
           updated_at?: string
         }
         Update: {
+          ai_api_key_name?: string
+          ai_endpoint?: string
           config_key?: string
           enabled?: boolean
           id?: string
           model?: string
+          scraper_api_key_name?: string
+          scraper_endpoint?: string
           system_prompt?: string
           updated_at?: string
         }

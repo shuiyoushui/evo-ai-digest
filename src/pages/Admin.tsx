@@ -111,8 +111,13 @@ const Admin = () => {
   };
 
   const [aiModel, setAiModel] = useState("google/gemini-3-flash-preview");
+  const [aiCustomModel, setAiCustomModel] = useState("");
   const [aiPrompt, setAiPrompt] = useState("");
   const [aiEnabled, setAiEnabled] = useState(true);
+  const [aiEndpoint, setAiEndpoint] = useState("https://ai.gateway.lovable.dev/v1/chat/completions");
+  const [scraperEndpoint, setScraperEndpoint] = useState("https://api.firecrawl.dev/v1/scrape");
+  const [aiApiKeyName, setAiApiKeyName] = useState("LOVABLE_API_KEY");
+  const [scraperApiKeyName, setScraperApiKeyName] = useState("FIRECRAWL_API_KEY");
   const [aiConfigLoaded, setAiConfigLoaded] = useState(false);
 
   useEffect(() => {
@@ -123,9 +128,17 @@ const Admin = () => {
         .eq("config_key", "analyze_url")
         .single();
       if (data) {
-        setAiModel((data as any).model || "google/gemini-3-flash-preview");
-        setAiPrompt((data as any).system_prompt || "");
-        setAiEnabled((data as any).enabled ?? true);
+        const d = data as any;
+        const model = d.model || "google/gemini-3-flash-preview";
+        const isPreset = AI_MODELS.some((m) => m.value === model);
+        setAiModel(isPreset ? model : "__custom__");
+        setAiCustomModel(isPreset ? "" : model);
+        setAiPrompt(d.system_prompt || "");
+        setAiEnabled(d.enabled ?? true);
+        setAiEndpoint(d.ai_endpoint || "https://ai.gateway.lovable.dev/v1/chat/completions");
+        setScraperEndpoint(d.scraper_endpoint || "https://api.firecrawl.dev/v1/scrape");
+        setAiApiKeyName(d.ai_api_key_name || "LOVABLE_API_KEY");
+        setScraperApiKeyName(d.scraper_api_key_name || "FIRECRAWL_API_KEY");
         setAiConfigLoaded(true);
       }
     };
@@ -137,13 +150,22 @@ const Admin = () => {
   };
 
   const handleSaveConfig = async () => {
+    const resolvedModel = aiModel === "__custom__" ? aiCustomModel : aiModel;
+    if (!resolvedModel.trim()) {
+      toast.error("请填写 AI 模型");
+      return;
+    }
     try {
       const { error } = await supabase
         .from("ai_config")
         .update({
-          model: aiModel,
+          model: resolvedModel,
           system_prompt: aiPrompt,
           enabled: aiEnabled,
+          ai_endpoint: aiEndpoint,
+          scraper_endpoint: scraperEndpoint,
+          ai_api_key_name: aiApiKeyName,
+          scraper_api_key_name: scraperApiKeyName,
           updated_at: new Date().toISOString(),
         } as any)
         .eq("config_key", "analyze_url");
@@ -381,9 +403,47 @@ const Admin = () => {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-xs text-muted-foreground">AI Endpoint</label>
+                      <Input
+                        value={aiEndpoint}
+                        onChange={(e) => setAiEndpoint(e.target.value)}
+                        className="bg-secondary font-mono text-xs"
+                        placeholder="https://ai.gateway.lovable.dev/v1/chat/completions"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs text-muted-foreground">AI API Key 环境变量名</label>
+                      <Input
+                        value={aiApiKeyName}
+                        onChange={(e) => setAiApiKeyName(e.target.value)}
+                        className="bg-secondary font-mono text-xs"
+                        placeholder="LOVABLE_API_KEY"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs text-muted-foreground">爬虫 Endpoint</label>
+                      <Input
+                        value={scraperEndpoint}
+                        onChange={(e) => setScraperEndpoint(e.target.value)}
+                        className="bg-secondary font-mono text-xs"
+                        placeholder="https://api.firecrawl.dev/v1/scrape"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs text-muted-foreground">爬虫 API Key 环境变量名</label>
+                      <Input
+                        value={scraperApiKeyName}
+                        onChange={(e) => setScraperApiKeyName(e.target.value)}
+                        className="bg-secondary font-mono text-xs"
+                        placeholder="FIRECRAWL_API_KEY"
+                      />
+                    </div>
+                  </div>
                   <div className="space-y-1.5">
                     <label className="text-xs text-muted-foreground">AI 模型</label>
-                    <Select value={aiModel} onValueChange={setAiModel}>
+                    <Select value={aiModel} onValueChange={(v) => { setAiModel(v); if (v !== "__custom__") setAiCustomModel(""); }}>
                       <SelectTrigger className="bg-secondary">
                         <SelectValue />
                       </SelectTrigger>
@@ -391,8 +451,17 @@ const Admin = () => {
                         {AI_MODELS.map((m) => (
                           <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
                         ))}
+                        <SelectItem value="__custom__">自定义模型 ID...</SelectItem>
                       </SelectContent>
                     </Select>
+                    {aiModel === "__custom__" && (
+                      <Input
+                        value={aiCustomModel}
+                        onChange={(e) => setAiCustomModel(e.target.value)}
+                        className="bg-secondary font-mono text-xs mt-2"
+                        placeholder="输入自定义模型 ID，如 volcengine/doubao-pro"
+                      />
+                    )}
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs text-muted-foreground">System Prompt</label>
