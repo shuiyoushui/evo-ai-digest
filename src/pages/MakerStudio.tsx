@@ -72,6 +72,7 @@ const MakerStudio = () => {
   const { user, isLoggedIn } = useAuth();
   const { data: categories = [] } = useCategories();
   const { data: myProducts = [], isLoading: loadingProducts } = useMyProducts(user?.id);
+  const submitProduct = useSubmitProduct();
   const { data: serviceCategories = [] } = useServiceCategories();
   const deleteProduct = useDeleteProduct();
   const updateProduct = useUpdateProduct();
