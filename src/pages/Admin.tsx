@@ -385,7 +385,9 @@ const Admin = () => {
                   <CardDescription className="text-xs">管理首页轮播图的展示内容和状态</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {bannerSlides.map((slide, i) => (
+                  {bannerLoading ? (
+                    <p className="text-xs text-muted-foreground text-center py-4">加载中...</p>
+                  ) : bannerSlides.map((slide) => (
                     <div key={slide.id} className="flex items-start gap-4 p-3 rounded-lg bg-secondary/40 border border-border/30">
                       <div className={`h-20 w-28 rounded-lg border-2 border-dashed border-border/60 bg-gradient-to-br ${slide.gradient} flex flex-col items-center justify-center shrink-0 cursor-pointer hover:border-primary/50 transition-colors group`}>
                         <Upload className="h-4 w-4 text-white/60 group-hover:text-white/90 transition-colors" />
@@ -394,19 +396,31 @@ const Admin = () => {
                       <div className="flex-1 space-y-2 min-w-0">
                         <div className="space-y-1">
                           <label className="text-[10px] text-muted-foreground">标题</label>
-                          <Input value={slide.title} onChange={(e) => updateBanner(i, "title", e.target.value)} className="bg-secondary h-8 text-xs" />
+                          <Input value={slide.title} onBlur={(e) => handleUpdateBannerField(slide.id, "title", e.target.value)} onChange={(e) => { /* controlled locally for UX */ }} defaultValue={slide.title} className="bg-secondary h-8 text-xs" />
                         </div>
                         <div className="space-y-1">
                           <label className="text-[10px] text-muted-foreground">链接地址</label>
-                          <Input value={slide.link} onChange={(e) => updateBanner(i, "link", e.target.value)} className="bg-secondary h-8 text-xs font-mono" placeholder="https://..." />
+                          <Input defaultValue={slide.link} onBlur={(e) => handleUpdateBannerField(slide.id, "link", e.target.value)} className="bg-secondary h-8 text-xs font-mono" placeholder="https://..." />
                         </div>
                       </div>
-                      <div className="flex flex-col items-center gap-1 shrink-0 pt-1">
-                        <label className="text-[10px] text-muted-foreground">启用</label>
-                        <Switch checked={slide.active} onCheckedChange={(v) => updateBanner(i, "active", v)} />
+                      <div className="flex flex-col items-center gap-2 shrink-0 pt-1">
+                        <div className="flex flex-col items-center gap-1">
+                          <label className="text-[10px] text-muted-foreground">启用</label>
+                          <Switch checked={slide.active} onCheckedChange={(v) => handleUpdateBannerField(slide.id, "active", v)} />
+                        </div>
+                        <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive" onClick={() => { deleteBannerSlide.mutate(slide.id); toast.success("已删除"); }}>
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
                       </div>
                     </div>
                   ))}
+                  <Button size="sm" variant="outline" className="text-xs gap-1 w-full" onClick={() => {
+                    const newId = `b${Date.now()}`;
+                    createBannerSlide.mutate({ id: newId, title: "新 Banner", cta: "立即体验", link: "#", active: false, gradient: "from-blue-600/90 via-indigo-600/80 to-violet-700/90", sort_order: bannerSlides.length });
+                    toast.success("已新增 Banner");
+                  }}>
+                    <Plus className="h-3 w-3" /> 新增 Banner
+                  </Button>
                 </CardContent>
               </Card>
 
