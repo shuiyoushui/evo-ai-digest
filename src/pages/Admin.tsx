@@ -23,8 +23,9 @@ import { useAllProducts, useUpdateProduct } from "@/hooks/useProducts";
 import { useAllRecommendations, useUpdateRecommendation, useCreateRecommendation, useDeleteRecommendation } from "@/hooks/useRecommendations";
 import { useServiceCategories, useCreateServiceCategory, useUpdateServiceCategory, useDeleteServiceCategory } from "@/hooks/useServiceCategories";
 import { useDisplayModules, useUpdateDisplayModule } from "@/hooks/useDisplayModules";
+import { useBannerSlides, useCreateBannerSlide, useUpdateBannerSlide, useDeleteBannerSlide, type BannerSlide } from "@/hooks/useBannerSlides";
+import { useRankingWeights, useUpdateRankingWeights } from "@/hooks/useRankingWeights";
 import { useAuth } from "@/contexts/AuthContext";
-import { defaultBannerSlides, type BannerSlide } from "@/components/home/HomeBanner";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -71,7 +72,29 @@ const Admin = () => {
   const { isAdmin, isLoggedIn } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
   const [weights, setWeights] = useState({ upvotes: 40, views: 25, comments: 20, decay: 15 });
-  const [bannerSlides, setBannerSlides] = useState<BannerSlide[]>(defaultBannerSlides);
+  
+  // Banner slides - database backed
+  const { data: bannerSlides = [], isLoading: bannerLoading } = useBannerSlides();
+  const createBannerSlide = useCreateBannerSlide();
+  const updateBannerSlide = useUpdateBannerSlide();
+  const deleteBannerSlide = useDeleteBannerSlide();
+
+  // Ranking weights - database backed
+  const { data: rankingWeights } = useRankingWeights();
+  const updateRankingWeights = useUpdateRankingWeights();
+
+  // Sync ranking weights from DB to local state
+  useEffect(() => {
+    if (rankingWeights) {
+      setWeights({
+        upvotes: rankingWeights.upvotes,
+        views: rankingWeights.views,
+        comments: rankingWeights.comments,
+        decay: rankingWeights.decay,
+      });
+    }
+  }, [rankingWeights]);
+
   const { data: categories = [] } = useCategories();
   const createCategory = useCreateCategory();
   const updateCategory = useUpdateCategory();
@@ -178,8 +201,8 @@ const Admin = () => {
     loadAiConfig();
   }, []);
 
-  const updateBanner = (index: number, field: keyof BannerSlide, value: string | boolean) => {
-    setBannerSlides((prev) => prev.map((s, i) => i === index ? { ...s, [field]: value } : s));
+  const handleUpdateBannerField = (id: string, field: keyof BannerSlide, value: string | boolean) => {
+    updateBannerSlide.mutate({ id, [field]: value });
   };
 
   const handleSaveConfig = async () => {
@@ -362,7 +385,9 @@ const Admin = () => {
                   <CardDescription className="text-xs">管理首页轮播图的展示内容和状态</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {bannerSlides.map((slide, i) => (
+                  {bannerLoading ? (
+                    <p className="text-xs text-muted-foreground text-center py-4">加载中...</p>
+                  ) : bannerSlides.map((slide) => (
                     <div key={slide.id} className="flex items-start gap-4 p-3 rounded-lg bg-secondary/40 border border-border/30">
                       <div className={`h-20 w-28 rounded-lg border-2 border-dashed border-border/60 bg-gradient-to-br ${slide.gradient} flex flex-col items-center justify-center shrink-0 cursor-pointer hover:border-primary/50 transition-colors group`}>
                         <Upload className="h-4 w-4 text-white/60 group-hover:text-white/90 transition-colors" />
@@ -371,19 +396,31 @@ const Admin = () => {
                       <div className="flex-1 space-y-2 min-w-0">
                         <div className="space-y-1">
                           <label className="text-[10px] text-muted-foreground">标题</label>
-                          <Input value={slide.title} onChange={(e) => updateBanner(i, "title", e.target.value)} className="bg-secondary h-8 text-xs" />
+                          <Input value={slide.title} onBlur={(e) => handleUpdateBannerField(slide.id, "title", e.target.value)} onChange={(e) => { /* controlled locally for UX */ }} defaultValue={slide.title} className="bg-secondary h-8 text-xs" />
                         </div>
                         <div className="space-y-1">
                           <label className="text-[10px] text-muted-foreground">链接地址</label>
-                          <Input value={slide.link} onChange={(e) => updateBanner(i, "link", e.target.value)} className="bg-secondary h-8 text-xs font-mono" placeholder="https://..." />
+                          <Input defaultValue={slide.link} onBlur={(e) => handleUpdateBannerField(slide.id, "link", e.target.value)} className="bg-secondary h-8 text-xs font-mono" placeholder="https://..." />
                         </div>
                       </div>
-                      <div className="flex flex-col items-center gap-1 shrink-0 pt-1">
-                        <label className="text-[10px] text-muted-foreground">启用</label>
-                        <Switch checked={slide.active} onCheckedChange={(v) => updateBanner(i, "active", v)} />
+                      <div className="flex flex-col items-center gap-2 shrink-0 pt-1">
+                        <div className="flex flex-col items-center gap-1">
+                          <label className="text-[10px] text-muted-foreground">启用</label>
+                          <Switch checked={slide.active} onCheckedChange={(v) => handleUpdateBannerField(slide.id, "active", v)} />
+                        </div>
+                        <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive" onClick={() => { deleteBannerSlide.mutate(slide.id); toast.success("已删除"); }}>
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
                       </div>
                     </div>
                   ))}
+                  <Button size="sm" variant="outline" className="text-xs gap-1 w-full" onClick={() => {
+                    const newId = `b${Date.now()}`;
+                    createBannerSlide.mutate({ id: newId, title: "新 Banner", cta: "立即体验", link: "#", active: false, gradient: "from-blue-600/90 via-indigo-600/80 to-violet-700/90", sort_order: bannerSlides.length });
+                    toast.success("已新增 Banner");
+                  }}>
+                    <Plus className="h-3 w-3" /> 新增 Banner
+                  </Button>
                 </CardContent>
               </Card>
 
@@ -413,7 +450,22 @@ const Admin = () => {
               </Card>
 
               <Card className="bg-card border-border">
-                <CardHeader className="pb-3"><CardTitle className="text-sm">排名算法权重</CardTitle><CardDescription className="text-xs">调整各因素在排名中的权重占比（总和需为100%）</CardDescription></CardHeader>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-sm">排名算法权重</CardTitle>
+                      <CardDescription className="text-xs">调整各因素在排名中的权重占比（总和需为100%）</CardDescription>
+                    </div>
+                    <Button size="sm" variant="outline" className="text-xs gap-1" onClick={() => {
+                      updateRankingWeights.mutate(weights, {
+                        onSuccess: () => toast.success("排名权重已保存"),
+                        onError: (e: any) => toast.error("保存失败", { description: e.message }),
+                      });
+                    }}>
+                      <Save className="h-3 w-3" /> 保存权重
+                    </Button>
+                  </div>
+                </CardHeader>
                 <CardContent className="space-y-5">
                   {([
                     { key: "upvotes" as const, label: "投票权重", icon: ThumbsUp },
