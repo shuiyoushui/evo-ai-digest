@@ -330,333 +330,353 @@ const Admin = () => {
             </div>
           )}
 
+
           {/* CONFIG */}
           {activeTab === "config" && (
             <div className="space-y-6 animate-fade-in">
               <h2 className="text-lg font-bold text-foreground">系统配置</h2>
 
-              {/* Banner Config */}
-              <Card className="bg-card border-border">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center gap-2">
-                    <Image className="h-4 w-4 text-primary" />
-                    <CardTitle className="text-sm">首页Banner配置</CardTitle>
-                  </div>
-                  <CardDescription className="text-xs">管理首页轮播图的展示内容和状态</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {bannerSlides.map((slide, i) => (
-                    <div key={slide.id} className="flex items-start gap-4 p-3 rounded-lg bg-secondary/40 border border-border/30">
-                      <div className={`h-20 w-28 rounded-lg border-2 border-dashed border-border/60 bg-gradient-to-br ${slide.gradient} flex flex-col items-center justify-center shrink-0 cursor-pointer hover:border-primary/50 transition-colors group`}>
-                        <Upload className="h-4 w-4 text-white/60 group-hover:text-white/90 transition-colors" />
-                        <span className="text-[9px] text-white/60 mt-1 group-hover:text-white/90">点击上传图片</span>
+              <Tabs value={configSubTabValue} onValueChange={setConfigSubTabValue}>
+                <TabsList className="bg-secondary">
+                  <TabsTrigger value="display" className="text-xs">展示配置</TabsTrigger>
+                  <TabsTrigger value="service" className="text-xs">服务中心配置</TabsTrigger>
+                </TabsList>
+
+                {/* ========== 展示配置 ========== */}
+                <TabsContent value="display" className="space-y-6 mt-4">
+                  {/* Banner Config */}
+                  <Card className="bg-card border-border">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center gap-2">
+                        <Image className="h-4 w-4 text-primary" />
+                        <CardTitle className="text-sm">首页Banner配置</CardTitle>
                       </div>
-                      <div className="flex-1 space-y-2 min-w-0">
-                        <div className="space-y-1">
-                          <label className="text-[10px] text-muted-foreground">标题</label>
-                          <Input value={slide.title} onChange={(e) => updateBanner(i, "title", e.target.value)} className="bg-secondary h-8 text-xs" />
+                      <CardDescription className="text-xs">管理首页轮播图的展示内容和状态</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {bannerSlides.map((slide, i) => (
+                        <div key={slide.id} className="flex items-start gap-4 p-3 rounded-lg bg-secondary/40 border border-border/30">
+                          <div className={`h-20 w-28 rounded-lg border-2 border-dashed border-border/60 bg-gradient-to-br ${slide.gradient} flex flex-col items-center justify-center shrink-0 cursor-pointer hover:border-primary/50 transition-colors group`}>
+                            <Upload className="h-4 w-4 text-white/60 group-hover:text-white/90 transition-colors" />
+                            <span className="text-[9px] text-white/60 mt-1 group-hover:text-white/90">点击上传图片</span>
+                          </div>
+                          <div className="flex-1 space-y-2 min-w-0">
+                            <div className="space-y-1">
+                              <label className="text-[10px] text-muted-foreground">标题</label>
+                              <Input value={slide.title} onChange={(e) => updateBanner(i, "title", e.target.value)} className="bg-secondary h-8 text-xs" />
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-[10px] text-muted-foreground">链接地址</label>
+                              <Input value={slide.link} onChange={(e) => updateBanner(i, "link", e.target.value)} className="bg-secondary h-8 text-xs font-mono" placeholder="https://..." />
+                            </div>
+                          </div>
+                          <div className="flex flex-col items-center gap-1 shrink-0 pt-1">
+                            <label className="text-[10px] text-muted-foreground">启用</label>
+                            <Switch checked={slide.active} onCheckedChange={(v) => updateBanner(i, "active", v)} />
+                          </div>
                         </div>
-                        <div className="space-y-1">
-                          <label className="text-[10px] text-muted-foreground">链接地址</label>
-                          <Input value={slide.link} onChange={(e) => updateBanner(i, "link", e.target.value)} className="bg-secondary h-8 text-xs font-mono" placeholder="https://..." />
+                      ))}
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-card border-border">
+                    <CardHeader className="pb-3"><CardTitle className="text-sm">功能开关</CardTitle><CardDescription className="text-xs">控制平台功能模块的启用状态</CardDescription></CardHeader>
+                    <CardContent className="space-y-4">
+                      {[
+                        { label: "启用融资模块", desc: "显示公司融资信息", defaultOn: true },
+                        { label: "最新上线模块", desc: "在首页显示「最新上线」Tab", defaultOn: true },
+                        { label: "评论功能", desc: "启用产品评论区", defaultOn: false },
+                        { label: "是否启用演示视频", desc: "在产品详情页显示演示视频模块", defaultOn: false },
+                        { label: "是否启用社区评价", desc: "在产品页面启用社区评价与讨论功能", defaultOn: false },
+                      ].map((toggle) => (
+                        <div key={toggle.label} className="flex items-center justify-between">
+                          <div><p className="text-sm text-foreground">{toggle.label}</p><p className="text-xs text-muted-foreground">{toggle.desc}</p></div>
+                          <Switch defaultChecked={toggle.defaultOn} />
                         </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-card border-border">
+                    <CardHeader className="pb-3"><CardTitle className="text-sm">排名算法权重</CardTitle><CardDescription className="text-xs">调整各因素在排名中的权重占比（总和需为100%）</CardDescription></CardHeader>
+                    <CardContent className="space-y-5">
+                      {([
+                        { key: "upvotes" as const, label: "投票权重", icon: ThumbsUp },
+                        { key: "views" as const, label: "浏览权重", icon: Eye },
+                        { key: "comments" as const, label: "评论权重", icon: MessageCircle },
+                        { key: "decay" as const, label: "时间衰减", icon: Clock },
+                      ]).map((w) => (
+                        <div key={w.key} className="space-y-1.5">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="flex items-center gap-1.5 text-muted-foreground"><w.icon className="h-3 w-3" />{w.label}</span>
+                            <span className="text-foreground font-semibold font-mono">{weights[w.key]}%</span>
+                          </div>
+                          <Slider value={[weights[w.key]]} onValueChange={([v]) => setWeights({ ...weights, [w.key]: v })} max={100} step={5} className="[&_[role=slider]]:bg-primary" />
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+
+                  {/* Product Category Sort */}
+                  <Card className="bg-card border-border">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Settings className="h-4 w-4 text-primary" />
+                          <CardTitle className="text-sm">产品分类排序</CardTitle>
+                        </div>
+                        <Button size="sm" variant="outline" className="text-xs gap-1" onClick={handleSaveCategoryOrder} disabled={savingCatOrder}>
+                          <Save className="h-3 w-3" /> {savingCatOrder ? "保存中..." : "保存排序"}
+                        </Button>
                       </div>
-                      <div className="flex flex-col items-center gap-1 shrink-0 pt-1">
-                        <label className="text-[10px] text-muted-foreground">启用</label>
-                        <Switch checked={slide.active} onCheckedChange={(v) => updateBanner(i, "active", v)} />
+                      <CardDescription className="text-xs">拖动排序值调整分类在导航栏的显示顺序（数值越小越靠前）</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="rounded-md border border-border overflow-hidden">
+                        <Table>
+                          <TableHeader>
+                            <TableRow className="border-border bg-secondary/30">
+                              <TableHead className="text-xs font-medium">图标</TableHead>
+                              <TableHead className="text-xs font-medium">分类ID</TableHead>
+                              <TableHead className="text-xs font-medium">分类名称</TableHead>
+                              <TableHead className="text-xs font-medium text-center">排序值</TableHead>
+                              <TableHead className="text-xs font-medium text-center">操作</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {catOrderList.map((cat, idx) => (
+                              <TableRow key={cat.id} className="border-border">
+                                <TableCell className="text-base">{cat.icon}</TableCell>
+                                <TableCell className="text-xs font-mono text-muted-foreground">{cat.id}</TableCell>
+                                <TableCell className="text-sm font-medium">{cat.label}</TableCell>
+                                <TableCell className="text-center">
+                                  <Input
+                                    type="number"
+                                    value={cat.sort_order}
+                                    onChange={(e) => {
+                                      const newList = [...catOrderList];
+                                      newList[idx] = { ...newList[idx], sort_order: parseInt(e.target.value) || 0 };
+                                      setCatOrderList(newList);
+                                    }}
+                                    className="w-16 h-7 text-xs text-center bg-secondary mx-auto"
+                                  />
+                                </TableCell>
+                                <TableCell className="text-center">
+                                  <div className="flex justify-center gap-1">
+                                    <Button size="sm" variant="ghost" className="h-6 px-1.5 text-xs" disabled={idx === 0} onClick={() => {
+                                      const newList = [...catOrderList];
+                                      const prevOrder = newList[idx - 1].sort_order;
+                                      newList[idx - 1] = { ...newList[idx - 1], sort_order: newList[idx].sort_order };
+                                      newList[idx] = { ...newList[idx], sort_order: prevOrder };
+                                      newList.sort((a, b) => a.sort_order - b.sort_order);
+                                      setCatOrderList(newList);
+                                    }}>↑</Button>
+                                    <Button size="sm" variant="ghost" className="h-6 px-1.5 text-xs" disabled={idx === catOrderList.length - 1} onClick={() => {
+                                      const newList = [...catOrderList];
+                                      const nextOrder = newList[idx + 1].sort_order;
+                                      newList[idx + 1] = { ...newList[idx + 1], sort_order: newList[idx].sort_order };
+                                      newList[idx] = { ...newList[idx], sort_order: nextOrder };
+                                      newList.sort((a, b) => a.sort_order - b.sort_order);
+                                      setCatOrderList(newList);
+                                    }}>↓</Button>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
                       </div>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
 
-              <Card className="bg-card border-border">
-                <CardHeader className="pb-3"><CardTitle className="text-sm">功能开关</CardTitle><CardDescription className="text-xs">控制平台功能模块的启用状态</CardDescription></CardHeader>
-                <CardContent className="space-y-4">
-                  {[
-                    { label: "启用融资模块", desc: "显示公司融资信息", defaultOn: true },
-                    { label: "最新上线模块", desc: "在首页显示「最新上线」Tab", defaultOn: true },
-                    { label: "评论功能", desc: "启用产品评论区", defaultOn: false },
-                    { label: "是否启用演示视频", desc: "在产品详情页显示演示视频模块", defaultOn: false },
-                    { label: "是否启用社区评价", desc: "在产品页面启用社区评价与讨论功能", defaultOn: false },
-                  ].map((toggle) => (
-                    <div key={toggle.label} className="flex items-center justify-between">
-                      <div><p className="text-sm text-foreground">{toggle.label}</p><p className="text-xs text-muted-foreground">{toggle.desc}</p></div>
-                      <Switch defaultChecked={toggle.defaultOn} />
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-
-              <Card className="bg-card border-border">
-                <CardHeader className="pb-3"><CardTitle className="text-sm">排名算法权重</CardTitle><CardDescription className="text-xs">调整各因素在排名中的权重占比（总和需为100%）</CardDescription></CardHeader>
-                <CardContent className="space-y-5">
-                  {([
-                    { key: "upvotes" as const, label: "投票权重", icon: ThumbsUp },
-                    { key: "views" as const, label: "浏览权重", icon: Eye },
-                    { key: "comments" as const, label: "评论权重", icon: MessageCircle },
-                    { key: "decay" as const, label: "时间衰减", icon: Clock },
-                  ]).map((w) => (
-                    <div key={w.key} className="space-y-1.5">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="flex items-center gap-1.5 text-muted-foreground"><w.icon className="h-3 w-3" />{w.label}</span>
-                        <span className="text-foreground font-semibold font-mono">{weights[w.key]}%</span>
+                {/* ========== 服务中心配置 ========== */}
+                <TabsContent value="service" className="space-y-6 mt-4">
+                  <Card className="bg-card border-border">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <CardTitle className="text-sm">服务分类管理</CardTitle>
+                          <CardDescription className="text-xs">管理服务中心的分类与服务项目（层级结构：服务分类 → 服务名称）</CardDescription>
+                        </div>
+                        <Button size="sm" variant="outline" className="text-xs gap-1" onClick={() => {
+                          setScEditId(null); setScEditLabel(""); setScEditIcon("Cpu"); setScEditDesc(""); setScEditOrder(0); setScEditParentId(null); setScEditOpen(true);
+                        }}>
+                          <Plus className="h-3 w-3" /> 新增分类
+                        </Button>
                       </div>
-                      <Slider value={[weights[w.key]]} onValueChange={([v]) => setWeights({ ...weights, [w.key]: v })} max={100} step={5} className="[&_[role=slider]]:bg-primary" />
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-
-              {/* AI Config - Database-backed */}
-              <Card className="bg-card border-border">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="text-sm">AI 智能解析配置</CardTitle>
-                      <CardDescription className="text-xs">配置产品URL解析使用的AI模型和提示词</CardDescription>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground">启用</span>
-                      <Switch checked={aiEnabled} onCheckedChange={setAiEnabled} />
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <label className="text-xs text-muted-foreground">AI Endpoint</label>
-                      <Input
-                        value={aiEndpoint}
-                        onChange={(e) => setAiEndpoint(e.target.value)}
-                        className="bg-secondary font-mono text-xs"
-                        placeholder="https://ai.gateway.lovable.dev/v1/chat/completions"
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-xs text-muted-foreground">AI API Key 环境变量名</label>
-                      <Input
-                        value={aiApiKeyName}
-                        onChange={(e) => setAiApiKeyName(e.target.value)}
-                        className="bg-secondary font-mono text-xs"
-                        placeholder="LOVABLE_API_KEY"
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-xs text-muted-foreground">爬虫 Endpoint</label>
-                      <Input
-                        value={scraperEndpoint}
-                        onChange={(e) => setScraperEndpoint(e.target.value)}
-                        className="bg-secondary font-mono text-xs"
-                        placeholder="https://api.firecrawl.dev/v1/scrape"
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-xs text-muted-foreground">爬虫 API Key 环境变量名</label>
-                      <Input
-                        value={scraperApiKeyName}
-                        onChange={(e) => setScraperApiKeyName(e.target.value)}
-                        className="bg-secondary font-mono text-xs"
-                        placeholder="FIRECRAWL_API_KEY"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-xs text-muted-foreground">AI 模型</label>
-                    <Select value={aiModel} onValueChange={(v) => { setAiModel(v); if (v !== "__custom__") setAiCustomModel(""); }}>
-                      <SelectTrigger className="bg-secondary">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {AI_MODELS.map((m) => (
-                          <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
-                        ))}
-                        <SelectItem value="__custom__">自定义模型 ID...</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {aiModel === "__custom__" && (
-                      <Input
-                        value={aiCustomModel}
-                        onChange={(e) => setAiCustomModel(e.target.value)}
-                        className="bg-secondary font-mono text-xs mt-2"
-                        placeholder="输入自定义模型 ID，如 volcengine/doubao-pro"
-                      />
-                    )}
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-xs text-muted-foreground">System Prompt</label>
-                    <Textarea
-                      value={aiPrompt}
-                      onChange={(e) => setAiPrompt(e.target.value)}
-                      className="bg-secondary font-mono text-xs min-h-[120px] leading-relaxed"
-                      placeholder="输入系统提示词..."
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Category Sort Management */}
-              <Card className="bg-card border-border">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Settings className="h-4 w-4 text-primary" />
-                      <CardTitle className="text-sm">产品分类排序</CardTitle>
-                    </div>
-                    <Button size="sm" variant="outline" className="text-xs gap-1" onClick={handleSaveCategoryOrder} disabled={savingCatOrder}>
-                      <Save className="h-3 w-3" /> {savingCatOrder ? "保存中..." : "保存排序"}
-                    </Button>
-                  </div>
-                  <CardDescription className="text-xs">拖动排序值调整分类在导航栏的显示顺序（数值越小越靠前）</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="rounded-md border border-border overflow-hidden">
-                    <Table>
-                      <TableHeader>
-                        <TableRow className="border-border bg-secondary/30">
-                          <TableHead className="text-xs font-medium">图标</TableHead>
-                          <TableHead className="text-xs font-medium">分类ID</TableHead>
-                          <TableHead className="text-xs font-medium">分类名称</TableHead>
-                          <TableHead className="text-xs font-medium text-center">排序值</TableHead>
-                          <TableHead className="text-xs font-medium text-center">操作</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {catOrderList.map((cat, idx) => (
-                          <TableRow key={cat.id} className="border-border">
-                            <TableCell className="text-base">{cat.icon}</TableCell>
-                            <TableCell className="text-xs font-mono text-muted-foreground">{cat.id}</TableCell>
-                            <TableCell className="text-sm font-medium">{cat.label}</TableCell>
-                            <TableCell className="text-center">
-                              <Input
-                                type="number"
-                                value={cat.sort_order}
-                                onChange={(e) => {
-                                  const newList = [...catOrderList];
-                                  newList[idx] = { ...newList[idx], sort_order: parseInt(e.target.value) || 0 };
-                                  setCatOrderList(newList);
-                                }}
-                                className="w-16 h-7 text-xs text-center bg-secondary mx-auto"
-                              />
-                            </TableCell>
-                            <TableCell className="text-center">
-                              <div className="flex justify-center gap-1">
-                                <Button size="sm" variant="ghost" className="h-6 px-1.5 text-xs" disabled={idx === 0} onClick={() => {
-                                  const newList = [...catOrderList];
-                                  const prevOrder = newList[idx - 1].sort_order;
-                                  newList[idx - 1] = { ...newList[idx - 1], sort_order: newList[idx].sort_order };
-                                  newList[idx] = { ...newList[idx], sort_order: prevOrder };
-                                  newList.sort((a, b) => a.sort_order - b.sort_order);
-                                  setCatOrderList(newList);
-                                }}>↑</Button>
-                                <Button size="sm" variant="ghost" className="h-6 px-1.5 text-xs" disabled={idx === catOrderList.length - 1} onClick={() => {
-                                  const newList = [...catOrderList];
-                                  const nextOrder = newList[idx + 1].sort_order;
-                                  newList[idx + 1] = { ...newList[idx + 1], sort_order: newList[idx].sort_order };
-                                  newList[idx] = { ...newList[idx], sort_order: nextOrder };
-                                  newList.sort((a, b) => a.sort_order - b.sort_order);
-                                  setCatOrderList(newList);
-                                }}>↓</Button>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {scLoading ? (
+                        <p className="text-sm text-muted-foreground text-center py-6">加载中...</p>
+                      ) : (() => {
+                        const parents = serviceCategories.filter(c => !c.parent_id).sort((a, b) => a.sort_order - b.sort_order);
+                        if (parents.length === 0) return <p className="text-sm text-muted-foreground text-center py-6">暂无服务分类，点击上方「新增分类」添加</p>;
+                        return parents.map((parent) => {
+                          const children = serviceCategories.filter(c => c.parent_id === parent.id).sort((a, b) => a.sort_order - b.sort_order);
+                          const isExpanded = expandedCategories.has(parent.id);
+                          const isLlmService = (label: string) => label.includes("大模型接入");
+                          return (
+                            <div key={parent.id} className="rounded-lg border border-border overflow-hidden">
+                              {/* Parent category header */}
+                              <div className="flex items-center gap-2 px-4 py-3 bg-secondary/40 hover:bg-secondary/60 transition-colors">
+                                <button className="shrink-0" onClick={() => {
+                                  const next = new Set(expandedCategories);
+                                  isExpanded ? next.delete(parent.id) : next.add(parent.id);
+                                  setExpandedCategories(next);
+                                }}>
+                                  {isExpanded ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+                                </button>
+                                <span className="text-base">{parent.icon}</span>
+                                <span className="text-sm font-medium text-foreground flex-1">{parent.label}</span>
+                                <Badge variant="secondary" className="text-[10px]">排序: {parent.sort_order}</Badge>
+                                <Switch checked={parent.enabled} onCheckedChange={(v) => updateSc.mutate({ id: parent.id, enabled: v })} />
+                                <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => {
+                                  setScEditId(parent.id); setScEditLabel(parent.label); setScEditIcon(parent.icon); setScEditDesc(parent.description); setScEditOrder(parent.sort_order); setScEditParentId(null); setScEditOpen(true);
+                                }}><Pencil className="h-3 w-3" /></Button>
+                                <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive" onClick={() => setScDeleteConfirmId(parent.id)}>
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                                <Button size="sm" variant="ghost" className="h-7 text-xs gap-1" onClick={() => {
+                                  setScEditId(null); setScEditLabel(""); setScEditIcon("Cpu"); setScEditDesc(""); setScEditOrder(children.length); setScEditParentId(parent.id); setScEditOpen(true);
+                                }}><Plus className="h-3 w-3" /> 子项</Button>
                               </div>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </CardContent>
-              </Card>
+                              {/* Children */}
+                              {isExpanded && (
+                                <div className="divide-y divide-border">
+                                  {children.length === 0 && (
+                                    <p className="text-xs text-muted-foreground text-center py-4">暂无子服务项目</p>
+                                  )}
+                                  {children.map((child) => (
+                                    <div key={child.id}>
+                                      <div className="flex items-center gap-2 px-4 py-2.5 pl-10 hover:bg-secondary/20 transition-colors">
+                                        <span className="text-sm">{child.icon}</span>
+                                        <span className="text-sm text-foreground flex-1">{child.label}</span>
+                                        {child.description && <span className="text-xs text-muted-foreground max-w-[200px] truncate hidden md:inline">{child.description}</span>}
+                                        <Badge variant="outline" className="text-[10px]">排序: {child.sort_order}</Badge>
+                                        <Switch checked={child.enabled} onCheckedChange={(v) => updateSc.mutate({ id: child.id, enabled: v })} />
+                                        <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => {
+                                          setScEditId(child.id); setScEditLabel(child.label); setScEditIcon(child.icon); setScEditDesc(child.description); setScEditOrder(child.sort_order); setScEditParentId(child.parent_id); setScEditOpen(true);
+                                        }}><Pencil className="h-3 w-3" /></Button>
+                                        <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive" onClick={() => setScDeleteConfirmId(child.id)}>
+                                          <Trash2 className="h-3 w-3" />
+                                        </Button>
+                                      </div>
+                                      {/* LLM Recommendations inline for 大模型接入 */}
+                                      {isLlmService(child.label) && (
+                                        <div className="bg-secondary/20 border-t border-border px-6 py-4 space-y-3">
+                                          <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                              <Cpu className="h-3.5 w-3.5 text-primary" />
+                                              <span className="text-xs font-medium text-foreground">大模型优选推荐</span>
+                                            </div>
+                                            <Button size="sm" variant="outline" className="text-xs gap-1 h-7" onClick={() => { setLlmEditId(null); setLlmEditName(""); setLlmEditTag(""); setLlmEditOrder(llmRecs.length + 1); setLlmEditOpen(true); }}>
+                                              <Plus className="h-3 w-3" /> 新增
+                                            </Button>
+                                          </div>
+                                          <div className="rounded-md border border-border overflow-hidden">
+                                            <Table>
+                                              <TableHeader>
+                                                <TableRow className="border-border bg-secondary/30">
+                                                  <TableHead className="text-xs font-medium">模型名称</TableHead>
+                                                  <TableHead className="text-xs font-medium">推荐标签</TableHead>
+                                                  <TableHead className="text-xs font-medium text-center">排序</TableHead>
+                                                  <TableHead className="text-xs font-medium text-center">启用</TableHead>
+                                                  <TableHead className="text-xs font-medium text-right">操作</TableHead>
+                                                </TableRow>
+                                              </TableHeader>
+                                              <TableBody>
+                                                {llmRecs.map((rec) => (
+                                                  <TableRow key={rec.id} className="border-border">
+                                                    <TableCell className="text-sm font-medium">{rec.name}</TableCell>
+                                                    <TableCell>{rec.tag ? <Badge variant="secondary" className="text-[10px]">{rec.tag}</Badge> : <span className="text-xs text-muted-foreground">—</span>}</TableCell>
+                                                    <TableCell className="text-center text-xs text-muted-foreground">{rec.sort_order}</TableCell>
+                                                    <TableCell className="text-center">
+                                                      <Switch checked={rec.enabled} onCheckedChange={(v) => updateRec.mutate({ id: rec.id, enabled: v })} />
+                                                    </TableCell>
+                                                    <TableCell className="text-right space-x-1">
+                                                      <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => { setLlmEditId(rec.id); setLlmEditName(rec.name); setLlmEditTag(rec.tag); setLlmEditOrder(rec.sort_order); setLlmEditOpen(true); }}>
+                                                        <Pencil className="h-3 w-3" />
+                                                      </Button>
+                                                      <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive" onClick={() => { deleteRec.mutate(rec.id); toast.success("已删除"); }}>
+                                                        <Trash2 className="h-3 w-3" />
+                                                      </Button>
+                                                    </TableCell>
+                                                  </TableRow>
+                                                ))}
+                                                {llmRecs.length === 0 && (
+                                                  <TableRow><TableCell colSpan={5} className="text-center text-sm text-muted-foreground py-4">暂无推荐数据</TableCell></TableRow>
+                                                )}
+                                              </TableBody>
+                                            </Table>
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        });
+                      })()}
+                    </CardContent>
+                  </Card>
 
-              {/* LLM Recommendations Management */}
-              <Card className="bg-card border-border">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Cpu className="h-4 w-4 text-primary" />
-                      <CardTitle className="text-sm">大模型优选推荐</CardTitle>
-                    </div>
-                    <Button size="sm" variant="outline" className="text-xs gap-1" onClick={() => { setLlmEditId(null); setLlmEditName(""); setLlmEditTag(""); setLlmEditOrder(llmRecs.length + 1); setLlmEditOpen(true); }}>
-                      <Plus className="h-3 w-3" /> 新增
-                    </Button>
-                  </div>
-                  <CardDescription className="text-xs">管理大模型接入的优选推荐列表（名称、标签、排序、启用状态）</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="rounded-md border border-border overflow-hidden">
-                    <Table>
-                      <TableHeader>
-                        <TableRow className="border-border bg-secondary/30">
-                          <TableHead className="text-xs font-medium">模型名称</TableHead>
-                          <TableHead className="text-xs font-medium">推荐标签</TableHead>
-                          <TableHead className="text-xs font-medium text-center">排序</TableHead>
-                          <TableHead className="text-xs font-medium text-center">启用</TableHead>
-                          <TableHead className="text-xs font-medium text-right">操作</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {llmRecs.map((rec) => (
-                          <TableRow key={rec.id} className="border-border">
-                            <TableCell className="text-sm font-medium">{rec.name}</TableCell>
-                            <TableCell>{rec.tag ? <Badge variant="secondary" className="text-[10px]">{rec.tag}</Badge> : <span className="text-xs text-muted-foreground">—</span>}</TableCell>
-                            <TableCell className="text-center text-xs text-muted-foreground">{rec.sort_order}</TableCell>
-                            <TableCell className="text-center">
-                              <Switch checked={rec.enabled} onCheckedChange={(v) => updateRec.mutate({ id: rec.id, enabled: v })} />
-                            </TableCell>
-                            <TableCell className="text-right space-x-1">
-                              <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => { setLlmEditId(rec.id); setLlmEditName(rec.name); setLlmEditTag(rec.tag); setLlmEditOrder(rec.sort_order); setLlmEditOpen(true); }}>
-                                <Pencil className="h-3 w-3" />
-                              </Button>
-                              <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive" onClick={() => { deleteRec.mutate(rec.id); toast.success("已删除"); }}>
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                        {llmRecs.length === 0 && (
-                          <TableRow><TableCell colSpan={5} className="text-center text-sm text-muted-foreground py-6">暂无推荐数据</TableCell></TableRow>
+                  {/* AI Config - kept in service center */}
+                  <Card className="bg-card border-border">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <CardTitle className="text-sm">AI 智能解析配置</CardTitle>
+                          <CardDescription className="text-xs">配置产品URL解析使用的AI模型和提示词</CardDescription>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground">启用</span>
+                          <Switch checked={aiEnabled} onCheckedChange={setAiEnabled} />
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-xs text-muted-foreground">AI Endpoint</label>
+                          <Input value={aiEndpoint} onChange={(e) => setAiEndpoint(e.target.value)} className="bg-secondary font-mono text-xs" placeholder="https://ai.gateway.lovable.dev/v1/chat/completions" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-xs text-muted-foreground">AI API Key 环境变量名</label>
+                          <Input value={aiApiKeyName} onChange={(e) => setAiApiKeyName(e.target.value)} className="bg-secondary font-mono text-xs" placeholder="LOVABLE_API_KEY" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-xs text-muted-foreground">爬虫 Endpoint</label>
+                          <Input value={scraperEndpoint} onChange={(e) => setScraperEndpoint(e.target.value)} className="bg-secondary font-mono text-xs" placeholder="https://api.firecrawl.dev/v1/scrape" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-xs text-muted-foreground">爬虫 API Key 环境变量名</label>
+                          <Input value={scraperApiKeyName} onChange={(e) => setScraperApiKeyName(e.target.value)} className="bg-secondary font-mono text-xs" placeholder="FIRECRAWL_API_KEY" />
+                        </div>
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-xs text-muted-foreground">AI 模型</label>
+                        <Select value={aiModel} onValueChange={(v) => { setAiModel(v); if (v !== "__custom__") setAiCustomModel(""); }}>
+                          <SelectTrigger className="bg-secondary"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {AI_MODELS.map((m) => (<SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>))}
+                            <SelectItem value="__custom__">自定义模型 ID...</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {aiModel === "__custom__" && (
+                          <Input value={aiCustomModel} onChange={(e) => setAiCustomModel(e.target.value)} className="bg-secondary font-mono text-xs mt-2" placeholder="输入自定义模型 ID，如 volcengine/doubao-pro" />
                         )}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Service Types Management */}
-              <Card className="bg-card border-border">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm">推广服务类型管理</CardTitle>
-                  <CardDescription className="text-xs">管理创作者中心可用的服务类型</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="rounded-md border border-border overflow-hidden">
-                    <Table>
-                      <TableHeader>
-                        <TableRow className="border-border bg-secondary/30">
-                          <TableHead className="text-xs font-medium">服务名称</TableHead>
-                          <TableHead className="text-xs font-medium">描述</TableHead>
-                          <TableHead className="text-xs font-medium text-center">状态</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                       {[
-                          { name: "自助推广", desc: "种子用户、体验评测、规模增长", active: true },
-                          { name: "技术服务 - 大模型接入", desc: "API接入、模型部署与微调", active: true },
-                          { name: "技术服务 - MCP 开发服务", desc: "Model Context Protocol & Agent 开发", active: true },
-                          { name: "技术服务 - 其他模型/云服务", desc: "GPU算力、RAG、数据处理", active: true },
-                        ].map((svc) => (
-                          <TableRow key={svc.name} className="border-border">
-                            <TableCell className="text-sm font-medium">{svc.name}</TableCell>
-                            <TableCell className="text-xs text-muted-foreground">{svc.desc}</TableCell>
-                            <TableCell className="text-center">
-                              <Switch defaultChecked={svc.active} />
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </CardContent>
-              </Card>
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-xs text-muted-foreground">System Prompt</label>
+                        <Textarea value={aiPrompt} onChange={(e) => setAiPrompt(e.target.value)} className="bg-secondary font-mono text-xs min-h-[120px] leading-relaxed" placeholder="输入系统提示词..." />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </Tabs>
             </div>
           )}
         </main>
