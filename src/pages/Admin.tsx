@@ -72,7 +72,29 @@ const Admin = () => {
   const { isAdmin, isLoggedIn } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
   const [weights, setWeights] = useState({ upvotes: 40, views: 25, comments: 20, decay: 15 });
-  const [bannerSlides, setBannerSlides] = useState<BannerSlide[]>(defaultBannerSlides);
+  
+  // Banner slides - database backed
+  const { data: bannerSlides = [], isLoading: bannerLoading } = useBannerSlides();
+  const createBannerSlide = useCreateBannerSlide();
+  const updateBannerSlide = useUpdateBannerSlide();
+  const deleteBannerSlide = useDeleteBannerSlide();
+
+  // Ranking weights - database backed
+  const { data: rankingWeights } = useRankingWeights();
+  const updateRankingWeights = useUpdateRankingWeights();
+
+  // Sync ranking weights from DB to local state
+  useEffect(() => {
+    if (rankingWeights) {
+      setWeights({
+        upvotes: rankingWeights.upvotes,
+        views: rankingWeights.views,
+        comments: rankingWeights.comments,
+        decay: rankingWeights.decay,
+      });
+    }
+  }, [rankingWeights]);
+
   const { data: categories = [] } = useCategories();
   const createCategory = useCreateCategory();
   const updateCategory = useUpdateCategory();
