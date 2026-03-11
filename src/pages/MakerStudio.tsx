@@ -29,6 +29,7 @@ import {
 import { useCategories } from "@/hooks/useCategories";
 import { useMyProducts, useSubmitProduct, useDeleteProduct, useUpdateProduct } from "@/hooks/useProducts";
 import { useRecommendations } from "@/hooks/useRecommendations";
+import { useServiceCategories } from "@/hooks/useServiceCategories";
 import { toast } from "sonner";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
