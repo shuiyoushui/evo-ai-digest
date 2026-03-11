@@ -53,6 +53,36 @@ export type Database = {
         }
         Relationships: []
       }
+      banner_slides: {
+        Row: {
+          active: boolean
+          cta: string
+          gradient: string
+          id: string
+          link: string
+          sort_order: number
+          title: string
+        }
+        Insert: {
+          active?: boolean
+          cta?: string
+          gradient: string
+          id: string
+          link?: string
+          sort_order?: number
+          title: string
+        }
+        Update: {
+          active?: boolean
+          cta?: string
+          gradient?: string
+          id?: string
+          link?: string
+          sort_order?: number
+          title?: string
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           icon: string
@@ -253,6 +283,33 @@ export type Database = {
           id?: string
           nickname?: string
           phone?: string | null
+        }
+        Relationships: []
+      }
+      ranking_weights: {
+        Row: {
+          comments: number
+          decay: number
+          id: string
+          updated_at: string | null
+          upvotes: number
+          views: number
+        }
+        Insert: {
+          comments?: number
+          decay?: number
+          id?: string
+          updated_at?: string | null
+          upvotes?: number
+          views?: number
+        }
+        Update: {
+          comments?: number
+          decay?: number
+          id?: string
+          updated_at?: string | null
+          upvotes?: number
+          views?: number
         }
         Relationships: []
       }
