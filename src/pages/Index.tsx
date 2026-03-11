@@ -8,6 +8,7 @@ import { ProductCard } from "@/components/home/ProductCard";
 import { ProductDetail } from "@/components/product/ProductDetail";
 import { useProducts } from "@/hooks/useProducts";
 import { useUserUpvotes } from "@/hooks/useUpvotes";
+import { useBannerSlides } from "@/hooks/useBannerSlides";
 import { useAuth } from "@/contexts/AuthContext";
 import { TrendingUp, Rocket, Lock } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
