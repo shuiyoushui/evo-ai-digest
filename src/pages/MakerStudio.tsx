@@ -56,21 +56,14 @@ const emptyFormData = {
 const platformPresets = ["Web", "Mobile App", "Browser Plugin", "Desktop"];
 const pricingPresets = ["Free", "Paid", "Freemium"];
 
-// Self-service promotion cards
-const selfServiceCards = [
-  { id: "seed", title: "种子用户获取", desc: "精准获取早期高质量种子用户，快速验证产品方向", icon: Sprout },
-  { id: "review", title: "体验评测用户获取", desc: "邀请目标用户深度体验产品并撰写真实评测", icon: Star },
-  { id: "growth", title: "用户规模增长", desc: "多渠道大规模投放，实现用户快速增长", icon: TrendingUp },
-];
+// Icon mapping from database icon strings to Lucide components
+const iconMap: Record<string, any> = {
+  Sprout, Star, TrendingUp, Cpu, Code, Globe, Megaphone, Users, Target, Rocket,
+  Radio, LayoutGrid, Newspaper, Shield, Upload, Building2, Terminal, Zap, Eye,
+};
+const getIconComponent = (iconName: string) => iconMap[iconName] || Cpu;
 
 const budgetOptions = [100, 500, 1000, 5000];
-
-// Technical Services cards
-const techServiceCards = [
-  { id: "llm", title: "大模型接入", desc: "API integration, model deployment, and fine-tuning.", icon: Cpu },
-  { id: "mcp", title: "MCP 开发服务", desc: "Model Context Protocol & Custom Agent development.", icon: Code },
-  { id: "cloud", title: "其他模型/云服务等", desc: "GPU computing resources, RAG, and data processing.", icon: Globe },
-];
 
 const statusMap: Record<string, string> = { approved: "已上线", pending: "审核中", rejected: "已拒绝" };
 
