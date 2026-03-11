@@ -64,12 +64,12 @@ const Index = () => {
               <div className="flex items-center justify-between mb-4">
                 <TabsList className="bg-secondary/60 border border-border/30 p-1 rounded-xl">
                   <TabsTrigger value="hot" className="gap-1.5 text-sm rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                    <TrendingUp className="h-3.5 w-3.5" /> 🔥 热门趋势
+                    <TrendingUp className="h-3.5 w-3.5" /> 热门趋势
                   </TabsTrigger>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <TabsTrigger value="new" className="gap-1.5 text-sm rounded-lg relative data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                        <Rocket className="h-3.5 w-3.5" /> 🚀 最新上线
+                        <Rocket className="h-3.5 w-3.5" /> 最新上线
                         <Lock className="h-3 w-3 text-muted-foreground ml-1 opacity-40" />
                       </TabsTrigger>
                     </TooltipTrigger>
