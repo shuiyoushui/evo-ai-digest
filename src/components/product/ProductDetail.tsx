@@ -269,33 +269,35 @@ export function ProductDetail({ product, open, onClose, onPromote }: ProductDeta
                 </TabsContent>
               )}
 
-              <TabsContent value="community">
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-foreground flex items-center gap-2"><MessageCircle className="h-4 w-4 text-primary" /> 评论</h3>
-                  <div className="flex gap-3">
-                    <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center text-xs font-semibold shrink-0">我</div>
-                    <div className="flex-1 space-y-2">
-                      <Textarea placeholder="写下你的评论..." className="bg-secondary border-border/60 min-h-[72px] text-sm" value={commentText} onChange={(e) => setCommentText(e.target.value)} />
-                      <div className="flex justify-end"><Button size="sm" className="bg-primary text-xs">发表评论</Button></div>
+              {isModuleOn('community') && (
+                <TabsContent value="community">
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-foreground flex items-center gap-2"><MessageCircle className="h-4 w-4 text-primary" /> 评论</h3>
+                    <div className="flex gap-3">
+                      <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center text-xs font-semibold shrink-0">我</div>
+                      <div className="flex-1 space-y-2">
+                        <Textarea placeholder="写下你的评论..." className="bg-secondary border-border/60 min-h-[72px] text-sm" value={commentText} onChange={(e) => setCommentText(e.target.value)} />
+                        <div className="flex justify-end"><Button size="sm" className="bg-primary text-xs">发表评论</Button></div>
+                      </div>
+                    </div>
+                    <div className="space-y-4 mt-4">
+                      {mockComments.map((c) => (
+                        <div key={c.id} className="flex gap-3">
+                          <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center text-xs font-semibold shrink-0">{c.avatar}</div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium text-foreground">{c.user}</span>
+                              <span className="text-[10px] text-muted-foreground">{c.time}</span>
+                            </div>
+                            <p className="text-sm text-muted-foreground mt-1">{c.text}</p>
+                            <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mt-1.5 transition-colors"><Reply className="h-3 w-3" /> 回复</button>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                  <div className="space-y-4 mt-4">
-                    {mockComments.map((c) => (
-                      <div key={c.id} className="flex gap-3">
-                        <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center text-xs font-semibold shrink-0">{c.avatar}</div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium text-foreground">{c.user}</span>
-                            <span className="text-[10px] text-muted-foreground">{c.time}</span>
-                          </div>
-                          <p className="text-sm text-muted-foreground mt-1">{c.text}</p>
-                          <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mt-1.5 transition-colors"><Reply className="h-3 w-3" /> 回复</button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </TabsContent>
+                </TabsContent>
+              )}
             </Tabs>
           </div>
         </DialogContent>
