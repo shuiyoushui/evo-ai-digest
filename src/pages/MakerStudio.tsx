@@ -26,6 +26,7 @@ import {
   Radio, LayoutGrid, Newspaper, Target, Rocket,
   Sprout, Star, TrendingUp, Upload, Shield, AlertTriangle, User,
 } from "lucide-react";
+import { useServiceCategories } from "@/hooks/useServiceCategories";
 import { useCategories } from "@/hooks/useCategories";
 import { useMyProducts, useSubmitProduct, useDeleteProduct, useUpdateProduct } from "@/hooks/useProducts";
 import { useRecommendations } from "@/hooks/useRecommendations";
