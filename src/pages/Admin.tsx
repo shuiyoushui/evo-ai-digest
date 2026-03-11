@@ -623,7 +623,10 @@ const Admin = () => {
                     </CardContent>
                   </Card>
 
-                  {/* AI Config - kept in service center */}
+                </TabsContent>
+
+                {/* ========== AI 配置 ========== */}
+                <TabsContent value="ai" className="space-y-6 mt-4">
                   <Card className="bg-card border-border">
                     <CardHeader className="pb-3">
                       <div className="flex items-center justify-between">
