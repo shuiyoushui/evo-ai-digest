@@ -53,6 +53,36 @@ export type Database = {
         }
         Relationships: []
       }
+      banner_slides: {
+        Row: {
+          active: boolean
+          cta: string
+          gradient: string
+          id: string
+          link: string
+          sort_order: number
+          title: string
+        }
+        Insert: {
+          active?: boolean
+          cta?: string
+          gradient: string
+          id: string
+          link?: string
+          sort_order?: number
+          title: string
+        }
+        Update: {
+          active?: boolean
+          cta?: string
+          gradient?: string
+          id?: string
+          link?: string
+          sort_order?: number
+          title?: string
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           icon: string
@@ -71,6 +101,30 @@ export type Database = {
           id?: string
           label?: string
           sort_order?: number | null
+        }
+        Relationships: []
+      }
+      display_modules: {
+        Row: {
+          description: string
+          enabled: boolean
+          id: string
+          label: string
+          sort_order: number
+        }
+        Insert: {
+          description?: string
+          enabled?: boolean
+          id: string
+          label: string
+          sort_order?: number
+        }
+        Update: {
+          description?: string
+          enabled?: boolean
+          id?: string
+          label?: string
+          sort_order?: number
         }
         Relationships: []
       }
@@ -231,6 +285,74 @@ export type Database = {
           phone?: string | null
         }
         Relationships: []
+      }
+      ranking_weights: {
+        Row: {
+          comments: number
+          decay: number
+          id: string
+          updated_at: string | null
+          upvotes: number
+          views: number
+        }
+        Insert: {
+          comments?: number
+          decay?: number
+          id?: string
+          updated_at?: string | null
+          upvotes?: number
+          views?: number
+        }
+        Update: {
+          comments?: number
+          decay?: number
+          id?: string
+          updated_at?: string | null
+          upvotes?: number
+          views?: number
+        }
+        Relationships: []
+      }
+      service_categories: {
+        Row: {
+          created_at: string | null
+          description: string
+          enabled: boolean
+          icon: string
+          id: string
+          label: string
+          parent_id: string | null
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string
+          enabled?: boolean
+          icon?: string
+          id?: string
+          label: string
+          parent_id?: string | null
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          enabled?: boolean
+          icon?: string
+          id?: string
+          label?: string
+          parent_id?: string | null
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "service_categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       upvotes: {
         Row: {
