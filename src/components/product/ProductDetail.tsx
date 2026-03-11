@@ -15,6 +15,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ShareDialog } from "./ShareDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToggleUpvote, useUserUpvotes } from "@/hooks/useUpvotes";
+import { useDisplayModules } from "@/hooks/useDisplayModules";
 import { toast } from "sonner";
 import type { DbProduct } from "@/hooks/useProducts";
 import { mockComments } from "@/data/mockData";
