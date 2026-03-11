@@ -26,6 +26,7 @@ const Index = () => {
 
   const { data: products = [], isLoading } = useProducts(selectedCategory);
   const { data: userUpvotes = new Set<string>() } = useUserUpvotes(user?.id);
+  const { data: bannerSlides = [], isLoading: bannerLoading } = useBannerSlides();
 
   const filtered = useMemo(() => {
     let list = products;
