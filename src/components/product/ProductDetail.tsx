@@ -165,9 +165,11 @@ export function ProductDetail({ product, open, onClose, onPromote }: ProductDeta
               <TabsContent value="overview">
                 <div className="grid grid-cols-1 md:grid-cols-[1fr_280px] gap-6">
                   <div className="space-y-5">
-                    <div className="aspect-video rounded-lg bg-secondary/50 border border-border/40 flex items-center justify-center">
-                      <span className="text-muted-foreground text-sm">🎬 产品演示视频</span>
-                    </div>
+                    {isModuleOn('video') && (
+                      <div className="aspect-video rounded-lg bg-secondary/50 border border-border/40 flex items-center justify-center">
+                        <span className="text-muted-foreground text-sm">🎬 产品演示视频</span>
+                      </div>
+                    )}
                     {(product.tags && product.tags.length > 0) && (
                       <div className="flex flex-wrap gap-2">
                         {product.tags.map((tag, i) => (
@@ -179,41 +181,47 @@ export function ProductDetail({ product, open, onClose, onPromote }: ProductDeta
                       <h3 className="font-semibold text-foreground mb-2">产品介绍</h3>
                       <div className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">{product.description}</div>
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-foreground mb-2">核心优势</h3>
-                      <ul className="space-y-2">
-                        {(product.benefits || []).map((b, i) => (
-                          <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                            <span className="text-primary mt-0.5">✦</span>{b}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+                    {isModuleOn('benefits') && (
+                      <div>
+                        <h3 className="font-semibold text-foreground mb-2">核心优势</h3>
+                        <ul className="space-y-2">
+                          {(product.benefits || []).map((b, i) => (
+                            <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
+                              <span className="text-primary mt-0.5">✦</span>{b}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </div>
                   <div className="space-y-4">
-                    <Card className="bg-secondary/30 border-border/40">
-                      <CardContent className="p-4">
-                        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">创始人</h4>
-                        <div className="flex items-center gap-3">
-                          <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center text-sm font-semibold">{product.maker_name[0]}</div>
-                          <div>
-                            <p className="text-sm font-medium text-foreground">{product.maker_name}</p>
-                            <p className="text-xs text-muted-foreground">{product.maker_title}</p>
+                    {isModuleOn('founder') && (
+                      <Card className="bg-secondary/30 border-border/40">
+                        <CardContent className="p-4">
+                          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">创始人</h4>
+                          <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center text-sm font-semibold">{product.maker_name[0]}</div>
+                            <div>
+                              <p className="text-sm font-medium text-foreground">{product.maker_name}</p>
+                              <p className="text-xs text-muted-foreground">{product.maker_title}</p>
+                            </div>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                    <Card className="bg-secondary/30 border-border/40">
-                      <CardContent className="p-4">
-                        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">公司信息</h4>
-                        <div className="space-y-2 text-sm">
-                          <div className="flex justify-between"><span className="text-muted-foreground">公司</span><span className="text-foreground">{product.company_name}</span></div>
-                          <div className="flex justify-between"><span className="text-muted-foreground">成立</span><span className="text-foreground">{product.company_founded}</span></div>
-                          <div className="flex justify-between"><span className="text-muted-foreground">地点</span><span className="text-foreground">{product.company_location}</span></div>
-                          {product.company_funding && <div className="flex justify-between"><span className="text-muted-foreground">融资</span><span className="text-foreground">{product.company_funding}</span></div>}
-                        </div>
-                      </CardContent>
-                    </Card>
+                        </CardContent>
+                      </Card>
+                    )}
+                    {isModuleOn('company') && (
+                      <Card className="bg-secondary/30 border-border/40">
+                        <CardContent className="p-4">
+                          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">公司信息</h4>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between"><span className="text-muted-foreground">公司</span><span className="text-foreground">{product.company_name}</span></div>
+                            <div className="flex justify-between"><span className="text-muted-foreground">成立</span><span className="text-foreground">{product.company_founded}</span></div>
+                            <div className="flex justify-between"><span className="text-muted-foreground">地点</span><span className="text-foreground">{product.company_location}</span></div>
+                            {product.company_funding && <div className="flex justify-between"><span className="text-muted-foreground">融资</span><span className="text-foreground">{product.company_funding}</span></div>}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
                   </div>
                 </div>
               </TabsContent>
