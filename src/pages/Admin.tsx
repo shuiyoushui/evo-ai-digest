@@ -728,6 +728,69 @@ const Admin = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Service Category Edit/Create Dialog */}
+      <Dialog open={scEditOpen} onOpenChange={setScEditOpen}>
+        <DialogContent className="bg-card border-border max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-base">{scEditId ? "编辑服务项" : (scEditParentId ? "新增子服务" : "新增服务分类")}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-2">
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">名称</label>
+              <Input value={scEditLabel} onChange={(e) => setScEditLabel(e.target.value)} className="bg-secondary" placeholder="如 技术服务" />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">图标 (emoji)</label>
+              <Input value={scEditIcon} onChange={(e) => setScEditIcon(e.target.value)} className="bg-secondary" placeholder="Cpu" />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">描述</label>
+              <Input value={scEditDesc} onChange={(e) => setScEditDesc(e.target.value)} className="bg-secondary" placeholder="服务描述（可选）" />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">排序</label>
+              <Input type="number" value={scEditOrder} onChange={(e) => setScEditOrder(Number(e.target.value))} className="bg-secondary" />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setScEditOpen(false)}>取消</Button>
+              <Button className="bg-primary" onClick={() => {
+                if (!scEditLabel.trim()) { toast.error("请填写名称"); return; }
+                if (scEditId) {
+                  updateSc.mutate({ id: scEditId, label: scEditLabel, icon: scEditIcon, description: scEditDesc, sort_order: scEditOrder });
+                } else {
+                  createSc.mutate({ label: scEditLabel, icon: scEditIcon, description: scEditDesc, sort_order: scEditOrder, parent_id: scEditParentId });
+                }
+                setScEditOpen(false);
+                toast.success(scEditId ? "已更新" : "已新增");
+              }}>保存</Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Service Category Delete Confirm */}
+      <AlertDialog open={!!scDeleteConfirmId} onOpenChange={(open) => { if (!open) setScDeleteConfirmId(null); }}>
+        <AlertDialogContent className="bg-card border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle>确认删除</AlertDialogTitle>
+            <AlertDialogDescription>删除后不可恢复，子分类也将一并删除。确定继续？</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction onClick={() => {
+              if (scDeleteConfirmId) {
+                // Delete children first
+                const children = serviceCategories.filter(c => c.parent_id === scDeleteConfirmId);
+                children.forEach(c => deleteSc.mutate(c.id));
+                deleteSc.mutate(scDeleteConfirmId);
+                toast.success("已删除");
+              }
+              setScDeleteConfirmId(null);
+            }}>删除</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
