@@ -15,12 +15,14 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { LayoutDashboard, FileText, Megaphone, Settings, Plus, Eye, ThumbsUp, Clock, MessageCircle, Save, Image, Upload, Pencil, Trash2, AlertTriangle, Lock, Cpu } from "lucide-react";
+import { LayoutDashboard, FileText, Megaphone, Settings, Plus, Eye, ThumbsUp, Clock, MessageCircle, Save, Image, Upload, Pencil, Trash2, AlertTriangle, Lock, Cpu, FolderTree } from "lucide-react";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { mockInquiries } from "@/data/mockData";
-import { useCategories } from "@/hooks/useCategories";
+import { useCategories, useCreateCategory, useUpdateCategory, useDeleteCategory } from "@/hooks/useCategories";
 import { useAllProducts, useUpdateProduct } from "@/hooks/useProducts";
 import { useAllRecommendations, useUpdateRecommendation, useCreateRecommendation, useDeleteRecommendation } from "@/hooks/useRecommendations";
+import { useServiceCategories, useCreateServiceCategory, useUpdateServiceCategory, useDeleteServiceCategory } from "@/hooks/useServiceCategories";
+import { useDisplayModules, useUpdateDisplayModule } from "@/hooks/useDisplayModules";
 import { useAuth } from "@/contexts/AuthContext";
 import { defaultBannerSlides, type BannerSlide } from "@/components/home/HomeBanner";
 import { toast } from "sonner";
@@ -71,12 +73,25 @@ const Admin = () => {
   const [weights, setWeights] = useState({ upvotes: 40, views: 25, comments: 20, decay: 15 });
   const [bannerSlides, setBannerSlides] = useState<BannerSlide[]>(defaultBannerSlides);
   const { data: categories = [] } = useCategories();
+  const createCategory = useCreateCategory();
+  const updateCategory = useUpdateCategory();
+  const deleteCategory = useDeleteCategory();
   const { data: allProducts = [], isLoading } = useAllProducts();
   const updateProduct = useUpdateProduct();
   const { data: llmRecs = [], isLoading: llmLoading } = useAllRecommendations();
   const updateRec = useUpdateRecommendation();
   const createRec = useCreateRecommendation();
   const deleteRec = useDeleteRecommendation();
+
+  // Service categories
+  const { data: serviceCategories = [] } = useServiceCategories();
+  const createServiceCat = useCreateServiceCategory();
+  const updateServiceCat = useUpdateServiceCategory();
+  const deleteServiceCat = useDeleteServiceCategory();
+
+  // Display modules
+  const { data: displayModules = [] } = useDisplayModules();
+  const updateDisplayModule = useUpdateDisplayModule();
 
   // LLM rec editing
   const [llmEditOpen, setLlmEditOpen] = useState(false);
@@ -85,7 +100,26 @@ const Admin = () => {
   const [llmEditTag, setLlmEditTag] = useState("");
   const [llmEditOrder, setLlmEditOrder] = useState(0);
 
-  // Category sort order
+  // Category editing
+  const [catEditOpen, setCatEditOpen] = useState(false);
+  const [catEditId, setCatEditId] = useState<string | null>(null);
+  const [catEditNewId, setCatEditNewId] = useState("");
+  const [catEditLabel, setCatEditLabel] = useState("");
+  const [catEditIcon, setCatEditIcon] = useState("");
+  const [catEditOrder, setCatEditOrder] = useState(0);
+  const [catDeleteConfirm, setCatDeleteConfirm] = useState<string | null>(null);
+
+  // Service category editing
+  const [svcEditOpen, setSvcEditOpen] = useState(false);
+  const [svcEditId, setSvcEditId] = useState<string | null>(null);
+  const [svcEditParent, setSvcEditParent] = useState<string | null>(null);
+  const [svcEditLabel, setSvcEditLabel] = useState("");
+  const [svcEditDesc, setSvcEditDesc] = useState("");
+  const [svcEditIcon, setSvcEditIcon] = useState("Cpu");
+  const [svcEditOrder, setSvcEditOrder] = useState(0);
+  const [svcDeleteConfirm, setSvcDeleteConfirm] = useState<string | null>(null);
+
+  // Category sort order (kept for backward compat)
   const [catOrderList, setCatOrderList] = useState<Array<{ id: string; label: string; icon: string; sort_order: number }>>([]);
   const [savingCatOrder, setSavingCatOrder] = useState(false);
 
@@ -99,8 +133,7 @@ const Admin = () => {
     setSavingCatOrder(true);
     try {
       for (const cat of catOrderList) {
-        const { error } = await supabase.from("categories").update({ sort_order: cat.sort_order }).eq("id", cat.id);
-        if (error) throw error;
+        await updateCategory.mutateAsync({ id: cat.id, sort_order: cat.sort_order });
       }
       toast.success("分类排序已保存");
     } catch (e: any) {
@@ -175,6 +208,10 @@ const Admin = () => {
       toast.error("保存失败", { description: e.message });
     }
   };
+
+  // Helpers for service categories
+  const topLevelSvcCats = serviceCategories.filter(c => !c.parent_id);
+  const getChildren = (parentId: string) => serviceCategories.filter(c => c.parent_id === parentId);
 
   return (
     <div className="min-h-screen bg-background">
@@ -350,21 +387,28 @@ const Admin = () => {
                 </CardContent>
               </Card>
 
+              {/* Display Modules Config - Database backed */}
               <Card className="bg-card border-border">
-                <CardHeader className="pb-3"><CardTitle className="text-sm">功能开关</CardTitle><CardDescription className="text-xs">控制平台功能模块的启用状态</CardDescription></CardHeader>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm">产品详情页模块配置</CardTitle>
+                  <CardDescription className="text-xs">控制产品详情页各模块的展示状态（实时生效）</CardDescription>
+                </CardHeader>
                 <CardContent className="space-y-4">
-                  {[
-                    { label: "启用融资模块", desc: "显示公司融资信息", defaultOn: true },
-                    { label: "最新上线模块", desc: "在首页显示「最新上线」Tab", defaultOn: true },
-                    { label: "评论功能", desc: "启用产品评论区", defaultOn: false },
-                    { label: "是否启用演示视频", desc: "在产品详情页显示演示视频模块", defaultOn: false },
-                    { label: "是否启用社区评价", desc: "在产品页面启用社区评价与讨论功能", defaultOn: false },
-                  ].map((toggle) => (
-                    <div key={toggle.label} className="flex items-center justify-between">
-                      <div><p className="text-sm text-foreground">{toggle.label}</p><p className="text-xs text-muted-foreground">{toggle.desc}</p></div>
-                      <Switch defaultChecked={toggle.defaultOn} />
+                  {displayModules.map((mod) => (
+                    <div key={mod.id} className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-foreground">{mod.label}</p>
+                        <p className="text-xs text-muted-foreground">{mod.description}</p>
+                      </div>
+                      <Switch
+                        checked={mod.enabled}
+                        onCheckedChange={(v) => updateDisplayModule.mutate({ id: mod.id, enabled: v })}
+                      />
                     </div>
                   ))}
+                  {displayModules.length === 0 && (
+                    <p className="text-xs text-muted-foreground text-center py-4">暂无模块配置</p>
+                  )}
                 </CardContent>
               </Card>
 
@@ -406,88 +450,61 @@ const Admin = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                       <label className="text-xs text-muted-foreground">AI Endpoint</label>
-                      <Input
-                        value={aiEndpoint}
-                        onChange={(e) => setAiEndpoint(e.target.value)}
-                        className="bg-secondary font-mono text-xs"
-                        placeholder="https://ai.gateway.lovable.dev/v1/chat/completions"
-                      />
+                      <Input value={aiEndpoint} onChange={(e) => setAiEndpoint(e.target.value)} className="bg-secondary font-mono text-xs" placeholder="https://ai.gateway.lovable.dev/v1/chat/completions" />
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-xs text-muted-foreground">AI API Key 环境变量名</label>
-                      <Input
-                        value={aiApiKeyName}
-                        onChange={(e) => setAiApiKeyName(e.target.value)}
-                        className="bg-secondary font-mono text-xs"
-                        placeholder="LOVABLE_API_KEY"
-                      />
+                      <Input value={aiApiKeyName} onChange={(e) => setAiApiKeyName(e.target.value)} className="bg-secondary font-mono text-xs" placeholder="LOVABLE_API_KEY" />
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-xs text-muted-foreground">爬虫 Endpoint</label>
-                      <Input
-                        value={scraperEndpoint}
-                        onChange={(e) => setScraperEndpoint(e.target.value)}
-                        className="bg-secondary font-mono text-xs"
-                        placeholder="https://api.firecrawl.dev/v1/scrape"
-                      />
+                      <Input value={scraperEndpoint} onChange={(e) => setScraperEndpoint(e.target.value)} className="bg-secondary font-mono text-xs" placeholder="https://api.firecrawl.dev/v1/scrape" />
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-xs text-muted-foreground">爬虫 API Key 环境变量名</label>
-                      <Input
-                        value={scraperApiKeyName}
-                        onChange={(e) => setScraperApiKeyName(e.target.value)}
-                        className="bg-secondary font-mono text-xs"
-                        placeholder="FIRECRAWL_API_KEY"
-                      />
+                      <Input value={scraperApiKeyName} onChange={(e) => setScraperApiKeyName(e.target.value)} className="bg-secondary font-mono text-xs" placeholder="FIRECRAWL_API_KEY" />
                     </div>
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs text-muted-foreground">AI 模型</label>
                     <Select value={aiModel} onValueChange={(v) => { setAiModel(v); if (v !== "__custom__") setAiCustomModel(""); }}>
-                      <SelectTrigger className="bg-secondary">
-                        <SelectValue />
-                      </SelectTrigger>
+                      <SelectTrigger className="bg-secondary"><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        {AI_MODELS.map((m) => (
-                          <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
-                        ))}
+                        {AI_MODELS.map((m) => (<SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>))}
                         <SelectItem value="__custom__">自定义模型 ID...</SelectItem>
                       </SelectContent>
                     </Select>
                     {aiModel === "__custom__" && (
-                      <Input
-                        value={aiCustomModel}
-                        onChange={(e) => setAiCustomModel(e.target.value)}
-                        className="bg-secondary font-mono text-xs mt-2"
-                        placeholder="输入自定义模型 ID，如 volcengine/doubao-pro"
-                      />
+                      <Input value={aiCustomModel} onChange={(e) => setAiCustomModel(e.target.value)} className="bg-secondary font-mono text-xs mt-2" placeholder="输入自定义模型 ID，如 volcengine/doubao-pro" />
                     )}
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs text-muted-foreground">System Prompt</label>
-                    <Textarea
-                      value={aiPrompt}
-                      onChange={(e) => setAiPrompt(e.target.value)}
-                      className="bg-secondary font-mono text-xs min-h-[120px] leading-relaxed"
-                      placeholder="输入系统提示词..."
-                    />
+                    <Textarea value={aiPrompt} onChange={(e) => setAiPrompt(e.target.value)} className="bg-secondary font-mono text-xs min-h-[120px] leading-relaxed" placeholder="输入系统提示词..." />
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Category Sort Management */}
+              {/* Category Management - Full CRUD */}
               <Card className="bg-card border-border">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Settings className="h-4 w-4 text-primary" />
-                      <CardTitle className="text-sm">产品分类排序</CardTitle>
+                      <CardTitle className="text-sm">产品分类管理</CardTitle>
                     </div>
-                    <Button size="sm" variant="outline" className="text-xs gap-1" onClick={handleSaveCategoryOrder} disabled={savingCatOrder}>
-                      <Save className="h-3 w-3" /> {savingCatOrder ? "保存中..." : "保存排序"}
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline" className="text-xs gap-1" onClick={() => {
+                        setCatEditId(null); setCatEditNewId(""); setCatEditLabel(""); setCatEditIcon(""); setCatEditOrder(catOrderList.length); setCatEditOpen(true);
+                      }}>
+                        <Plus className="h-3 w-3" /> 新增分类
+                      </Button>
+                      <Button size="sm" variant="outline" className="text-xs gap-1" onClick={handleSaveCategoryOrder} disabled={savingCatOrder}>
+                        <Save className="h-3 w-3" /> {savingCatOrder ? "保存中..." : "保存排序"}
+                      </Button>
+                    </div>
                   </div>
-                  <CardDescription className="text-xs">拖动排序值调整分类在导航栏的显示顺序（数值越小越靠前）</CardDescription>
+                  <CardDescription className="text-xs">管理产品分类的名称、图标和排序</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="rounded-md border border-border overflow-hidden">
@@ -498,7 +515,7 @@ const Admin = () => {
                           <TableHead className="text-xs font-medium">分类ID</TableHead>
                           <TableHead className="text-xs font-medium">分类名称</TableHead>
                           <TableHead className="text-xs font-medium text-center">排序值</TableHead>
-                          <TableHead className="text-xs font-medium text-center">操作</TableHead>
+                          <TableHead className="text-xs font-medium text-right">操作</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -519,28 +536,109 @@ const Admin = () => {
                                 className="w-16 h-7 text-xs text-center bg-secondary mx-auto"
                               />
                             </TableCell>
-                            <TableCell className="text-center">
-                              <div className="flex justify-center gap-1">
-                                <Button size="sm" variant="ghost" className="h-6 px-1.5 text-xs" disabled={idx === 0} onClick={() => {
-                                  const newList = [...catOrderList];
-                                  const prevOrder = newList[idx - 1].sort_order;
-                                  newList[idx - 1] = { ...newList[idx - 1], sort_order: newList[idx].sort_order };
-                                  newList[idx] = { ...newList[idx], sort_order: prevOrder };
-                                  newList.sort((a, b) => a.sort_order - b.sort_order);
-                                  setCatOrderList(newList);
-                                }}>↑</Button>
-                                <Button size="sm" variant="ghost" className="h-6 px-1.5 text-xs" disabled={idx === catOrderList.length - 1} onClick={() => {
-                                  const newList = [...catOrderList];
-                                  const nextOrder = newList[idx + 1].sort_order;
-                                  newList[idx + 1] = { ...newList[idx + 1], sort_order: newList[idx].sort_order };
-                                  newList[idx] = { ...newList[idx], sort_order: nextOrder };
-                                  newList.sort((a, b) => a.sort_order - b.sort_order);
-                                  setCatOrderList(newList);
-                                }}>↓</Button>
+                            <TableCell className="text-right">
+                              <div className="flex justify-end gap-1">
+                                <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => {
+                                  setCatEditId(cat.id); setCatEditNewId(cat.id); setCatEditLabel(cat.label); setCatEditIcon(cat.icon); setCatEditOrder(cat.sort_order); setCatEditOpen(true);
+                                }}>
+                                  <Pencil className="h-3 w-3" />
+                                </Button>
+                                <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive" onClick={() => setCatDeleteConfirm(cat.id)}>
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
                               </div>
                             </TableCell>
                           </TableRow>
                         ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Service Categories Management */}
+              <Card className="bg-card border-border">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <FolderTree className="h-4 w-4 text-primary" />
+                      <CardTitle className="text-sm">服务中心分类管理</CardTitle>
+                    </div>
+                    <Button size="sm" variant="outline" className="text-xs gap-1" onClick={() => {
+                      setSvcEditId(null); setSvcEditParent(null); setSvcEditLabel(""); setSvcEditDesc(""); setSvcEditIcon("Cpu"); setSvcEditOrder(topLevelSvcCats.length); setSvcEditOpen(true);
+                    }}>
+                      <Plus className="h-3 w-3" /> 新增一级分类
+                    </Button>
+                  </div>
+                  <CardDescription className="text-xs">管理服务中心的分类和子服务（树形结构）</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="rounded-md border border-border overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="border-border bg-secondary/30">
+                          <TableHead className="text-xs font-medium">名称</TableHead>
+                          <TableHead className="text-xs font-medium">描述</TableHead>
+                          <TableHead className="text-xs font-medium text-center">排序</TableHead>
+                          <TableHead className="text-xs font-medium text-center">启用</TableHead>
+                          <TableHead className="text-xs font-medium text-right">操作</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {topLevelSvcCats.map((cat) => (
+                          <>
+                            <TableRow key={cat.id} className="border-border bg-secondary/20">
+                              <TableCell className="text-sm font-semibold">{cat.icon} {cat.label}</TableCell>
+                              <TableCell className="text-xs text-muted-foreground">{cat.description}</TableCell>
+                              <TableCell className="text-center text-xs text-muted-foreground">{cat.sort_order}</TableCell>
+                              <TableCell className="text-center">
+                                <Switch checked={cat.enabled} onCheckedChange={(v) => updateServiceCat.mutate({ id: cat.id, enabled: v })} />
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <div className="flex justify-end gap-1">
+                                  <Button size="sm" variant="ghost" className="h-7 text-xs gap-1" onClick={() => {
+                                    setSvcEditId(null); setSvcEditParent(cat.id); setSvcEditLabel(""); setSvcEditDesc(""); setSvcEditIcon("Cpu"); setSvcEditOrder(getChildren(cat.id).length); setSvcEditOpen(true);
+                                  }}>
+                                    <Plus className="h-3 w-3" /> 子项
+                                  </Button>
+                                  <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => {
+                                    setSvcEditId(cat.id); setSvcEditParent(cat.parent_id); setSvcEditLabel(cat.label); setSvcEditDesc(cat.description); setSvcEditIcon(cat.icon); setSvcEditOrder(cat.sort_order); setSvcEditOpen(true);
+                                  }}>
+                                    <Pencil className="h-3 w-3" />
+                                  </Button>
+                                  <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive" onClick={() => setSvcDeleteConfirm(cat.id)}>
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                            {getChildren(cat.id).map((child) => (
+                              <TableRow key={child.id} className="border-border">
+                                <TableCell className="text-sm pl-8">↳ {child.label}</TableCell>
+                                <TableCell className="text-xs text-muted-foreground">{child.description}</TableCell>
+                                <TableCell className="text-center text-xs text-muted-foreground">{child.sort_order}</TableCell>
+                                <TableCell className="text-center">
+                                  <Switch checked={child.enabled} onCheckedChange={(v) => updateServiceCat.mutate({ id: child.id, enabled: v })} />
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  <div className="flex justify-end gap-1">
+                                    <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => {
+                                      setSvcEditId(child.id); setSvcEditParent(child.parent_id); setSvcEditLabel(child.label); setSvcEditDesc(child.description); setSvcEditIcon(child.icon); setSvcEditOrder(child.sort_order); setSvcEditOpen(true);
+                                    }}>
+                                      <Pencil className="h-3 w-3" />
+                                    </Button>
+                                    <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive" onClick={() => setSvcDeleteConfirm(child.id)}>
+                                      <Trash2 className="h-3 w-3" />
+                                    </Button>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </>
+                        ))}
+                        {topLevelSvcCats.length === 0 && (
+                          <TableRow><TableCell colSpan={5} className="text-center text-sm text-muted-foreground py-6">暂无服务分类，点击上方按钮新增</TableCell></TableRow>
+                        )}
                       </TableBody>
                     </Table>
                   </div>
@@ -600,43 +698,6 @@ const Admin = () => {
                   </div>
                 </CardContent>
               </Card>
-
-              {/* Service Types Management */}
-              <Card className="bg-card border-border">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm">推广服务类型管理</CardTitle>
-                  <CardDescription className="text-xs">管理创作者中心可用的服务类型</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="rounded-md border border-border overflow-hidden">
-                    <Table>
-                      <TableHeader>
-                        <TableRow className="border-border bg-secondary/30">
-                          <TableHead className="text-xs font-medium">服务名称</TableHead>
-                          <TableHead className="text-xs font-medium">描述</TableHead>
-                          <TableHead className="text-xs font-medium text-center">状态</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                       {[
-                          { name: "自助推广", desc: "种子用户、体验评测、规模增长", active: true },
-                          { name: "技术服务 - 大模型接入", desc: "API接入、模型部署与微调", active: true },
-                          { name: "技术服务 - MCP 开发服务", desc: "Model Context Protocol & Agent 开发", active: true },
-                          { name: "技术服务 - 其他模型/云服务", desc: "GPU算力、RAG、数据处理", active: true },
-                        ].map((svc) => (
-                          <TableRow key={svc.name} className="border-border">
-                            <TableCell className="text-sm font-medium">{svc.name}</TableCell>
-                            <TableCell className="text-xs text-muted-foreground">{svc.desc}</TableCell>
-                            <TableCell className="text-center">
-                              <Switch defaultChecked={svc.active} />
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </CardContent>
-              </Card>
             </div>
           )}
         </main>
@@ -653,6 +714,7 @@ const Admin = () => {
           </div>
         </div>
       )}
+
       {/* LLM Recommendation Edit/Create Dialog */}
       <Dialog open={llmEditOpen} onOpenChange={setLlmEditOpen}>
         <DialogContent className="bg-card border-border max-w-sm">
@@ -688,6 +750,145 @@ const Admin = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Category Edit/Create Dialog */}
+      <Dialog open={catEditOpen} onOpenChange={setCatEditOpen}>
+        <DialogContent className="bg-card border-border max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-base">{catEditId ? "编辑分类" : "新增分类"}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-2">
+            {!catEditId && (
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">分类 ID（唯一标识，创建后不可修改）</label>
+                <Input value={catEditNewId} onChange={(e) => setCatEditNewId(e.target.value)} className="bg-secondary font-mono" placeholder="如 devcode" />
+              </div>
+            )}
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">分类名称</label>
+              <Input value={catEditLabel} onChange={(e) => setCatEditLabel(e.target.value)} className="bg-secondary" placeholder="如 开发与编程" />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">图标（Emoji）</label>
+              <Input value={catEditIcon} onChange={(e) => setCatEditIcon(e.target.value)} className="bg-secondary" placeholder="如 💻" />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">排序</label>
+              <Input type="number" value={catEditOrder} onChange={(e) => setCatEditOrder(Number(e.target.value))} className="bg-secondary" />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setCatEditOpen(false)}>取消</Button>
+              <Button className="bg-primary" onClick={async () => {
+                if (!catEditLabel.trim()) { toast.error("请填写分类名称"); return; }
+                try {
+                  if (catEditId) {
+                    await updateCategory.mutateAsync({ id: catEditId, label: catEditLabel, icon: catEditIcon, sort_order: catEditOrder });
+                  } else {
+                    if (!catEditNewId.trim()) { toast.error("请填写分类 ID"); return; }
+                    await createCategory.mutateAsync({ id: catEditNewId, label: catEditLabel, icon: catEditIcon, sort_order: catEditOrder });
+                  }
+                  setCatEditOpen(false);
+                  toast.success(catEditId ? "分类已更新" : "分类已新增");
+                } catch (e: any) {
+                  toast.error("操作失败", { description: e.message });
+                }
+              }}>保存</Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Category Delete Confirm */}
+      <AlertDialog open={!!catDeleteConfirm} onOpenChange={() => setCatDeleteConfirm(null)}>
+        <AlertDialogContent className="bg-card border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle>确认删除分类？</AlertDialogTitle>
+            <AlertDialogDescription>删除后该分类下的产品将失去分类关联，此操作不可撤销。</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction className="bg-destructive text-destructive-foreground" onClick={async () => {
+              if (catDeleteConfirm) {
+                try {
+                  await deleteCategory.mutateAsync(catDeleteConfirm);
+                  toast.success("分类已删除");
+                } catch (e: any) {
+                  toast.error("删除失败", { description: e.message });
+                }
+              }
+              setCatDeleteConfirm(null);
+            }}>删除</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Service Category Edit/Create Dialog */}
+      <Dialog open={svcEditOpen} onOpenChange={setSvcEditOpen}>
+        <DialogContent className="bg-card border-border max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-base">{svcEditId ? "编辑服务分类" : (svcEditParent ? "新增子服务" : "新增一级分类")}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-2">
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">名称</label>
+              <Input value={svcEditLabel} onChange={(e) => setSvcEditLabel(e.target.value)} className="bg-secondary" placeholder="如 自助推广" />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">描述</label>
+              <Input value={svcEditDesc} onChange={(e) => setSvcEditDesc(e.target.value)} className="bg-secondary" placeholder="简短描述" />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">图标</label>
+              <Input value={svcEditIcon} onChange={(e) => setSvcEditIcon(e.target.value)} className="bg-secondary" placeholder="Lucide 图标名或 Emoji" />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">排序</label>
+              <Input type="number" value={svcEditOrder} onChange={(e) => setSvcEditOrder(Number(e.target.value))} className="bg-secondary" />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setSvcEditOpen(false)}>取消</Button>
+              <Button className="bg-primary" onClick={async () => {
+                if (!svcEditLabel.trim()) { toast.error("请填写名称"); return; }
+                try {
+                  if (svcEditId) {
+                    await updateServiceCat.mutateAsync({ id: svcEditId, label: svcEditLabel, description: svcEditDesc, icon: svcEditIcon, sort_order: svcEditOrder });
+                  } else {
+                    await createServiceCat.mutateAsync({ label: svcEditLabel, description: svcEditDesc, icon: svcEditIcon, sort_order: svcEditOrder, parent_id: svcEditParent });
+                  }
+                  setSvcEditOpen(false);
+                  toast.success(svcEditId ? "已更新" : "已新增");
+                } catch (e: any) {
+                  toast.error("操作失败", { description: e.message });
+                }
+              }}>保存</Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Service Category Delete Confirm */}
+      <AlertDialog open={!!svcDeleteConfirm} onOpenChange={() => setSvcDeleteConfirm(null)}>
+        <AlertDialogContent className="bg-card border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle>确认删除该服务分类？</AlertDialogTitle>
+            <AlertDialogDescription>删除一级分类将同时删除其下所有子服务，此操作不可撤销。</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction className="bg-destructive text-destructive-foreground" onClick={async () => {
+              if (svcDeleteConfirm) {
+                try {
+                  await deleteServiceCat.mutateAsync(svcDeleteConfirm);
+                  toast.success("已删除");
+                } catch (e: any) {
+                  toast.error("删除失败", { description: e.message });
+                }
+              }
+              setSvcDeleteConfirm(null);
+            }}>删除</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

@@ -29,6 +29,7 @@ import {
 import { useCategories } from "@/hooks/useCategories";
 import { useMyProducts, useSubmitProduct, useDeleteProduct, useUpdateProduct } from "@/hooks/useProducts";
 import { useRecommendations } from "@/hooks/useRecommendations";
+import { useServiceCategories } from "@/hooks/useServiceCategories";
 import { toast } from "sonner";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -55,7 +56,7 @@ const emptyFormData = {
 const platformPresets = ["Web", "Mobile App", "Browser Plugin", "Desktop"];
 const pricingPresets = ["Free", "Paid", "Freemium"];
 
-// Self-service promotion cards
+// Fallback self-service cards (used when no DB data)
 const selfServiceCards = [
   { id: "seed", title: "种子用户获取", desc: "精准获取早期高质量种子用户，快速验证产品方向", icon: Sprout },
   { id: "review", title: "体验评测用户获取", desc: "邀请目标用户深度体验产品并撰写真实评测", icon: Star },
@@ -64,7 +65,7 @@ const selfServiceCards = [
 
 const budgetOptions = [100, 500, 1000, 5000];
 
-// Technical Services cards
+// Fallback tech service cards
 const techServiceCards = [
   { id: "llm", title: "大模型接入", desc: "API integration, model deployment, and fine-tuning.", icon: Cpu },
   { id: "mcp", title: "MCP 开发服务", desc: "Model Context Protocol & Custom Agent development.", icon: Code },
@@ -102,6 +103,11 @@ const MakerStudio = () => {
 
   // LLM recommendation state
   const { data: llmRecs = [] } = useRecommendations();
+  const { data: serviceCategories = [] } = useServiceCategories();
+
+  // Derive service cards from DB or fallback
+  const topLevelSvcCats = serviceCategories.filter(c => !c.parent_id && c.enabled);
+  const getChildren = (parentId: string) => serviceCategories.filter(c => c.parent_id === parentId && c.enabled);
   const [llmDialogOpen, setLlmDialogOpen] = useState(false);
   const [selectedLlm, setSelectedLlm] = useState<string>("");
 
@@ -828,70 +834,116 @@ const MakerStudio = () => {
               <p className="text-sm text-muted-foreground">覆盖产品全生命周期的一站式生态服务市场</p>
             </div>
 
-            <Tabs defaultValue="self-promotion" className="w-full">
+            <Tabs defaultValue={topLevelSvcCats.length > 0 ? topLevelSvcCats[0].id : "self-promotion"} className="w-full">
               <TabsList className="bg-secondary w-full justify-start flex-wrap h-auto gap-1 p-1.5">
-                <TabsTrigger value="self-promotion" className="gap-1.5 text-xs data-[state=active]:bg-background">
-                  <Megaphone className="h-3.5 w-3.5" /> 自助推广
-                </TabsTrigger>
-                <TabsTrigger value="tech" className="gap-1.5 text-xs data-[state=active]:bg-background">
-                  <Cpu className="h-3.5 w-3.5" /> 技术服务
-                </TabsTrigger>
+                {topLevelSvcCats.length > 0 ? (
+                  topLevelSvcCats.map((cat) => (
+                    <TabsTrigger key={cat.id} value={cat.id} className="gap-1.5 text-xs data-[state=active]:bg-background">
+                      {cat.label}
+                    </TabsTrigger>
+                  ))
+                ) : (
+                  <>
+                    <TabsTrigger value="self-promotion" className="gap-1.5 text-xs data-[state=active]:bg-background">
+                      <Megaphone className="h-3.5 w-3.5" /> 自助推广
+                    </TabsTrigger>
+                    <TabsTrigger value="tech" className="gap-1.5 text-xs data-[state=active]:bg-background">
+                      <Cpu className="h-3.5 w-3.5" /> 技术服务
+                    </TabsTrigger>
+                  </>
+                )}
               </TabsList>
 
-              {/* Self-Service Promotion Tab */}
-              <TabsContent value="self-promotion" className="mt-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {selfServiceCards.map((svc) => (
-                    <Card
-                      key={svc.id}
-                      className="bg-card border-border hover:border-primary/40 transition-all cursor-pointer group"
-                      onClick={() => handleCardClick(svc.id)}
-                    >
-                      <CardContent className="p-5 flex flex-col items-center text-center gap-3">
-                        <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
-                          <svc.icon className="h-6 w-6 text-primary" />
-                        </div>
-                        <div>
-                          <h4 className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">{svc.title}</h4>
-                          <p className="text-xs text-muted-foreground mt-1">{svc.desc}</p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </TabsContent>
+              {topLevelSvcCats.length > 0 ? (
+                topLevelSvcCats.map((cat) => {
+                  const children = getChildren(cat.id);
+                  return (
+                    <TabsContent key={cat.id} value={cat.id} className="mt-4">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {children.map((child) => (
+                          <Card
+                            key={child.id}
+                            className="bg-card border-border hover:border-primary/40 transition-all cursor-pointer group"
+                            onClick={() => {
+                              // Special handling for LLM service
+                              if (child.label.includes("大模型")) {
+                                const firstTagged = llmRecs.find((r) => r.tag);
+                                setSelectedLlm(firstTagged?.id || llmRecs[0]?.id || "");
+                                setLlmDialogOpen(true);
+                              } else {
+                                setInquiryService(child.label);
+                                setInquiryOpen(true);
+                              }
+                            }}
+                          >
+                            <CardContent className="p-5 flex flex-col items-center text-center gap-3">
+                              <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
+                                <Cpu className="h-6 w-6 text-primary" />
+                              </div>
+                              <div>
+                                <h4 className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">{child.label}</h4>
+                                <p className="text-xs text-muted-foreground mt-1">{child.description}</p>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                        {children.length === 0 && (
+                          <p className="text-sm text-muted-foreground col-span-3 text-center py-8">该分类下暂无服务</p>
+                        )}
+                      </div>
+                    </TabsContent>
+                  );
+                })
+              ) : (
+                <>
+                  {/* Fallback: Self-Service Promotion Tab */}
+                  <TabsContent value="self-promotion" className="mt-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {selfServiceCards.map((svc) => (
+                        <Card key={svc.id} className="bg-card border-border hover:border-primary/40 transition-all cursor-pointer group" onClick={() => handleCardClick(svc.id)}>
+                          <CardContent className="p-5 flex flex-col items-center text-center gap-3">
+                            <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
+                              <svc.icon className="h-6 w-6 text-primary" />
+                            </div>
+                            <div>
+                              <h4 className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">{svc.title}</h4>
+                              <p className="text-xs text-muted-foreground mt-1">{svc.desc}</p>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </TabsContent>
 
-              {/* Technical Services Tab */}
-              <TabsContent value="tech" className="mt-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {techServiceCards.map((svc) => (
-                    <Card
-                      key={svc.id}
-                      className="bg-card border-border hover:border-primary/40 transition-all cursor-pointer group"
-                      onClick={() => {
-                        if (svc.id === "llm") {
-                          const firstTagged = llmRecs.find((r) => r.tag);
-                          setSelectedLlm(firstTagged?.id || llmRecs[0]?.id || "");
-                          setLlmDialogOpen(true);
-                        } else {
-                          setInquiryService(svc.title);
-                          setInquiryOpen(true);
-                        }
-                      }}
-                    >
-                      <CardContent className="p-5 flex flex-col items-center text-center gap-3">
-                        <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
-                          <svc.icon className="h-6 w-6 text-primary" />
-                        </div>
-                        <div>
-                          <h4 className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">{svc.title}</h4>
-                          <p className="text-xs text-muted-foreground mt-1">{svc.desc}</p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </TabsContent>
+                  {/* Fallback: Technical Services Tab */}
+                  <TabsContent value="tech" className="mt-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {techServiceCards.map((svc) => (
+                        <Card key={svc.id} className="bg-card border-border hover:border-primary/40 transition-all cursor-pointer group" onClick={() => {
+                          if (svc.id === "llm") {
+                            const firstTagged = llmRecs.find((r) => r.tag);
+                            setSelectedLlm(firstTagged?.id || llmRecs[0]?.id || "");
+                            setLlmDialogOpen(true);
+                          } else {
+                            setInquiryService(svc.title);
+                            setInquiryOpen(true);
+                          }
+                        }}>
+                          <CardContent className="p-5 flex flex-col items-center text-center gap-3">
+                            <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
+                              <svc.icon className="h-6 w-6 text-primary" />
+                            </div>
+                            <div>
+                              <h4 className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">{svc.title}</h4>
+                              <p className="text-xs text-muted-foreground mt-1">{svc.desc}</p>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </TabsContent>
+                </>
+              )}
             </Tabs>
           </TabsContent>
         </Tabs>
