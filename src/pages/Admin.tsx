@@ -396,7 +396,7 @@ const Admin = () => {
                       <div className="flex-1 space-y-2 min-w-0">
                         <div className="space-y-1">
                           <label className="text-[10px] text-muted-foreground">标题</label>
-                          <Input value={slide.title} onBlur={(e) => handleUpdateBannerField(slide.id, "title", e.target.value)} onChange={(e) => { /* controlled locally for UX */ }} defaultValue={slide.title} className="bg-secondary h-8 text-xs" />
+                          <Input key={slide.id + "-title"} defaultValue={slide.title} onBlur={(e) => handleUpdateBannerField(slide.id, "title", e.target.value)} className="bg-secondary h-8 text-xs" />
                         </div>
                         <div className="space-y-1">
                           <label className="text-[10px] text-muted-foreground">链接地址</label>
