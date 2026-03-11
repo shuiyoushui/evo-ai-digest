@@ -823,71 +823,85 @@ const MakerStudio = () => {
               <p className="text-sm text-muted-foreground">覆盖产品全生命周期的一站式生态服务市场</p>
             </div>
 
-            <Tabs defaultValue="self-promotion" className="w-full">
-              <TabsList className="bg-secondary w-full justify-start flex-wrap h-auto gap-1 p-1.5">
-                <TabsTrigger value="self-promotion" className="gap-1.5 text-xs data-[state=active]:bg-background">
-                  <Megaphone className="h-3.5 w-3.5" /> 自助推广
-                </TabsTrigger>
-                <TabsTrigger value="tech" className="gap-1.5 text-xs data-[state=active]:bg-background">
-                  <Cpu className="h-3.5 w-3.5" /> 技术服务
-                </TabsTrigger>
-              </TabsList>
+            {(() => {
+              const parentCategories = serviceCategories
+                .filter(c => !c.parent_id && c.enabled)
+                .sort((a, b) => a.sort_order - b.sort_order);
+              
+              if (parentCategories.length === 0) {
+                return <p className="text-sm text-muted-foreground text-center py-8">暂无服务分类</p>;
+              }
 
-              {/* Self-Service Promotion Tab */}
-              <TabsContent value="self-promotion" className="mt-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {selfServiceCards.map((svc) => (
-                    <Card
-                      key={svc.id}
-                      className="bg-card border-border hover:border-primary/40 transition-all cursor-pointer group"
-                      onClick={() => handleCardClick(svc.id)}
-                    >
-                      <CardContent className="p-5 flex flex-col items-center text-center gap-3">
-                        <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
-                          <svc.icon className="h-6 w-6 text-primary" />
-                        </div>
-                        <div>
-                          <h4 className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">{svc.title}</h4>
-                          <p className="text-xs text-muted-foreground mt-1">{svc.desc}</p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </TabsContent>
+              const defaultTab = parentCategories[0]?.id || "";
 
-              {/* Technical Services Tab */}
-              <TabsContent value="tech" className="mt-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {techServiceCards.map((svc) => (
-                    <Card
-                      key={svc.id}
-                      className="bg-card border-border hover:border-primary/40 transition-all cursor-pointer group"
-                      onClick={() => {
-                        if (svc.id === "llm") {
-                          const firstTagged = llmRecs.find((r) => r.tag);
-                          setSelectedLlm(firstTagged?.id || llmRecs[0]?.id || "");
-                          setLlmDialogOpen(true);
-                        } else {
-                          setInquiryService(svc.title);
-                          setInquiryOpen(true);
-                        }
-                      }}
-                    >
-                      <CardContent className="p-5 flex flex-col items-center text-center gap-3">
-                        <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
-                          <svc.icon className="h-6 w-6 text-primary" />
+              return (
+                <Tabs defaultValue={defaultTab} className="w-full">
+                  <TabsList className="bg-secondary w-full justify-start flex-wrap h-auto gap-1 p-1.5">
+                    {parentCategories.map((parent) => {
+                      const IconComp = getIconComponent(parent.icon);
+                      return (
+                        <TabsTrigger key={parent.id} value={parent.id} className="gap-1.5 text-xs data-[state=active]:bg-background">
+                          <IconComp className="h-3.5 w-3.5" /> {parent.label}
+                        </TabsTrigger>
+                      );
+                    })}
+                  </TabsList>
+
+                  {parentCategories.map((parent) => {
+                    const children = serviceCategories
+                      .filter(c => c.parent_id === parent.id && c.enabled)
+                      .sort((a, b) => a.sort_order - b.sort_order);
+
+                    return (
+                      <TabsContent key={parent.id} value={parent.id} className="mt-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          {children.map((svc) => {
+                            const IconComp = getIconComponent(svc.icon);
+                            const isLlm = svc.label.includes("大模型接入");
+                            const isSeed = svc.label.includes("种子用户");
+                            const isReview = svc.label.includes("体验评测");
+                            const isGrowth = svc.label.includes("规模增长");
+
+                            return (
+                              <Card
+                                key={svc.id}
+                                className="bg-card border-border hover:border-primary/40 transition-all cursor-pointer group"
+                                onClick={() => {
+                                  if (isSeed) setSeedOpen(true);
+                                  else if (isReview) setReviewOpen(true);
+                                  else if (isGrowth) setGrowthOpen(true);
+                                  else if (isLlm) {
+                                    const firstTagged = llmRecs.find((r) => r.tag);
+                                    setSelectedLlm(firstTagged?.id || llmRecs[0]?.id || "");
+                                    setLlmDialogOpen(true);
+                                  } else {
+                                    setInquiryService(svc.label);
+                                    setInquiryOpen(true);
+                                  }
+                                }}
+                              >
+                                <CardContent className="p-5 flex flex-col items-center text-center gap-3">
+                                  <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
+                                    <IconComp className="h-6 w-6 text-primary" />
+                                  </div>
+                                  <div>
+                                    <h4 className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">{svc.label}</h4>
+                                    <p className="text-xs text-muted-foreground mt-1">{svc.description}</p>
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            );
+                          })}
+                          {children.length === 0 && (
+                            <p className="text-sm text-muted-foreground col-span-3 text-center py-6">暂无服务项目</p>
+                          )}
                         </div>
-                        <div>
-                          <h4 className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">{svc.title}</h4>
-                          <p className="text-xs text-muted-foreground mt-1">{svc.desc}</p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </TabsContent>
-            </Tabs>
+                      </TabsContent>
+                    );
+                  })}
+                </Tabs>
+              );
+            })()}
           </TabsContent>
         </Tabs>
       </div>
