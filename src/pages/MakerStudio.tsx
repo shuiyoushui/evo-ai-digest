@@ -103,6 +103,11 @@ const MakerStudio = () => {
 
   // LLM recommendation state
   const { data: llmRecs = [] } = useRecommendations();
+  const { data: serviceCategories = [] } = useServiceCategories();
+
+  // Derive service cards from DB or fallback
+  const topLevelSvcCats = serviceCategories.filter(c => !c.parent_id && c.enabled);
+  const getChildren = (parentId: string) => serviceCategories.filter(c => c.parent_id === parentId && c.enabled);
   const [llmDialogOpen, setLlmDialogOpen] = useState(false);
   const [selectedLlm, setSelectedLlm] = useState<string>("");
 
