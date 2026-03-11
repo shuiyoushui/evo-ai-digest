@@ -150,13 +150,22 @@ const Admin = () => {
   };
 
   const handleSaveConfig = async () => {
+    const resolvedModel = aiModel === "__custom__" ? aiCustomModel : aiModel;
+    if (!resolvedModel.trim()) {
+      toast.error("请填写 AI 模型");
+      return;
+    }
     try {
       const { error } = await supabase
         .from("ai_config")
         .update({
-          model: aiModel,
+          model: resolvedModel,
           system_prompt: aiPrompt,
           enabled: aiEnabled,
+          ai_endpoint: aiEndpoint,
+          scraper_endpoint: scraperEndpoint,
+          ai_api_key_name: aiApiKeyName,
+          scraper_api_key_name: scraperApiKeyName,
           updated_at: new Date().toISOString(),
         } as any)
         .eq("config_key", "analyze_url");
