@@ -111,8 +111,13 @@ const Admin = () => {
   };
 
   const [aiModel, setAiModel] = useState("google/gemini-3-flash-preview");
+  const [aiCustomModel, setAiCustomModel] = useState("");
   const [aiPrompt, setAiPrompt] = useState("");
   const [aiEnabled, setAiEnabled] = useState(true);
+  const [aiEndpoint, setAiEndpoint] = useState("https://ai.gateway.lovable.dev/v1/chat/completions");
+  const [scraperEndpoint, setScraperEndpoint] = useState("https://api.firecrawl.dev/v1/scrape");
+  const [aiApiKeyName, setAiApiKeyName] = useState("LOVABLE_API_KEY");
+  const [scraperApiKeyName, setScraperApiKeyName] = useState("FIRECRAWL_API_KEY");
   const [aiConfigLoaded, setAiConfigLoaded] = useState(false);
 
   useEffect(() => {
