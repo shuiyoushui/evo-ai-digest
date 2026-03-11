@@ -69,7 +69,7 @@ const Index = () => {
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <TabsTrigger value="new" className="gap-1.5 text-sm rounded-lg relative data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                        <Rocket className="h-3.5 w-3.5" /> 🚀 最新上线
+                        <Rocket className="h-3.5 w-3.5" /> 最新上线
                         <Lock className="h-3 w-3 text-muted-foreground ml-1 opacity-40" />
                       </TabsTrigger>
                     </TooltipTrigger>
