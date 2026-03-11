@@ -128,9 +128,17 @@ const Admin = () => {
         .eq("config_key", "analyze_url")
         .single();
       if (data) {
-        setAiModel((data as any).model || "google/gemini-3-flash-preview");
-        setAiPrompt((data as any).system_prompt || "");
-        setAiEnabled((data as any).enabled ?? true);
+        const d = data as any;
+        const model = d.model || "google/gemini-3-flash-preview";
+        const isPreset = AI_MODELS.some((m) => m.value === model);
+        setAiModel(isPreset ? model : "__custom__");
+        setAiCustomModel(isPreset ? "" : model);
+        setAiPrompt(d.system_prompt || "");
+        setAiEnabled(d.enabled ?? true);
+        setAiEndpoint(d.ai_endpoint || "https://ai.gateway.lovable.dev/v1/chat/completions");
+        setScraperEndpoint(d.scraper_endpoint || "https://api.firecrawl.dev/v1/scrape");
+        setAiApiKeyName(d.ai_api_key_name || "LOVABLE_API_KEY");
+        setScraperApiKeyName(d.scraper_api_key_name || "FIRECRAWL_API_KEY");
         setAiConfigLoaded(true);
       }
     };
