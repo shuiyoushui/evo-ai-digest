@@ -201,8 +201,8 @@ const Admin = () => {
     loadAiConfig();
   }, []);
 
-  const updateBanner = (index: number, field: keyof BannerSlide, value: string | boolean) => {
-    setBannerSlides((prev) => prev.map((s, i) => i === index ? { ...s, [field]: value } : s));
+  const handleUpdateBannerField = (id: string, field: keyof BannerSlide, value: string | boolean) => {
+    updateBannerSlide.mutate({ id, [field]: value });
   };
 
   const handleSaveConfig = async () => {
