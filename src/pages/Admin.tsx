@@ -95,7 +95,6 @@ const Admin = () => {
   const [scDeleteConfirmId, setScDeleteConfirmId] = useState<string | null>(null);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
 
-  const configSubTab = useState("display")[0];
   const [configSubTabValue, setConfigSubTabValue] = useState("display");
 
   // LLM rec editing
