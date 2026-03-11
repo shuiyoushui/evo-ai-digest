@@ -79,6 +79,24 @@ const Admin = () => {
   const updateRec = useUpdateRecommendation();
   const createRec = useCreateRecommendation();
   const deleteRec = useDeleteRecommendation();
+  const { data: serviceCategories = [], isLoading: scLoading } = useServiceCategories();
+  const createSc = useCreateServiceCategory();
+  const updateSc = useUpdateServiceCategory();
+  const deleteSc = useDeleteServiceCategory();
+
+  // Service category editing
+  const [scEditOpen, setScEditOpen] = useState(false);
+  const [scEditId, setScEditId] = useState<string | null>(null);
+  const [scEditLabel, setScEditLabel] = useState("");
+  const [scEditIcon, setScEditIcon] = useState("Cpu");
+  const [scEditDesc, setScEditDesc] = useState("");
+  const [scEditOrder, setScEditOrder] = useState(0);
+  const [scEditParentId, setScEditParentId] = useState<string | null>(null);
+  const [scDeleteConfirmId, setScDeleteConfirmId] = useState<string | null>(null);
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+
+  const configSubTab = useState("display")[0];
+  const [configSubTabValue, setConfigSubTabValue] = useState("display");
 
   // LLM rec editing
   const [llmEditOpen, setLlmEditOpen] = useState(false);
