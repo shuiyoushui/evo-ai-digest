@@ -403,9 +403,47 @@ const Admin = () => {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-xs text-muted-foreground">AI Endpoint</label>
+                      <Input
+                        value={aiEndpoint}
+                        onChange={(e) => setAiEndpoint(e.target.value)}
+                        className="bg-secondary font-mono text-xs"
+                        placeholder="https://ai.gateway.lovable.dev/v1/chat/completions"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs text-muted-foreground">AI API Key 环境变量名</label>
+                      <Input
+                        value={aiApiKeyName}
+                        onChange={(e) => setAiApiKeyName(e.target.value)}
+                        className="bg-secondary font-mono text-xs"
+                        placeholder="LOVABLE_API_KEY"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs text-muted-foreground">爬虫 Endpoint</label>
+                      <Input
+                        value={scraperEndpoint}
+                        onChange={(e) => setScraperEndpoint(e.target.value)}
+                        className="bg-secondary font-mono text-xs"
+                        placeholder="https://api.firecrawl.dev/v1/scrape"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs text-muted-foreground">爬虫 API Key 环境变量名</label>
+                      <Input
+                        value={scraperApiKeyName}
+                        onChange={(e) => setScraperApiKeyName(e.target.value)}
+                        className="bg-secondary font-mono text-xs"
+                        placeholder="FIRECRAWL_API_KEY"
+                      />
+                    </div>
+                  </div>
                   <div className="space-y-1.5">
                     <label className="text-xs text-muted-foreground">AI 模型</label>
-                    <Select value={aiModel} onValueChange={setAiModel}>
+                    <Select value={aiModel} onValueChange={(v) => { setAiModel(v); if (v !== "__custom__") setAiCustomModel(""); }}>
                       <SelectTrigger className="bg-secondary">
                         <SelectValue />
                       </SelectTrigger>
@@ -413,8 +451,17 @@ const Admin = () => {
                         {AI_MODELS.map((m) => (
                           <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
                         ))}
+                        <SelectItem value="__custom__">自定义模型 ID...</SelectItem>
                       </SelectContent>
                     </Select>
+                    {aiModel === "__custom__" && (
+                      <Input
+                        value={aiCustomModel}
+                        onChange={(e) => setAiCustomModel(e.target.value)}
+                        className="bg-secondary font-mono text-xs mt-2"
+                        placeholder="输入自定义模型 ID，如 volcengine/doubao-pro"
+                      />
+                    )}
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs text-muted-foreground">System Prompt</label>
