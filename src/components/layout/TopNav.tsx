@@ -97,7 +97,6 @@ export function TopNav({ onSearch }: TopNavProps) {
 
           <nav className="hidden md:flex items-center gap-1 ml-4">
             <Link to="/"><Button variant={location.pathname === "/" ? "secondary" : "ghost"} size="sm" className="text-sm">发现</Button></Link>
-            <Link to="/news"><Button variant={location.pathname === "/news" ? "secondary" : "ghost"} size="sm" className="text-sm">AI 资讯</Button></Link>
             <Link to="/about"><Button variant={location.pathname === "/about" ? "secondary" : "ghost"} size="sm" className="text-sm">关于我们</Button></Link>
             {isAdmin && (
               <Link to="/admin"><Button variant={location.pathname === "/admin" ? "secondary" : "ghost"} size="sm" className="text-sm">管理后台</Button></Link>
