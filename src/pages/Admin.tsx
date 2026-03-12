@@ -566,6 +566,10 @@ const Admin = () => {
                           <Slider value={[weights[w.key]]} onValueChange={([v]) => setWeights({ ...weights, [w.key]: v })} max={100} step={5} className="[&_[role=slider]]:bg-primary" />
                         </div>
                       ))}
+                      <div className={`flex items-center justify-between pt-2 border-t border-border text-xs font-medium ${totalWeight === 100 ? "text-green-500" : "text-destructive"}`}>
+                        <span>权重总和</span>
+                        <span className="font-mono">{totalWeight} / 100%</span>
+                      </div>
                     </CardContent>
                   </Card>
 
