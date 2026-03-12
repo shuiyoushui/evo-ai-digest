@@ -145,7 +145,10 @@ export function ProductDetail({ product, open, onClose, onPromote }: ProductDeta
               <TabsList className="w-full justify-start bg-secondary/50 mb-6">
                 <TabsTrigger value="overview" className="gap-1.5"><Eye className="h-3.5 w-3.5" /> 概览</TabsTrigger>
                 {showSkills && (
-                  <TabsTrigger value="skills" className="gap-1.5"><Zap className="h-3.5 w-3.5" /> 技能 & Prompts</TabsTrigger>
+                  <TabsTrigger value="skills" className="gap-1.5"><Zap className="h-3.5 w-3.5" /> Agent 技能</TabsTrigger>
+                )}
+                {showPrompts && (
+                  <TabsTrigger value="prompts" className="gap-1.5"><Terminal className="h-3.5 w-3.5" /> Prompt 库</TabsTrigger>
                 )}
                 {showCommunity && (
                   <TabsTrigger value="community" className="gap-1.5"><MessageCircle className="h-3.5 w-3.5" /> 社区评价</TabsTrigger>
