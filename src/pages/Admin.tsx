@@ -251,7 +251,35 @@ const Admin = () => {
   }, []);
 
   const updateBanner = (index: number, field: keyof BannerSlide, value: string | boolean) => {
+    if (field === "active" && value === false) {
+      const activeCount = bannerSlides.filter((s) => s.active).length;
+      if (activeCount <= 1) {
+        toast.error("至少保留一个启用的 Banner");
+        return;
+      }
+    }
     setBannerSlides((prev) => prev.map((s, i) => i === index ? { ...s, [field]: value } : s));
+  };
+
+  const handleBannerImageUpload = async (index: number) => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      const ext = file.name.split(".").pop();
+      const filePath = `banner-${bannerSlides[index].id}-${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage.from("banner-images").upload(filePath, file, { upsert: true });
+      if (uploadError) {
+        toast.error("上传失败", { description: uploadError.message });
+        return;
+      }
+      const { data: urlData } = supabase.storage.from("banner-images").getPublicUrl(filePath);
+      setBannerSlides((prev) => prev.map((s, i) => i === index ? { ...s, image_url: urlData.publicUrl } : s));
+      toast.success("图片已上传");
+    };
+    input.click();
   };
 
   const handleSaveConfig = async () => {
