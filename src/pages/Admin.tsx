@@ -184,7 +184,13 @@ const Admin = () => {
   };
 
   // Ranking weights save
+  const totalWeight = weights.upvotes + weights.views + weights.comments + weights.decay;
+
   const handleSaveWeights = async () => {
+    if (totalWeight !== 100) {
+      toast.error(`权重总和必须等于 100%（当前: ${totalWeight}%）`);
+      return;
+    }
     setSavingWeights(true);
     try {
       const { error } = await supabase.from("ranking_weights").update({
