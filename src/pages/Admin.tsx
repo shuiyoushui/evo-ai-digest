@@ -674,11 +674,18 @@ const Admin = () => {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <Settings className="h-4 w-4 text-primary" />
-                          <CardTitle className="text-sm">产品分类排序</CardTitle>
+                          <CardTitle className="text-sm">产品分类管理</CardTitle>
                         </div>
-                        <Button size="sm" variant="outline" className="text-xs gap-1" onClick={handleSaveCategoryOrder} disabled={savingCatOrder}>
-                          <Save className="h-3 w-3" /> {savingCatOrder ? "保存中..." : "保存排序"}
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <Button size="sm" variant="outline" className="text-xs gap-1" onClick={() => {
+                            setCatEditId(null); setCatEditNewId(""); setCatEditLabel(""); setCatEditIcon("📁"); setCatEditOrder(catOrderList.length > 0 ? Math.max(...catOrderList.map(c => c.sort_order)) + 1 : 0); setCatEditOpen(true);
+                          }}>
+                            <Plus className="h-3 w-3" /> 新增分类
+                          </Button>
+                          <Button size="sm" variant="outline" className="text-xs gap-1" onClick={handleSaveCategoryOrder} disabled={savingCatOrder}>
+                            <Save className="h-3 w-3" /> {savingCatOrder ? "保存中..." : "保存排序"}
+                          </Button>
+                        </div>
                       </div>
                       <CardDescription className="text-xs">拖动排序值调整分类在导航栏的显示顺序（数值越小越靠前）</CardDescription>
                     </CardHeader>
