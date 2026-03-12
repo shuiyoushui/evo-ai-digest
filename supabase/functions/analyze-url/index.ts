@@ -146,13 +146,49 @@ async function callAI(config: {
   }
 
   const data = await resp.json();
-  const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
 
-  if (!toolCall?.function?.arguments) {
-    throw new Error("AI did not return structured data");
+  // Strategy 1: Standard OpenAI tool_calls (Lovable AI, OpenAI, DeepSeek, DashScope compatible mode)
+  const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
+  if (toolCall?.function?.arguments) {
+    console.log("Parsed via tool_calls");
+    return JSON.parse(toolCall.function.arguments);
   }
 
-  return JSON.parse(toolCall.function.arguments);
+  // Strategy 2: Some providers (e.g. older DashScope, Qwen) return JSON in message content
+  const content = data.choices?.[0]?.message?.content;
+  if (content) {
+    console.log("Attempting to parse from message content");
+    // Try to extract JSON from content (may be wrapped in markdown code block)
+    const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/) || content.match(/(\{[\s\S]*\})/);
+    if (jsonMatch?.[1]) {
+      try {
+        const parsed = JSON.parse(jsonMatch[1].trim());
+        // Validate required fields
+        if (parsed.name && parsed.description) {
+          return parsed;
+        }
+      } catch {
+        // fall through
+      }
+    }
+  }
+
+  // Strategy 3: DashScope native format (output.text or output.choices)
+  const dashOutput = data.output;
+  if (dashOutput) {
+    const text = dashOutput.text || dashOutput.choices?.[0]?.message?.content;
+    if (text) {
+      const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/) || text.match(/(\{[\s\S]*\})/);
+      if (jsonMatch?.[1]) {
+        try {
+          const parsed = JSON.parse(jsonMatch[1].trim());
+          if (parsed.name && parsed.description) return parsed;
+        } catch { /* fall through */ }
+      }
+    }
+  }
+
+  throw new Error("AI did not return structured data");
 }
 
 // ─── Main Handler ────────────────────────────────────────────────────

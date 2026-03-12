@@ -111,9 +111,41 @@ async function callAI({ endpoint, apiKeyName, model, systemPrompt, userMessage }
   }
 
   const data = await resp.json();
+
+  // Strategy 1: Standard OpenAI tool_calls
   const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
-  if (!toolCall?.function?.arguments) throw new Error("AI did not return structured data");
-  return JSON.parse(toolCall.function.arguments);
+  if (toolCall?.function?.arguments) {
+    return JSON.parse(toolCall.function.arguments);
+  }
+
+  // Strategy 2: JSON in message content (some providers)
+  const content = data.choices?.[0]?.message?.content;
+  if (content) {
+    const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/) || content.match(/(\{[\s\S]*\})/);
+    if (jsonMatch?.[1]) {
+      try {
+        const parsed = JSON.parse(jsonMatch[1].trim());
+        if (parsed.name && parsed.description) return parsed;
+      } catch { /* fall through */ }
+    }
+  }
+
+  // Strategy 3: DashScope native format
+  const dashOutput = data.output;
+  if (dashOutput) {
+    const text = dashOutput.text || dashOutput.choices?.[0]?.message?.content;
+    if (text) {
+      const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/) || text.match(/(\{[\s\S]*\})/);
+      if (jsonMatch?.[1]) {
+        try {
+          const parsed = JSON.parse(jsonMatch[1].trim());
+          if (parsed.name && parsed.description) return parsed;
+        } catch { /* fall through */ }
+      }
+    }
+  }
+
+  throw new Error("AI did not return structured data");
 }
 
 // ─── Handler ────────────────────────────────────────────────────
