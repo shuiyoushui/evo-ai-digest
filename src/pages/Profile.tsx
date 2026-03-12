@@ -1,28 +1,56 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { TopNav } from "@/components/layout/TopNav";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Upload, Shield, AlertTriangle, Rocket, User } from "lucide-react";
+import { Upload, Shield, AlertTriangle, Rocket, User, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+
+const MAX_SIZE = 256; // compress to 256x256
+
+function compressImage(file: File): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      let w = img.width, h = img.height;
+      if (w > h) { h = Math.round((h / w) * MAX_SIZE); w = MAX_SIZE; }
+      else { w = Math.round((w / h) * MAX_SIZE); h = MAX_SIZE; }
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(img, 0, 0, w, h);
+      canvas.toBlob(
+        (blob) => (blob ? resolve(blob) : reject(new Error("压缩失败"))),
+        "image/webp",
+        0.8
+      );
+    };
+    img.onerror = () => reject(new Error("图片加载失败"));
+    img.src = URL.createObjectURL(file);
+  });
+}
 
 const Profile = () => {
-  const { profile, isLoggedIn, updateProfile, bindCSDN } = useAuth();
+  const { profile, user, isLoggedIn, updateProfile, bindCSDN } = useAuth();
   const navigate = useNavigate();
   const [profileNickname, setProfileNickname] = useState(profile?.nickname || "");
   const [profilePhone, setProfilePhone] = useState(profile?.phone || "");
   const [profileEmail, setProfileEmail] = useState(profile?.email || "");
   const [csdnUsername, setCsdnUsername] = useState("");
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  if (!isLoggedIn) {
+  if (!isLoggedIn || !user) {
     return (
       <div className="min-h-screen bg-background">
         <TopNav />
@@ -32,6 +60,32 @@ const Profile = () => {
       </div>
     );
   }
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("请选择图片文件");
+      return;
+    }
+    setUploading(true);
+    try {
+      const compressed = await compressImage(file);
+      const filePath = `${user.id}/avatar-${Date.now()}.webp`;
+      const { error: uploadErr } = await supabase.storage
+        .from("avatars")
+        .upload(filePath, compressed, { upsert: true, contentType: "image/webp" });
+      if (uploadErr) throw uploadErr;
+      const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(filePath);
+      await updateProfile({ avatar_url: urlData.publicUrl });
+      toast.success("头像已更新");
+    } catch (err: any) {
+      toast.error("上传失败", { description: err.message });
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
 
   const handleSaveProfile = async () => {
     setSaving(true);
@@ -68,15 +122,21 @@ const Profile = () => {
           </CardHeader>
           <CardContent className="space-y-5">
             <div className="flex items-center gap-5">
-              <div className="relative group cursor-pointer">
+              <div className="relative group cursor-pointer" onClick={() => !uploading && fileInputRef.current?.click()}>
                 <Avatar className="h-20 w-20">
+                  {profile?.avatar_url ? (
+                    <AvatarImage src={profile.avatar_url} alt="头像" className="object-cover" />
+                  ) : null}
                   <AvatarFallback className="text-2xl bg-primary/15 text-primary">{(profile?.nickname || "U").slice(0, 1)}</AvatarFallback>
                 </Avatar>
-                <div className="absolute inset-0 rounded-full bg-background/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"><Upload className="h-5 w-5 text-muted-foreground" /></div>
+                <div className="absolute inset-0 rounded-full bg-background/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                  {uploading ? <Loader2 className="h-5 w-5 text-muted-foreground animate-spin" /> : <Upload className="h-5 w-5 text-muted-foreground" />}
+                </div>
+                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
               </div>
               <div>
                 <p className="text-sm font-semibold text-foreground">{profile?.nickname || "未登录"}</p>
-                <p className="text-xs text-muted-foreground">点击头像更换</p>
+                <p className="text-xs text-muted-foreground">{uploading ? "上传中..." : "点击头像更换"}</p>
               </div>
             </div>
             <div className="space-y-1.5">
