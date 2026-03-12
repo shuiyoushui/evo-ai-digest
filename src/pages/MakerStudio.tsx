@@ -798,6 +798,44 @@ const MakerStudio = () => {
                       </div>
                     </CardContent>
                   </Card>
+                  {/* Team & Company Section */}
+                  <Card className="bg-card border-border">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm flex items-center gap-2"><Building2 className="h-4 w-4 text-primary" /> 团队与公司</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-5 pt-0 space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium text-muted-foreground">创始人/负责人</label>
+                          <Input value={editFormData.founderName} onChange={(e) => setEditFormData({ ...editFormData, founderName: e.target.value })} placeholder="姓名" className="bg-secondary" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium text-muted-foreground">职位</label>
+                          <Input value={editFormData.founderTitle} onChange={(e) => setEditFormData({ ...editFormData, founderTitle: e.target.value })} placeholder="CEO / CTO / 产品负责人" className="bg-secondary" />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium text-muted-foreground">公司名称</label>
+                          <Input value={editFormData.companyName} onChange={(e) => setEditFormData({ ...editFormData, companyName: e.target.value })} placeholder="公司名称" className="bg-secondary" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium text-muted-foreground">成立年份</label>
+                          <Input value={editFormData.companyFounded} onChange={(e) => setEditFormData({ ...editFormData, companyFounded: e.target.value })} placeholder="如 2023" className="bg-secondary" />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium text-muted-foreground">所在地</label>
+                          <Input value={editFormData.companyLocation} onChange={(e) => setEditFormData({ ...editFormData, companyLocation: e.target.value })} placeholder="如 北京" className="bg-secondary" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium text-muted-foreground">融资阶段</label>
+                          <Input value={editFormData.companyFunding} onChange={(e) => setEditFormData({ ...editFormData, companyFunding: e.target.value })} placeholder="如 Pre-A / A轮 / 自筹" className="bg-secondary" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
                   {/* Skills & Prompts Section */}
                   <Card className="bg-card border-border">
                     <CardContent className="p-5 space-y-5">

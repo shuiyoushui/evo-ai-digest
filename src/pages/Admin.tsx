@@ -464,6 +464,9 @@ const Admin = () => {
                               <Button size="sm" variant="ghost" className="text-xs h-7 text-destructive" onClick={() => updateProduct.mutate({ id: s.id, status: "rejected" })}>拒绝</Button>
                             </>
                           )}
+                          {s.status === "offline" && (
+                            <Button size="sm" variant="ghost" className="text-xs h-7 text-green-500" onClick={() => updateProduct.mutate({ id: s.id, status: "approved" })}>重新上线</Button>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}
