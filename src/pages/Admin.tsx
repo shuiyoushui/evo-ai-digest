@@ -136,6 +136,25 @@ const Admin = () => {
   const [catOrderList, setCatOrderList] = useState<Array<{ id: string; label: string; icon: string; sort_order: number }>>([]);
   const [savingCatOrder, setSavingCatOrder] = useState(false);
 
+  // Category edit (rename / create)
+  const [catEditOpen, setCatEditOpen] = useState(false);
+  const [catEditId, setCatEditId] = useState<string | null>(null); // null = create mode
+  const [catEditNewId, setCatEditNewId] = useState("");
+  const [catEditLabel, setCatEditLabel] = useState("");
+  const [catEditIcon, setCatEditIcon] = useState("");
+  const [catEditOrder, setCatEditOrder] = useState(0);
+
+  // Category delete
+  const [catDeleteOpen, setCatDeleteOpen] = useState(false);
+  const [catDeleteId, setCatDeleteId] = useState<string | null>(null);
+  const [catDeleteTarget, setCatDeleteTarget] = useState("");
+  const [catDeleteProductCount, setCatDeleteProductCount] = useState(0);
+
+  // Category product assignment (after create)
+  const [catAssignOpen, setCatAssignOpen] = useState(false);
+  const [catAssignId, setCatAssignId] = useState("");
+  const [catAssignSelected, setCatAssignSelected] = useState<Set<string>>(new Set());
+
   useEffect(() => {
     if (categories.length > 0) {
       setCatOrderList(categories.map(c => ({ ...c })));
