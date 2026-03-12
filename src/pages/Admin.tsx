@@ -422,27 +422,8 @@ const Admin = () => {
 
         <main className="flex-1 p-6">
           {/* OVERVIEW */}
-          {activeTab === "overview" && (
-            <div className="space-y-6 animate-fade-in">
-              <h2 className="text-lg font-bold text-foreground">数据总览</h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {[
-                  { label: "总产品数", value: "1,284", icon: FileText },
-                  { label: "今日提交", value: "23", icon: Plus },
-                  { label: "总用户数", value: "45.2K", icon: Eye },
-                  { label: "本月收入", value: "¥89,200", icon: Megaphone },
-                ].map((s) => (
-                  <Card key={s.label} className="bg-card border-border">
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-2 mb-2"><s.icon className="h-4 w-4 text-primary" /><span className="text-xs text-muted-foreground">{s.label}</span></div>
-                      <p className="text-2xl font-bold text-foreground">{s.value}</p>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-              <Card className="bg-card border-border"><CardContent className="p-4"><div className="h-48 rounded-lg bg-secondary/50 flex items-center justify-center"><span className="text-sm text-muted-foreground">📊 平台趋势图表</span></div></CardContent></Card>
-            </div>
-          )}
+          {activeTab === "overview" && <OverviewTab />}
+
 
           {/* SUBMISSIONS */}
           {activeTab === "submissions" && (
