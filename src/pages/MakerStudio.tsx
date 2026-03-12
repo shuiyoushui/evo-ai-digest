@@ -65,7 +65,7 @@ const getIconComponent = (iconName: string) => iconMap[iconName] || Cpu;
 
 const budgetOptions = [100, 500, 1000, 5000];
 
-const statusMap: Record<string, string> = { approved: "已上线", pending: "审核中", rejected: "已拒绝" };
+const statusMap: Record<string, string> = { approved: "已上线", pending: "审核中", rejected: "已拒绝", offline: "已下线" };
 
 const MakerStudio = () => {
   const [searchParams] = useSearchParams();
