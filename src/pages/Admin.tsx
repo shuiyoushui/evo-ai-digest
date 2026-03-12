@@ -472,33 +472,200 @@ const Admin = () => {
               <Card className="bg-card border-border">
                 <Table>
                   <TableHeader><TableRow className="border-border">
-                    <TableHead className="text-xs">产品名称</TableHead><TableHead className="text-xs">提交者</TableHead><TableHead className="text-xs">日期</TableHead><TableHead className="text-xs">状态</TableHead><TableHead className="text-xs text-right">操作</TableHead>
+                    <TableHead className="text-xs">产品名称</TableHead><TableHead className="text-xs">分类</TableHead><TableHead className="text-xs">提交者</TableHead><TableHead className="text-xs">日期</TableHead><TableHead className="text-xs">状态</TableHead><TableHead className="text-xs text-right">操作</TableHead>
                   </TableRow></TableHeader>
                   <TableBody>
                     {isLoading ? (
-                      <TableRow><TableCell colSpan={5} className="text-center text-sm text-muted-foreground py-8">加载中...</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-8">加载中...</TableCell></TableRow>
                     ) : allProducts.length === 0 ? (
-                      <TableRow><TableCell colSpan={5} className="text-center text-sm text-muted-foreground py-8">暂无产品</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-8">暂无产品</TableCell></TableRow>
                     ) : allProducts.map((s: any) => (
                       <TableRow key={s.id} className="border-border">
-                        <TableCell className="text-sm font-medium">{s.name}</TableCell>
+                        <TableCell>
+                          <button className="text-sm font-medium text-primary hover:underline text-left" onClick={() => { setReviewDetailProduct(s); setReviewDetailOpen(true); }}>
+                            {s.name}
+                          </button>
+                        </TableCell>
+                        <TableCell className="text-xs text-muted-foreground">{categories.find(c => c.id === s.category_id)?.label || "—"}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">{s.maker_name || "—"}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">{new Date(s.created_at).toLocaleDateString()}</TableCell>
                         <TableCell><Badge variant={s.status === "approved" ? "default" : s.status === "rejected" ? "destructive" : "secondary"} className="text-[10px]">{statusMap[s.status] || s.status}</Badge></TableCell>
                         <TableCell className="text-right space-x-1">
+                          <Button size="sm" variant="ghost" className="text-xs h-7" onClick={() => { setReviewDetailProduct(s); setReviewDetailOpen(true); }}>
+                            <Eye className="h-3.5 w-3.5" />
+                          </Button>
                           {s.status === "pending" && (
                             <>
                               <Button size="sm" variant="ghost" className="text-xs h-7 text-green-500" onClick={() => updateProduct.mutate({ id: s.id, status: "approved" })}>通过</Button>
                               <Button size="sm" variant="ghost" className="text-xs h-7 text-destructive" onClick={() => updateProduct.mutate({ id: s.id, status: "rejected" })}>拒绝</Button>
                             </>
                           )}
-                          {s.status !== "pending" && <span className="text-xs text-muted-foreground">已处理</span>}
                         </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
               </Card>
+
+              {/* Review Detail Dialog */}
+              <Dialog open={reviewDetailOpen} onOpenChange={setReviewDetailOpen}>
+                <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+                  {reviewDetailProduct && (
+                    <>
+                      <DialogHeader>
+                        <DialogTitle className="flex items-center gap-3">
+                          {reviewDetailProduct.logo_url && (
+                            <img src={reviewDetailProduct.logo_url} alt="" className="h-10 w-10 rounded-lg object-cover border border-border" />
+                          )}
+                          <div>
+                            <div className="flex items-center gap-2">
+                              {reviewDetailProduct.name}
+                              <Badge variant={reviewDetailProduct.status === "approved" ? "default" : reviewDetailProduct.status === "rejected" ? "destructive" : "secondary"} className="text-[10px]">
+                                {statusMap[reviewDetailProduct.status] || reviewDetailProduct.status}
+                              </Badge>
+                            </div>
+                            {reviewDetailProduct.slogan && <p className="text-xs text-muted-foreground font-normal mt-0.5">{reviewDetailProduct.slogan}</p>}
+                          </div>
+                        </DialogTitle>
+                      </DialogHeader>
+
+                      <div className="space-y-4 mt-2">
+                        {/* Category Select */}
+                        <div className="space-y-1">
+                          <label className="text-xs font-medium text-muted-foreground">产品分类</label>
+                          <Select
+                            value={reviewDetailProduct.category_id || ""}
+                            onValueChange={(val) => {
+                              updateProduct.mutate({ id: reviewDetailProduct.id, category_id: val });
+                              setReviewDetailProduct({ ...reviewDetailProduct, category_id: val });
+                              toast.success("分类已更新");
+                            }}
+                          >
+                            <SelectTrigger className="h-8 text-xs">
+                              <SelectValue placeholder="选择分类" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {categories.map(c => (
+                                <SelectItem key={c.id} value={c.id} className="text-xs">{c.icon} {c.label}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {/* Description */}
+                        {reviewDetailProduct.description && (
+                          <div className="space-y-1">
+                            <label className="text-xs font-medium text-muted-foreground">产品描述</label>
+                            <p className="text-sm text-foreground bg-secondary/40 rounded-md p-3">{reviewDetailProduct.description}</p>
+                          </div>
+                        )}
+
+                        {/* Tags */}
+                        {reviewDetailProduct.tags?.length > 0 && (
+                          <div className="space-y-1">
+                            <label className="text-xs font-medium text-muted-foreground">标签</label>
+                            <div className="flex flex-wrap gap-1.5">
+                              {reviewDetailProduct.tags.map((t: string) => (
+                                <Badge key={t} variant="outline" className="text-[10px]">{t}</Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Website */}
+                        {reviewDetailProduct.website && (
+                          <div className="space-y-1">
+                            <label className="text-xs font-medium text-muted-foreground">网站</label>
+                            <a href={reviewDetailProduct.website} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline block">{reviewDetailProduct.website}</a>
+                          </div>
+                        )}
+
+                        {/* Benefits */}
+                        {reviewDetailProduct.benefits?.length > 0 && (
+                          <div className="space-y-1">
+                            <label className="text-xs font-medium text-muted-foreground">核心优势</label>
+                            <ul className="list-disc list-inside text-sm text-foreground space-y-0.5">
+                              {reviewDetailProduct.benefits.map((b: string, i: number) => <li key={i}>{b}</li>)}
+                            </ul>
+                          </div>
+                        )}
+
+                        {/* Maker & Company Info */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2 bg-secondary/30 rounded-md p-3">
+                            <label className="text-xs font-medium text-muted-foreground">制作者信息</label>
+                            <div className="flex items-center gap-2">
+                              {reviewDetailProduct.maker_avatar && <img src={reviewDetailProduct.maker_avatar} alt="" className="h-6 w-6 rounded-full" />}
+                              <div>
+                                <p className="text-sm font-medium text-foreground">{reviewDetailProduct.maker_name || "—"}</p>
+                                <p className="text-xs text-muted-foreground">{reviewDetailProduct.maker_title || "—"}</p>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="space-y-2 bg-secondary/30 rounded-md p-3">
+                            <label className="text-xs font-medium text-muted-foreground">公司信息</label>
+                            <p className="text-sm text-foreground">{reviewDetailProduct.company_name || "—"}</p>
+                            <p className="text-xs text-muted-foreground">{[reviewDetailProduct.company_location, reviewDetailProduct.company_founded, reviewDetailProduct.company_funding].filter(Boolean).join(" · ") || "—"}</p>
+                          </div>
+                        </div>
+
+                        {/* Skills */}
+                        {reviewDetailProduct.skills?.length > 0 && (
+                          <div className="space-y-1">
+                            <label className="text-xs font-medium text-muted-foreground">技能</label>
+                            <div className="space-y-1">
+                              {(reviewDetailProduct.skills as any[]).map((sk: any, i: number) => (
+                                <div key={i} className="text-sm"><span className="font-medium">{sk.name}</span>: <span className="text-muted-foreground">{sk.description}</span></div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Prompts */}
+                        {reviewDetailProduct.prompts?.length > 0 && (
+                          <div className="space-y-1">
+                            <label className="text-xs font-medium text-muted-foreground">Prompts</label>
+                            <div className="space-y-1.5">
+                              {(reviewDetailProduct.prompts as any[]).map((pr: any, i: number) => (
+                                <div key={i} className="bg-secondary/40 rounded-md p-2">
+                                  <p className="text-xs font-medium">{pr.title}</p>
+                                  <p className="text-xs text-muted-foreground mt-0.5">{pr.content}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      <DialogFooter className="mt-4 gap-2">
+                        {reviewDetailProduct.status === "pending" ? (
+                          <>
+                            <Button variant="outline" className="text-xs text-destructive border-destructive/30 hover:bg-destructive/10" onClick={() => { updateProduct.mutate({ id: reviewDetailProduct.id, status: "rejected" }); setReviewDetailProduct({ ...reviewDetailProduct, status: "rejected" }); }}>
+                              拒绝
+                            </Button>
+                            <Button className="text-xs" onClick={() => { updateProduct.mutate({ id: reviewDetailProduct.id, status: "approved" }); setReviewDetailProduct({ ...reviewDetailProduct, status: "approved" }); }}>
+                              通过
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            {reviewDetailProduct.status === "approved" && (
+                              <Button variant="outline" className="text-xs text-destructive border-destructive/30 hover:bg-destructive/10" onClick={() => { updateProduct.mutate({ id: reviewDetailProduct.id, status: "rejected" }); setReviewDetailProduct({ ...reviewDetailProduct, status: "rejected" }); }}>
+                                改为拒绝
+                              </Button>
+                            )}
+                            {reviewDetailProduct.status === "rejected" && (
+                              <Button className="text-xs" onClick={() => { updateProduct.mutate({ id: reviewDetailProduct.id, status: "approved" }); setReviewDetailProduct({ ...reviewDetailProduct, status: "approved" }); }}>
+                                改为通过
+                              </Button>
+                            )}
+                          </>
+                        )}
+                      </DialogFooter>
+                    </>
+                  )}
+                </DialogContent>
+              </Dialog>
             </div>
           )}
 
