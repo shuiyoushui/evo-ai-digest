@@ -155,7 +155,8 @@ const Profile = () => {
             </div>
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">昵称</label>
-              <Input value={profileNickname} onChange={(e) => setProfileNickname(e.target.value)} className="bg-secondary" />
+              <Input value={profileNickname} onChange={(e) => setProfileNickname(e.target.value)} className="bg-secondary" maxLength={20} placeholder="最长5个汉字或20个英文字母" />
+              {profileNickname && validateNickname(profileNickname) && <p className="text-xs text-destructive">{validateNickname(profileNickname)}</p>}
             </div>
           </CardContent>
         </Card>
