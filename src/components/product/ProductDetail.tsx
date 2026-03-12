@@ -221,43 +221,42 @@ export function ProductDetail({ product, open, onClose, onPromote }: ProductDeta
 
               {showSkills && (
                 <TabsContent value="skills">
-                  <div className="space-y-6">
-                    {skills.length > 0 && (
-                      <div>
-                        <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2"><Zap className="h-4 w-4 text-primary" /> Agent 技能</h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          {skills.map((skill) => (
-                            <Card key={skill.name} className="bg-secondary/30 border-border/40 hover:border-primary/30 transition-colors">
-                              <CardContent className="p-4 flex items-start gap-3">
-                                <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0"><Zap className="h-4 w-4 text-primary" /></div>
-                                <div>
-                                  <p className="text-sm font-medium text-foreground">{skill.name}</p>
-                                  <p className="text-xs text-muted-foreground mt-0.5">{skill.description}</p>
-                                </div>
-                              </CardContent>
-                            </Card>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    {prompts.length > 0 && (
-                      <div>
-                        <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2"><Terminal className="h-4 w-4 text-primary" /> 最佳 Prompt 库</h3>
-                        <div className="space-y-3">
-                          {prompts.map((p, idx) => (
-                            <div key={idx} className="rounded-lg border border-border/40 overflow-hidden">
-                              <div className="flex items-center justify-between px-4 py-2 bg-secondary/40">
-                                <span className="text-sm font-medium text-foreground">{p.title}</span>
-                                <Button variant="ghost" size="sm" className="h-7 gap-1.5 text-xs" onClick={() => handleCopy(`prompt-${idx}`, p.content)}>
-                                  {copiedId === `prompt-${idx}` ? <><Check className="h-3 w-3 text-primary" /> 已复制</> : <><Copy className="h-3 w-3" /> 复制</>}
-                                </Button>
-                              </div>
-                              <div className="px-4 py-3 bg-secondary font-mono text-xs text-muted-foreground leading-relaxed">{p.content}</div>
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2"><Zap className="h-4 w-4 text-primary" /> Agent 技能</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {skills.map((skill) => (
+                        <Card key={skill.name} className="bg-secondary/30 border-border/40 hover:border-primary/30 transition-colors">
+                          <CardContent className="p-4 flex items-start gap-3">
+                            <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0"><Zap className="h-4 w-4 text-primary" /></div>
+                            <div>
+                              <p className="text-sm font-medium text-foreground">{skill.name}</p>
+                              <p className="text-xs text-muted-foreground mt-0.5">{skill.description}</p>
                             </div>
-                          ))}
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                </TabsContent>
+              )}
+
+              {showPrompts && (
+                <TabsContent value="prompts">
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2"><Terminal className="h-4 w-4 text-primary" /> 最佳 Prompt 库</h3>
+                    <div className="space-y-3">
+                      {prompts.map((p, idx) => (
+                        <div key={idx} className="rounded-lg border border-border/40 overflow-hidden">
+                          <div className="flex items-center justify-between px-4 py-2 bg-secondary/40">
+                            <span className="text-sm font-medium text-foreground">{p.title}</span>
+                            <Button variant="ghost" size="sm" className="h-7 gap-1.5 text-xs" onClick={() => handleCopy(`prompt-${idx}`, p.content)}>
+                              {copiedId === `prompt-${idx}` ? <><Check className="h-3 w-3 text-primary" /> 已复制</> : <><Copy className="h-3 w-3" /> 复制</>}
+                            </Button>
+                          </div>
+                          <div className="px-4 py-3 bg-secondary font-mono text-xs text-muted-foreground leading-relaxed">{p.content}</div>
                         </div>
-                      </div>
-                    )}
+                      ))}
+                    </div>
                   </div>
                 </TabsContent>
               )}
