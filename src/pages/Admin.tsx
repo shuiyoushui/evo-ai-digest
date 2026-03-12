@@ -136,6 +136,25 @@ const Admin = () => {
   const [catOrderList, setCatOrderList] = useState<Array<{ id: string; label: string; icon: string; sort_order: number }>>([]);
   const [savingCatOrder, setSavingCatOrder] = useState(false);
 
+  // Category edit (rename / create)
+  const [catEditOpen, setCatEditOpen] = useState(false);
+  const [catEditId, setCatEditId] = useState<string | null>(null); // null = create mode
+  const [catEditNewId, setCatEditNewId] = useState("");
+  const [catEditLabel, setCatEditLabel] = useState("");
+  const [catEditIcon, setCatEditIcon] = useState("");
+  const [catEditOrder, setCatEditOrder] = useState(0);
+
+  // Category delete
+  const [catDeleteOpen, setCatDeleteOpen] = useState(false);
+  const [catDeleteId, setCatDeleteId] = useState<string | null>(null);
+  const [catDeleteTarget, setCatDeleteTarget] = useState("");
+  const [catDeleteProductCount, setCatDeleteProductCount] = useState(0);
+
+  // Category product assignment (after create)
+  const [catAssignOpen, setCatAssignOpen] = useState(false);
+  const [catAssignId, setCatAssignId] = useState("");
+  const [catAssignSelected, setCatAssignSelected] = useState<Set<string>>(new Set());
+
   useEffect(() => {
     if (categories.length > 0) {
       setCatOrderList(categories.map(c => ({ ...c })));
@@ -153,8 +172,84 @@ const Admin = () => {
     } catch (e: any) {
       toast.error("保存失败", { description: e.message });
     } finally {
-      setSavingCatOrder(false);
+    setSavingCatOrder(false);
     }
+  };
+
+  // Category rename
+  const handleSaveCatEdit = async () => {
+    if (!catEditLabel.trim()) { toast.error("请填写分类名称"); return; }
+    if (catEditId) {
+      // Rename mode
+      const { error } = await supabase.from("categories").update({ label: catEditLabel, icon: catEditIcon }).eq("id", catEditId);
+      if (error) { toast.error("重命名失败", { description: error.message }); return; }
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      toast.success("分类已重命名");
+    } else {
+      // Create mode
+      if (!catEditNewId.trim()) { toast.error("请填写分类ID"); return; }
+      if (catOrderList.some(c => c.id === catEditNewId.trim())) { toast.error("分类ID已存在"); return; }
+      const { error } = await supabase.from("categories").insert({ id: catEditNewId.trim(), label: catEditLabel, icon: catEditIcon || "📁", sort_order: catEditOrder });
+      if (error) { toast.error("新增失败", { description: error.message }); return; }
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      toast.success("分类已新增");
+      // Open product assignment dialog
+      setCatAssignId(catEditNewId.trim());
+      setCatAssignSelected(new Set());
+      setCatAssignOpen(true);
+    }
+    setCatEditOpen(false);
+  };
+
+  // Category delete
+  const handleOpenCatDelete = (catId: string) => {
+    const count = allProducts.filter(p => p.category_id === catId).length;
+    setCatDeleteId(catId);
+    setCatDeleteProductCount(count);
+    setCatDeleteTarget("");
+    setCatDeleteOpen(true);
+  };
+
+  const handleConfirmCatDelete = async () => {
+    if (!catDeleteId) return;
+    if (catDeleteProductCount > 0 && !catDeleteTarget) {
+      toast.error("请选择产品迁移的目标分类");
+      return;
+    }
+    try {
+      // Migrate products first
+      if (catDeleteProductCount > 0 && catDeleteTarget) {
+        const { error: moveErr } = await supabase.from("products").update({ category_id: catDeleteTarget }).eq("category_id", catDeleteId);
+        if (moveErr) throw moveErr;
+      }
+      // Delete category
+      const { error: delErr } = await supabase.from("categories").delete().eq("id", catDeleteId);
+      if (delErr) throw delErr;
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      toast.success("分类已删除");
+    } catch (e: any) {
+      toast.error("删除失败", { description: e.message });
+    }
+    setCatDeleteOpen(false);
+    setCatDeleteId(null);
+  };
+
+  // Category product assignment
+  const handleSaveCatAssign = async () => {
+    if (catAssignSelected.size === 0) { setCatAssignOpen(false); return; }
+    try {
+      const ids = Array.from(catAssignSelected);
+      for (const pid of ids) {
+        const { error } = await supabase.from("products").update({ category_id: catAssignId }).eq("id", pid);
+        if (error) throw error;
+      }
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      toast.success(`已将 ${ids.length} 个产品分配到新分类`);
+    } catch (e: any) {
+      toast.error("分配失败", { description: e.message });
+    }
+    setCatAssignOpen(false);
   };
 
   // Banner save
@@ -579,11 +674,18 @@ const Admin = () => {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <Settings className="h-4 w-4 text-primary" />
-                          <CardTitle className="text-sm">产品分类排序</CardTitle>
+                          <CardTitle className="text-sm">产品分类管理</CardTitle>
                         </div>
-                        <Button size="sm" variant="outline" className="text-xs gap-1" onClick={handleSaveCategoryOrder} disabled={savingCatOrder}>
-                          <Save className="h-3 w-3" /> {savingCatOrder ? "保存中..." : "保存排序"}
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <Button size="sm" variant="outline" className="text-xs gap-1" onClick={() => {
+                            setCatEditId(null); setCatEditNewId(""); setCatEditLabel(""); setCatEditIcon("📁"); setCatEditOrder(catOrderList.length > 0 ? Math.max(...catOrderList.map(c => c.sort_order)) + 1 : 0); setCatEditOpen(true);
+                          }}>
+                            <Plus className="h-3 w-3" /> 新增分类
+                          </Button>
+                          <Button size="sm" variant="outline" className="text-xs gap-1" onClick={handleSaveCategoryOrder} disabled={savingCatOrder}>
+                            <Save className="h-3 w-3" /> {savingCatOrder ? "保存中..." : "保存排序"}
+                          </Button>
+                        </div>
                       </div>
                       <CardDescription className="text-xs">拖动排序值调整分类在导航栏的显示顺序（数值越小越靠前）</CardDescription>
                     </CardHeader>
@@ -635,6 +737,12 @@ const Admin = () => {
                                       newList.sort((a, b) => a.sort_order - b.sort_order);
                                       setCatOrderList(newList);
                                     }}>↓</Button>
+                                    <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => {
+                                      setCatEditId(cat.id); setCatEditNewId(cat.id); setCatEditLabel(cat.label); setCatEditIcon(cat.icon); setCatEditOrder(cat.sort_order); setCatEditOpen(true);
+                                    }}><Pencil className="h-3 w-3" /></Button>
+                                    <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive" onClick={() => handleOpenCatDelete(cat.id)}>
+                                      <Trash2 className="h-3 w-3" />
+                                    </Button>
                                   </div>
                                 </TableCell>
                               </TableRow>
@@ -940,6 +1048,105 @@ const Admin = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Category Edit/Create Dialog */}
+      <Dialog open={catEditOpen} onOpenChange={setCatEditOpen}>
+        <DialogContent className="bg-card border-border max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-base">{catEditId ? "编辑分类" : "新增分类"}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-2">
+            {!catEditId && (
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">分类 ID（唯一标识，英文）</label>
+                <Input value={catEditNewId} onChange={(e) => setCatEditNewId(e.target.value)} className="bg-secondary font-mono" placeholder="如 dev-tools" />
+              </div>
+            )}
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">分类名称</label>
+              <Input value={catEditLabel} onChange={(e) => setCatEditLabel(e.target.value)} className="bg-secondary" placeholder="如 开发工具" />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">图标 (emoji)</label>
+              <Input value={catEditIcon} onChange={(e) => setCatEditIcon(e.target.value)} className="bg-secondary" placeholder="📁" />
+            </div>
+            {!catEditId && (
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">排序值</label>
+                <Input type="number" value={catEditOrder} onChange={(e) => setCatEditOrder(Number(e.target.value))} className="bg-secondary" />
+              </div>
+            )}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setCatEditOpen(false)}>取消</Button>
+              <Button onClick={handleSaveCatEdit}>{catEditId ? "保存" : "创建"}</Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Category Delete Confirm Dialog */}
+      <AlertDialog open={catDeleteOpen} onOpenChange={(open) => { if (!open) { setCatDeleteOpen(false); setCatDeleteId(null); } }}>
+        <AlertDialogContent className="bg-card border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle>删除分类</AlertDialogTitle>
+            <AlertDialogDescription>
+              {catDeleteProductCount > 0
+                ? `该分类下有 ${catDeleteProductCount} 个产品，请选择目标分类进行迁移后再删除。`
+                : "该分类下没有产品，确认删除此分类？"}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {catDeleteProductCount > 0 && (
+            <div className="space-y-1.5 px-1">
+              <label className="text-xs font-medium text-muted-foreground">迁移到</label>
+              <Select value={catDeleteTarget} onValueChange={setCatDeleteTarget}>
+                <SelectTrigger className="bg-secondary"><SelectValue placeholder="选择目标分类" /></SelectTrigger>
+                <SelectContent>
+                  {catOrderList.filter(c => c.id !== catDeleteId).map(c => (
+                    <SelectItem key={c.id} value={c.id}>{c.icon} {c.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmCatDelete} disabled={catDeleteProductCount > 0 && !catDeleteTarget}>删除</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Category Product Assignment Dialog (after create) */}
+      <Dialog open={catAssignOpen} onOpenChange={setCatAssignOpen}>
+        <DialogContent className="bg-card border-border max-w-lg max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle className="text-base">分配产品到新分类</DialogTitle>
+          </DialogHeader>
+          <p className="text-xs text-muted-foreground">选择要分配到新分类 <Badge variant="secondary" className="text-[10px]">{catAssignId}</Badge> 的产品（可跳过）</p>
+          <div className="max-h-[50vh] overflow-y-auto space-y-1 border border-border rounded-md p-2">
+            {allProducts.map((p: any) => (
+              <label key={p.id} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-secondary/50 cursor-pointer text-sm">
+                <input
+                  type="checkbox"
+                  checked={catAssignSelected.has(p.id)}
+                  onChange={(e) => {
+                    const next = new Set(catAssignSelected);
+                    e.target.checked ? next.add(p.id) : next.delete(p.id);
+                    setCatAssignSelected(next);
+                  }}
+                  className="rounded"
+                />
+                <span className="flex-1 truncate">{p.name}</span>
+                <span className="text-xs text-muted-foreground">{categories.find(c => c.id === p.category_id)?.label || "未分类"}</span>
+              </label>
+            ))}
+            {allProducts.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">暂无产品</p>}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCatAssignOpen(false)}>跳过</Button>
+            <Button onClick={handleSaveCatAssign} disabled={catAssignSelected.size === 0}>分配 ({catAssignSelected.size})</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
