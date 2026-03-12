@@ -161,18 +161,19 @@ const Admin = () => {
     }
   }, [categories]);
 
-  const handleSaveCategoryOrder = async () => {
+  const handleSaveCategories = async () => {
     setSavingCatOrder(true);
     try {
       for (const cat of catOrderList) {
-        const { error } = await supabase.from("categories").update({ sort_order: cat.sort_order }).eq("id", cat.id);
+        const { error } = await supabase.from("categories").update({ sort_order: cat.sort_order, label: cat.label, icon: cat.icon }).eq("id", cat.id);
         if (error) throw error;
       }
-      toast.success("分类排序已保存");
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      toast.success("分类配置已保存");
     } catch (e: any) {
       toast.error("保存失败", { description: e.message });
     } finally {
-    setSavingCatOrder(false);
+      setSavingCatOrder(false);
     }
   };
 
@@ -180,11 +181,9 @@ const Admin = () => {
   const handleSaveCatEdit = async () => {
     if (!catEditLabel.trim()) { toast.error("请填写分类名称"); return; }
     if (catEditId) {
-      // Rename mode
-      const { error } = await supabase.from("categories").update({ label: catEditLabel, icon: catEditIcon }).eq("id", catEditId);
-      if (error) { toast.error("重命名失败", { description: error.message }); return; }
-      queryClient.invalidateQueries({ queryKey: ["categories"] });
-      toast.success("分类已重命名");
+      // Rename mode — update local state only, saved via "保存分类" button
+      setCatOrderList(prev => prev.map(c => c.id === catEditId ? { ...c, label: catEditLabel, icon: catEditIcon } : c));
+      toast.info("分类已修改，请点击「保存分类」按钮生效");
     } else {
       // Create mode
       if (!catEditNewId.trim()) { toast.error("请填写分类ID"); return; }
@@ -682,8 +681,8 @@ const Admin = () => {
                           }}>
                             <Plus className="h-3 w-3" /> 新增分类
                           </Button>
-                          <Button size="sm" variant="outline" className="text-xs gap-1" onClick={handleSaveCategoryOrder} disabled={savingCatOrder}>
-                            <Save className="h-3 w-3" /> {savingCatOrder ? "保存中..." : "保存排序"}
+                          <Button size="sm" variant="outline" className="text-xs gap-1" onClick={handleSaveCategories} disabled={savingCatOrder}>
+                            <Save className="h-3 w-3" /> {savingCatOrder ? "保存中..." : "保存分类"}
                           </Button>
                         </div>
                       </div>
