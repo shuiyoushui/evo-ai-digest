@@ -1,73 +1,92 @@
-# Welcome to your Lovable project
+# Agent Hunt — 发现最好的 AI 工具
 
-## Project info
+Agent Hunt 是中国首选的 AI 产品首发与增长加速平台，帮助开发者和团队展示、发现和推广最前沿的 AI 工具与服务。
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+🌐 **在线访问**: [evo-ai-digest.lovable.app](https://evo-ai-digest.lovable.app)
 
-## How can I edit this code?
+---
 
-There are several ways of editing your application.
+## ✨ 核心功能
 
-**Use Lovable**
+- **产品发现** — 按分类浏览已审核的 AI 产品，支持投票排名
+- **智能提交** — 输入网址即可通过 AI 自动解析并填充产品信息（支持 OpenAI / DeepSeek / 通义千问）
+- **发布者中心 (Maker Studio)** — 提交、编辑、管理你的 AI 产品
+- **管理后台** — 产品审核、分类管理、Banner 配置、AI 解析配置、排名权重调整
+- **用户系统** — 邮箱/手机号注册登录、OTP 验证码登录、个人资料管理
+- **投票系统** — 登录用户可为喜爱的产品投票
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+## 🛠 技术栈
 
-Changes made via Lovable will be committed automatically to this repo.
+| 层级 | 技术 |
+|------|------|
+| 前端框架 | React 18 + TypeScript + Vite |
+| UI 组件 | shadcn/ui + Tailwind CSS |
+| 状态管理 | TanStack React Query |
+| 路由 | React Router v6 |
+| 后端 | Supabase (数据库 / Auth / Edge Functions / Storage) |
+| AI 解析 | 兼容 OpenAI 标准协议 & 阿里云百炼协议 |
 
-**Use your preferred IDE**
+## 📁 项目结构
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+```
+src/
+├── components/        # UI 组件
+│   ├── admin/         # 管理后台组件
+│   ├── home/          # 首页组件 (Banner, ProductCard)
+│   ├── layout/        # 布局组件 (TopNav, CategorySidebar)
+│   ├── product/       # 产品详情组件
+│   └── ui/            # shadcn/ui 基础组件
+├── contexts/          # React Context (AuthContext)
+├── hooks/             # 自定义 Hooks
+│   ├── useProducts.ts       # 产品 CRUD
+│   ├── useUpvotes.ts        # 投票逻辑
+│   ├── useCategories.ts     # 分类查询
+│   └── useRecommendations.ts # LLM 推荐管理
+├── pages/             # 页面路由
+│   ├── Index.tsx      # 首页
+│   ├── MakerStudio.tsx # 发布者中心
+│   ├── Admin.tsx      # 管理后台
+│   └── Profile.tsx    # 个人中心
+├── integrations/      # Supabase 客户端 & 类型 (自动生成)
+└── data/              # Mock 数据
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+supabase/
+├── functions/         # Edge Functions
+│   └── analyze-url/   # AI 网页解析函数
+└── config.toml        # Supabase 配置
 
-Follow these steps:
+docs/
+├── architecture.md    # 架构文档
+└── rls-policies.sql   # RLS 策略参考
+```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
+## 🚀 本地开发
+
+```bash
+# 克隆仓库
 git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
 cd <YOUR_PROJECT_NAME>
 
-# Step 3: Install the necessary dependencies.
-npm i
+# 安装依赖
+npm install
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# 启动开发服务器
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## 🧪 测试
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```bash
+npm test            # 运行测试
+npm run test:watch  # 监听模式
+```
 
-**Use GitHub Codespaces**
+## 🔐 安全设计
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+- **角色管理** — 独立 `user_roles` 表存储角色，避免权限提升攻击
+- **RLS 策略** — 所有表启用行级安全，通过 `SECURITY DEFINER` 函数 `has_role()` 判断权限
+- **客户端角色仅用于 UI** — 前端 `isAdmin` 仅控制界面展示，真正权限由数据库 RLS 保障
 
-## What technologies are used for this project?
+## 📄 License
 
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+MIT
