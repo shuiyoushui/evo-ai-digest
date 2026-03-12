@@ -216,6 +216,8 @@ const MakerStudio = () => {
       companyFounded: proj.company_founded || "",
       companyLocation: proj.company_location || "",
       companyFunding: proj.company_funding || "",
+      skills: Array.isArray(proj.skills) ? proj.skills : [],
+      prompts: Array.isArray(proj.prompts) ? proj.prompts : [],
     });
     setActiveTab("edit");
   };
