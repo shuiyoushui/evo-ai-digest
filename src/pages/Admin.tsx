@@ -681,8 +681,8 @@ const Admin = () => {
                           }}>
                             <Plus className="h-3 w-3" /> 新增分类
                           </Button>
-                          <Button size="sm" variant="outline" className="text-xs gap-1" onClick={handleSaveCategoryOrder} disabled={savingCatOrder}>
-                            <Save className="h-3 w-3" /> {savingCatOrder ? "保存中..." : "保存排序"}
+                          <Button size="sm" variant="outline" className="text-xs gap-1" onClick={handleSaveCategories} disabled={savingCatOrder}>
+                            <Save className="h-3 w-3" /> {savingCatOrder ? "保存中..." : "保存分类"}
                           </Button>
                         </div>
                       </div>
