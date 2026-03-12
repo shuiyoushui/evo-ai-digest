@@ -1048,6 +1048,105 @@ const Admin = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Category Edit/Create Dialog */}
+      <Dialog open={catEditOpen} onOpenChange={setCatEditOpen}>
+        <DialogContent className="bg-card border-border max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-base">{catEditId ? "编辑分类" : "新增分类"}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-2">
+            {!catEditId && (
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">分类 ID（唯一标识，英文）</label>
+                <Input value={catEditNewId} onChange={(e) => setCatEditNewId(e.target.value)} className="bg-secondary font-mono" placeholder="如 dev-tools" />
+              </div>
+            )}
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">分类名称</label>
+              <Input value={catEditLabel} onChange={(e) => setCatEditLabel(e.target.value)} className="bg-secondary" placeholder="如 开发工具" />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">图标 (emoji)</label>
+              <Input value={catEditIcon} onChange={(e) => setCatEditIcon(e.target.value)} className="bg-secondary" placeholder="📁" />
+            </div>
+            {!catEditId && (
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">排序值</label>
+                <Input type="number" value={catEditOrder} onChange={(e) => setCatEditOrder(Number(e.target.value))} className="bg-secondary" />
+              </div>
+            )}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setCatEditOpen(false)}>取消</Button>
+              <Button onClick={handleSaveCatEdit}>{catEditId ? "保存" : "创建"}</Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Category Delete Confirm Dialog */}
+      <AlertDialog open={catDeleteOpen} onOpenChange={(open) => { if (!open) { setCatDeleteOpen(false); setCatDeleteId(null); } }}>
+        <AlertDialogContent className="bg-card border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle>删除分类</AlertDialogTitle>
+            <AlertDialogDescription>
+              {catDeleteProductCount > 0
+                ? `该分类下有 ${catDeleteProductCount} 个产品，请选择目标分类进行迁移后再删除。`
+                : "该分类下没有产品，确认删除此分类？"}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {catDeleteProductCount > 0 && (
+            <div className="space-y-1.5 px-1">
+              <label className="text-xs font-medium text-muted-foreground">迁移到</label>
+              <Select value={catDeleteTarget} onValueChange={setCatDeleteTarget}>
+                <SelectTrigger className="bg-secondary"><SelectValue placeholder="选择目标分类" /></SelectTrigger>
+                <SelectContent>
+                  {catOrderList.filter(c => c.id !== catDeleteId).map(c => (
+                    <SelectItem key={c.id} value={c.id}>{c.icon} {c.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmCatDelete} disabled={catDeleteProductCount > 0 && !catDeleteTarget}>删除</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Category Product Assignment Dialog (after create) */}
+      <Dialog open={catAssignOpen} onOpenChange={setCatAssignOpen}>
+        <DialogContent className="bg-card border-border max-w-lg max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle className="text-base">分配产品到新分类</DialogTitle>
+          </DialogHeader>
+          <p className="text-xs text-muted-foreground">选择要分配到新分类 <Badge variant="secondary" className="text-[10px]">{catAssignId}</Badge> 的产品（可跳过）</p>
+          <div className="max-h-[50vh] overflow-y-auto space-y-1 border border-border rounded-md p-2">
+            {allProducts.map((p: any) => (
+              <label key={p.id} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-secondary/50 cursor-pointer text-sm">
+                <input
+                  type="checkbox"
+                  checked={catAssignSelected.has(p.id)}
+                  onChange={(e) => {
+                    const next = new Set(catAssignSelected);
+                    e.target.checked ? next.add(p.id) : next.delete(p.id);
+                    setCatAssignSelected(next);
+                  }}
+                  className="rounded"
+                />
+                <span className="flex-1 truncate">{p.name}</span>
+                <span className="text-xs text-muted-foreground">{categories.find(c => c.id === p.category_id)?.label || "未分类"}</span>
+              </label>
+            ))}
+            {allProducts.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">暂无产品</p>}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCatAssignOpen(false)}>跳过</Button>
+            <Button onClick={handleSaveCatAssign} disabled={catAssignSelected.size === 0}>分配 ({catAssignSelected.size})</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
