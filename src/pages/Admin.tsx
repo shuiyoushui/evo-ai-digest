@@ -181,11 +181,9 @@ const Admin = () => {
   const handleSaveCatEdit = async () => {
     if (!catEditLabel.trim()) { toast.error("请填写分类名称"); return; }
     if (catEditId) {
-      // Rename mode
-      const { error } = await supabase.from("categories").update({ label: catEditLabel, icon: catEditIcon }).eq("id", catEditId);
-      if (error) { toast.error("重命名失败", { description: error.message }); return; }
-      queryClient.invalidateQueries({ queryKey: ["categories"] });
-      toast.success("分类已重命名");
+      // Rename mode — update local state only, saved via "保存分类" button
+      setCatOrderList(prev => prev.map(c => c.id === catEditId ? { ...c, label: catEditLabel, icon: catEditIcon } : c));
+      toast.info("分类已修改，请点击「保存分类」按钮生效");
     } else {
       // Create mode
       if (!catEditNewId.trim()) { toast.error("请填写分类ID"); return; }
