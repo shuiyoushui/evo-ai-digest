@@ -20,22 +20,6 @@ import { toast } from "sonner";
 import type { DbProduct } from "@/hooks/useProducts";
 import { mockComments } from "@/data/mockData";
 
-const fallbackSkills = [
-  { name: "联网搜索", description: "实时搜索互联网获取最新数据和信息" },
-  { name: "代码解释器", description: "运行 Python 代码进行数据分析和计算" },
-  { name: "图像生成", description: "根据文字描述生成高质量图像" },
-  { name: "长文本理解", description: "支持超长上下文的深度理解与分析" },
-  { name: "文档解析", description: "解析 PDF、Word 等格式文档内容" },
-  { name: "多模态理解", description: "理解图片、图表等视觉内容" },
-];
-
-const fallbackPrompts = [
-  { title: "修复 Bug", content: "分析以下 React 代码片段，找出导致重复渲染的问题并给出修复方案。" },
-  { title: "编写测试", content: "为以下函数生成 Jest 单元测试用例，覆盖正常输入、边界条件和异常情况。" },
-  { title: "代码审查", content: "对以下代码进行 Code Review，从性能、安全性、可读性三个维度给出改进建议。" },
-  { title: "架构设计", content: "我需要设计一个支持百万用户的实时聊天系统，请给出技术架构方案。" },
-];
-
 interface ProductDetailProps {
   product: DbProduct | null;
   open: boolean;
@@ -52,18 +36,18 @@ export function ProductDetail({ product, open, onClose, onPromote }: ProductDeta
   const { data: userUpvotes = new Set<string>() } = useUserUpvotes(user?.id);
   const { data: displayModules = [] } = useDisplayModules();
 
-  // Build a map of module id -> enabled
   const moduleEnabled = (id: string) => {
     const mod = displayModules.find(m => m.id === id);
-    return mod ? mod.enabled : true; // default to true if not found
+    return mod ? mod.enabled : true;
   };
 
   if (!product) return null;
 
-  const skills = (product.skills as { name: string; description: string }[] | null) || fallbackSkills;
-  const prompts = (product.prompts as { title: string; content: string }[] | null) || fallbackPrompts;
+  const skills = (product.skills as { name: string; description: string }[] | null) ?? [];
+  const prompts = (product.prompts as { title: string; content: string }[] | null) ?? [];
   
-  const showSkills = moduleEnabled("skills") && (skills.length > 0 || prompts.length > 0);
+  const showSkills = moduleEnabled("skills") && skills.length > 0;
+  const showPrompts = moduleEnabled("prompts") && prompts.length > 0;
   const showVideo = moduleEnabled("video");
   const showBenefits = moduleEnabled("benefits");
   const showCommunity = moduleEnabled("community");
