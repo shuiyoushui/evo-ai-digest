@@ -241,10 +241,11 @@ const MakerStudio = () => {
         company_funding: editFormData.companyFunding,
         skills: editFormData.skills.length > 0 ? editFormData.skills : null,
         prompts: editFormData.prompts.length > 0 ? editFormData.prompts : null,
+        status: "pending",
       });
       setEditingProjectId(null);
       setActiveTab("projects");
-      toast.success("产品信息已更新");
+      toast.success("产品信息已更新，需重新审核后展示");
     } catch {
       toast.error("更新失败");
     }
