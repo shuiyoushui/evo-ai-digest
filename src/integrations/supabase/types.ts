@@ -59,6 +59,7 @@ export type Database = {
           cta: string
           gradient: string
           id: string
+          image_url: string | null
           link: string
           sort_order: number
           title: string
@@ -68,6 +69,7 @@ export type Database = {
           cta?: string
           gradient: string
           id: string
+          image_url?: string | null
           link?: string
           sort_order?: number
           title: string
@@ -77,6 +79,7 @@ export type Database = {
           cta?: string
           gradient?: string
           id?: string
+          image_url?: string | null
           link?: string
           sort_order?: number
           title?: string

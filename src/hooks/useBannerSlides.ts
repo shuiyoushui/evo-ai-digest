@@ -9,6 +9,7 @@ export interface BannerSlide {
   active: boolean;
   gradient: string;
   sort_order: number;
+  image_url?: string;
 }
 
 export function useBannerSlides() {

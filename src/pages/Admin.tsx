@@ -170,6 +170,7 @@ const Admin = () => {
           active: slide.active,
           gradient: slide.gradient,
           sort_order: slide.sort_order || 0,
+          image_url: (slide as any).image_url || '',
         });
         if (error) throw error;
       }
@@ -251,7 +252,35 @@ const Admin = () => {
   }, []);
 
   const updateBanner = (index: number, field: keyof BannerSlide, value: string | boolean) => {
+    if (field === "active" && value === false) {
+      const activeCount = bannerSlides.filter((s) => s.active).length;
+      if (activeCount <= 1) {
+        toast.error("至少保留一个启用的 Banner");
+        return;
+      }
+    }
     setBannerSlides((prev) => prev.map((s, i) => i === index ? { ...s, [field]: value } : s));
+  };
+
+  const handleBannerImageUpload = async (index: number) => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      const ext = file.name.split(".").pop();
+      const filePath = `banner-${bannerSlides[index].id}-${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage.from("banner-images").upload(filePath, file, { upsert: true });
+      if (uploadError) {
+        toast.error("上传失败", { description: uploadError.message });
+        return;
+      }
+      const { data: urlData } = supabase.storage.from("banner-images").getPublicUrl(filePath);
+      setBannerSlides((prev) => prev.map((s, i) => i === index ? { ...s, image_url: urlData.publicUrl } : s));
+      toast.success("图片已上传");
+    };
+    input.click();
   };
 
   const handleSaveConfig = async () => {
@@ -450,9 +479,18 @@ const Admin = () => {
                     <CardContent className="space-y-4">
                       {bannerSlides.map((slide, i) => (
                         <div key={slide.id} className="flex items-start gap-4 p-3 rounded-lg bg-secondary/40 border border-border/30">
-                          <div className={`h-20 w-28 rounded-lg border-2 border-dashed border-border/60 bg-gradient-to-br ${slide.gradient} flex flex-col items-center justify-center shrink-0 cursor-pointer hover:border-primary/50 transition-colors group`}>
-                            <Upload className="h-4 w-4 text-white/60 group-hover:text-white/90 transition-colors" />
-                            <span className="text-[9px] text-white/60 mt-1 group-hover:text-white/90">点击上传图片</span>
+                          <div
+                            className={`h-20 w-28 rounded-lg border-2 border-dashed border-border/60 ${(slide as any).image_url ? '' : `bg-gradient-to-br ${slide.gradient}`} flex flex-col items-center justify-center shrink-0 cursor-pointer hover:border-primary/50 transition-colors group overflow-hidden relative`}
+                            onClick={() => handleBannerImageUpload(i)}
+                          >
+                            {(slide as any).image_url ? (
+                              <img src={(slide as any).image_url} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                            ) : (
+                              <>
+                                <Upload className="h-4 w-4 text-white/60 group-hover:text-white/90 transition-colors" />
+                                <span className="text-[9px] text-white/60 mt-1 group-hover:text-white/90">点击上传图片</span>
+                              </>
+                            )}
                           </div>
                           <div className="flex-1 space-y-2 min-w-0">
                             <div className="space-y-1">

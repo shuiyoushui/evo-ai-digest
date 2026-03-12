@@ -12,6 +12,7 @@ export interface BannerSlide {
   active: boolean;
   gradient: string;
   sort_order?: number;
+  image_url?: string;
 }
 
 // Keep as fallback only
@@ -58,7 +59,17 @@ export function HomeBanner({ slides: propSlides }: HomeBannerProps) {
         <CarouselContent>
           {activeSlides.map((slide, i) => (
             <CarouselItem key={slide.id}>
-              <div className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${slide.gradient} aspect-[3/1] flex items-center`}>
+              <div
+                className={`relative overflow-hidden rounded-2xl ${slide.image_url ? '' : `bg-gradient-to-br ${slide.gradient}`} aspect-[3/1] flex items-center cursor-pointer`}
+                onClick={() => {
+                  if (slide.link && slide.link !== '#') {
+                    window.open(slide.link, '_blank', 'noopener,noreferrer');
+                  }
+                }}
+              >
+                {slide.image_url && (
+                  <img src={slide.image_url} alt={slide.title} className="absolute inset-0 w-full h-full object-cover" />
+                )}
                 <div className="absolute inset-0 opacity-20">
                   <div className="absolute top-1/4 right-1/4 w-64 h-64 rounded-full bg-white/10 blur-3xl" />
                   <div className="absolute bottom-0 left-1/3 w-48 h-48 rounded-full bg-white/8 blur-2xl" />
