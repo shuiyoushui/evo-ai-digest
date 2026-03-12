@@ -76,6 +76,19 @@ const MakerStudio = () => {
   const { data: serviceCategories = [] } = useServiceCategories();
   const deleteProduct = useDeleteProduct();
   const updateProduct = useUpdateProduct();
+  const [aiEnabled, setAiEnabled] = useState(true);
+
+  // Fetch AI config enabled status
+  useEffect(() => {
+    supabase
+      .from("ai_config")
+      .select("enabled")
+      .eq("config_key", "analyze_url")
+      .single()
+      .then(({ data }) => {
+        if (data) setAiEnabled(data.enabled);
+      });
+  }, []);
   const [submitStep, setSubmitStep] = useState<SubmitStep>("choose");
   const [url, setUrl] = useState("");
   const [activeTab, setActiveTab] = useState(() => {
