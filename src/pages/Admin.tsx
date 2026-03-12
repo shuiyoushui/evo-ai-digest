@@ -17,8 +17,8 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { LayoutDashboard, FileText, Megaphone, Settings, Plus, Eye, ThumbsUp, Clock, MessageCircle, Save, Image, Upload, Pencil, Trash2, AlertTriangle, Lock, Cpu, ChevronDown, ChevronRight, GripVertical } from "lucide-react";
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { mockInquiries } from "@/data/mockData";
+import { OverviewTab } from "@/components/admin/OverviewTab";
 import { useCategories } from "@/hooks/useCategories";
 import { useAllProducts, useUpdateProduct } from "@/hooks/useProducts";
 import { useAllRecommendations, useUpdateRecommendation, useCreateRecommendation, useDeleteRecommendation } from "@/hooks/useRecommendations";
@@ -40,27 +40,6 @@ const sidebarItems = [
 
 const statusMap: Record<string, string> = { pending: "待审核", approved: "已通过", rejected: "已拒绝" };
 
-const categoryInquiryData = [
-  { name: "开发与编程", value: 45 },
-  { name: "视觉与创意", value: 30 },
-  { name: "智能体", value: 25 },
-  { name: "效率与办公", value: 18 },
-  { name: "写作营销", value: 10 },
-];
-
-const serviceTypeData = [
-  { name: "种子用户", value: 42 },
-  { name: "体验评测", value: 31 },
-  { name: "规模增长", value: 27 },
-];
-
-const PIE_COLORS = [
-  "hsl(230, 90%, 60%)",
-  "hsl(142, 71%, 45%)",
-  "hsl(38, 92%, 50%)",
-  "hsl(262, 83%, 58%)",
-  "hsl(350, 80%, 55%)",
-];
 
 const AI_MODELS = [
   { value: "google/gemini-3-flash-preview", label: "Gemini 3 Flash (推荐)" },
@@ -443,27 +422,8 @@ const Admin = () => {
 
         <main className="flex-1 p-6">
           {/* OVERVIEW */}
-          {activeTab === "overview" && (
-            <div className="space-y-6 animate-fade-in">
-              <h2 className="text-lg font-bold text-foreground">数据总览</h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {[
-                  { label: "总产品数", value: "1,284", icon: FileText },
-                  { label: "今日提交", value: "23", icon: Plus },
-                  { label: "总用户数", value: "45.2K", icon: Eye },
-                  { label: "本月收入", value: "¥89,200", icon: Megaphone },
-                ].map((s) => (
-                  <Card key={s.label} className="bg-card border-border">
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-2 mb-2"><s.icon className="h-4 w-4 text-primary" /><span className="text-xs text-muted-foreground">{s.label}</span></div>
-                      <p className="text-2xl font-bold text-foreground">{s.value}</p>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-              <Card className="bg-card border-border"><CardContent className="p-4"><div className="h-48 rounded-lg bg-secondary/50 flex items-center justify-center"><span className="text-sm text-muted-foreground">📊 平台趋势图表</span></div></CardContent></Card>
-            </div>
-          )}
+          {activeTab === "overview" && <OverviewTab />}
+
 
           {/* SUBMISSIONS */}
           {activeTab === "submissions" && (
