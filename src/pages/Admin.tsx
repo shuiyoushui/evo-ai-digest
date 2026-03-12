@@ -170,6 +170,7 @@ const Admin = () => {
           active: slide.active,
           gradient: slide.gradient,
           sort_order: slide.sort_order || 0,
+          image_url: (slide as any).image_url || '',
         });
         if (error) throw error;
       }
