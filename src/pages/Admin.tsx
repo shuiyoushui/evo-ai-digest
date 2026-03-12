@@ -546,7 +546,7 @@ const Admin = () => {
                           <CardTitle className="text-sm">排名算法权重</CardTitle>
                           <CardDescription className="text-xs">调整各因素在排名中的权重占比（总和需为100%）</CardDescription>
                         </div>
-                        <Button size="sm" variant="outline" className="text-xs gap-1" onClick={handleSaveWeights} disabled={savingWeights}>
+                        <Button size="sm" variant="outline" className="text-xs gap-1" onClick={handleSaveWeights} disabled={savingWeights || totalWeight !== 100}>
                           <Save className="h-3 w-3" /> {savingWeights ? "保存中..." : "保存权重"}
                         </Button>
                       </div>
