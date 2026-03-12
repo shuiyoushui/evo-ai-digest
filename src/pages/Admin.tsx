@@ -161,18 +161,19 @@ const Admin = () => {
     }
   }, [categories]);
 
-  const handleSaveCategoryOrder = async () => {
+  const handleSaveCategories = async () => {
     setSavingCatOrder(true);
     try {
       for (const cat of catOrderList) {
-        const { error } = await supabase.from("categories").update({ sort_order: cat.sort_order }).eq("id", cat.id);
+        const { error } = await supabase.from("categories").update({ sort_order: cat.sort_order, label: cat.label, icon: cat.icon }).eq("id", cat.id);
         if (error) throw error;
       }
-      toast.success("分类排序已保存");
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      toast.success("分类配置已保存");
     } catch (e: any) {
       toast.error("保存失败", { description: e.message });
     } finally {
-    setSavingCatOrder(false);
+      setSavingCatOrder(false);
     }
   };
 
