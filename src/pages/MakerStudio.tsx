@@ -191,12 +191,12 @@ const MakerStudio = () => {
     toast.success("咨询请求已发送给管理员", { description: "我们将在1-2个工作日内联系您" });
   };
 
-  const handleDeleteProject = async (id: string) => {
+  const handleOfflineProject = async (id: string) => {
     try {
-      await deleteProduct.mutateAsync(id);
-      toast.success("项目已删除");
+      await updateProduct.mutateAsync({ id, status: "offline" });
+      toast.success("产品已下线");
     } catch {
-      toast.error("删除失败");
+      toast.error("下线失败");
     }
   };
 
