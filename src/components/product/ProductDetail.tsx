@@ -20,22 +20,6 @@ import { toast } from "sonner";
 import type { DbProduct } from "@/hooks/useProducts";
 import { mockComments } from "@/data/mockData";
 
-const fallbackSkills = [
-  { name: "联网搜索", description: "实时搜索互联网获取最新数据和信息" },
-  { name: "代码解释器", description: "运行 Python 代码进行数据分析和计算" },
-  { name: "图像生成", description: "根据文字描述生成高质量图像" },
-  { name: "长文本理解", description: "支持超长上下文的深度理解与分析" },
-  { name: "文档解析", description: "解析 PDF、Word 等格式文档内容" },
-  { name: "多模态理解", description: "理解图片、图表等视觉内容" },
-];
-
-const fallbackPrompts = [
-  { title: "修复 Bug", content: "分析以下 React 代码片段，找出导致重复渲染的问题并给出修复方案。" },
-  { title: "编写测试", content: "为以下函数生成 Jest 单元测试用例，覆盖正常输入、边界条件和异常情况。" },
-  { title: "代码审查", content: "对以下代码进行 Code Review，从性能、安全性、可读性三个维度给出改进建议。" },
-  { title: "架构设计", content: "我需要设计一个支持百万用户的实时聊天系统，请给出技术架构方案。" },
-];
-
 interface ProductDetailProps {
   product: DbProduct | null;
   open: boolean;
@@ -52,18 +36,18 @@ export function ProductDetail({ product, open, onClose, onPromote }: ProductDeta
   const { data: userUpvotes = new Set<string>() } = useUserUpvotes(user?.id);
   const { data: displayModules = [] } = useDisplayModules();
 
-  // Build a map of module id -> enabled
   const moduleEnabled = (id: string) => {
     const mod = displayModules.find(m => m.id === id);
-    return mod ? mod.enabled : true; // default to true if not found
+    return mod ? mod.enabled : true;
   };
 
   if (!product) return null;
 
-  const skills = (product.skills as { name: string; description: string }[] | null) || fallbackSkills;
-  const prompts = (product.prompts as { title: string; content: string }[] | null) || fallbackPrompts;
+  const skills = (product.skills as { name: string; description: string }[] | null) ?? [];
+  const prompts = (product.prompts as { title: string; content: string }[] | null) ?? [];
   
-  const showSkills = moduleEnabled("skills") && (skills.length > 0 || prompts.length > 0);
+  const showSkills = moduleEnabled("skills") && skills.length > 0;
+  const showPrompts = moduleEnabled("prompts") && prompts.length > 0;
   const showVideo = moduleEnabled("video");
   const showBenefits = moduleEnabled("benefits");
   const showCommunity = moduleEnabled("community");
@@ -161,7 +145,10 @@ export function ProductDetail({ product, open, onClose, onPromote }: ProductDeta
               <TabsList className="w-full justify-start bg-secondary/50 mb-6">
                 <TabsTrigger value="overview" className="gap-1.5"><Eye className="h-3.5 w-3.5" /> 概览</TabsTrigger>
                 {showSkills && (
-                  <TabsTrigger value="skills" className="gap-1.5"><Zap className="h-3.5 w-3.5" /> 技能 & Prompts</TabsTrigger>
+                  <TabsTrigger value="skills" className="gap-1.5"><Zap className="h-3.5 w-3.5" /> Agent 技能</TabsTrigger>
+                )}
+                {showPrompts && (
+                  <TabsTrigger value="prompts" className="gap-1.5"><Terminal className="h-3.5 w-3.5" /> Prompt 库</TabsTrigger>
                 )}
                 {showCommunity && (
                   <TabsTrigger value="community" className="gap-1.5"><MessageCircle className="h-3.5 w-3.5" /> 社区评价</TabsTrigger>
@@ -234,43 +221,42 @@ export function ProductDetail({ product, open, onClose, onPromote }: ProductDeta
 
               {showSkills && (
                 <TabsContent value="skills">
-                  <div className="space-y-6">
-                    {skills.length > 0 && (
-                      <div>
-                        <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2"><Zap className="h-4 w-4 text-primary" /> Agent 技能</h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          {skills.map((skill) => (
-                            <Card key={skill.name} className="bg-secondary/30 border-border/40 hover:border-primary/30 transition-colors">
-                              <CardContent className="p-4 flex items-start gap-3">
-                                <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0"><Zap className="h-4 w-4 text-primary" /></div>
-                                <div>
-                                  <p className="text-sm font-medium text-foreground">{skill.name}</p>
-                                  <p className="text-xs text-muted-foreground mt-0.5">{skill.description}</p>
-                                </div>
-                              </CardContent>
-                            </Card>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    {prompts.length > 0 && (
-                      <div>
-                        <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2"><Terminal className="h-4 w-4 text-primary" /> 最佳 Prompt 库</h3>
-                        <div className="space-y-3">
-                          {prompts.map((p, idx) => (
-                            <div key={idx} className="rounded-lg border border-border/40 overflow-hidden">
-                              <div className="flex items-center justify-between px-4 py-2 bg-secondary/40">
-                                <span className="text-sm font-medium text-foreground">{p.title}</span>
-                                <Button variant="ghost" size="sm" className="h-7 gap-1.5 text-xs" onClick={() => handleCopy(`prompt-${idx}`, p.content)}>
-                                  {copiedId === `prompt-${idx}` ? <><Check className="h-3 w-3 text-primary" /> 已复制</> : <><Copy className="h-3 w-3" /> 复制</>}
-                                </Button>
-                              </div>
-                              <div className="px-4 py-3 bg-secondary font-mono text-xs text-muted-foreground leading-relaxed">{p.content}</div>
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2"><Zap className="h-4 w-4 text-primary" /> Agent 技能</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {skills.map((skill) => (
+                        <Card key={skill.name} className="bg-secondary/30 border-border/40 hover:border-primary/30 transition-colors">
+                          <CardContent className="p-4 flex items-start gap-3">
+                            <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0"><Zap className="h-4 w-4 text-primary" /></div>
+                            <div>
+                              <p className="text-sm font-medium text-foreground">{skill.name}</p>
+                              <p className="text-xs text-muted-foreground mt-0.5">{skill.description}</p>
                             </div>
-                          ))}
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                </TabsContent>
+              )}
+
+              {showPrompts && (
+                <TabsContent value="prompts">
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2"><Terminal className="h-4 w-4 text-primary" /> 最佳 Prompt 库</h3>
+                    <div className="space-y-3">
+                      {prompts.map((p, idx) => (
+                        <div key={idx} className="rounded-lg border border-border/40 overflow-hidden">
+                          <div className="flex items-center justify-between px-4 py-2 bg-secondary/40">
+                            <span className="text-sm font-medium text-foreground">{p.title}</span>
+                            <Button variant="ghost" size="sm" className="h-7 gap-1.5 text-xs" onClick={() => handleCopy(`prompt-${idx}`, p.content)}>
+                              {copiedId === `prompt-${idx}` ? <><Check className="h-3 w-3 text-primary" /> 已复制</> : <><Copy className="h-3 w-3" /> 复制</>}
+                            </Button>
+                          </div>
+                          <div className="px-4 py-3 bg-secondary font-mono text-xs text-muted-foreground leading-relaxed">{p.content}</div>
                         </div>
-                      </div>
-                    )}
+                      ))}
+                    </div>
                   </div>
                 </TabsContent>
               )}
