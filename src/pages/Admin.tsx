@@ -737,6 +737,12 @@ const Admin = () => {
                                       newList.sort((a, b) => a.sort_order - b.sort_order);
                                       setCatOrderList(newList);
                                     }}>↓</Button>
+                                    <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => {
+                                      setCatEditId(cat.id); setCatEditNewId(cat.id); setCatEditLabel(cat.label); setCatEditIcon(cat.icon); setCatEditOrder(cat.sort_order); setCatEditOpen(true);
+                                    }}><Pencil className="h-3 w-3" /></Button>
+                                    <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive" onClick={() => handleOpenCatDelete(cat.id)}>
+                                      <Trash2 className="h-3 w-3" />
+                                    </Button>
                                   </div>
                                 </TableCell>
                               </TableRow>
