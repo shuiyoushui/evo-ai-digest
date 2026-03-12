@@ -94,6 +94,8 @@ export function useSubmitProduct() {
       company_funding: string;
       benefits: string[];
       user_id: string;
+      skills?: { name: string; description: string }[];
+      prompts?: { title: string; content: string }[];
     }) => {
       const { data, error } = await supabase
         .from("products")

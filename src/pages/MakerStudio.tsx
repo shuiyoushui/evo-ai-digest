@@ -216,6 +216,8 @@ const MakerStudio = () => {
       companyFounded: proj.company_founded || "",
       companyLocation: proj.company_location || "",
       companyFunding: proj.company_funding || "",
+      skills: Array.isArray(proj.skills) ? proj.skills : [],
+      prompts: Array.isArray(proj.prompts) ? proj.prompts : [],
     });
     setActiveTab("edit");
   };
@@ -237,6 +239,8 @@ const MakerStudio = () => {
         company_founded: editFormData.companyFounded,
         company_location: editFormData.companyLocation,
         company_funding: editFormData.companyFunding,
+        skills: editFormData.skills.length > 0 ? editFormData.skills : null,
+        prompts: editFormData.prompts.length > 0 ? editFormData.prompts : null,
       });
       setEditingProjectId(null);
       setActiveTab("projects");
@@ -313,6 +317,8 @@ const MakerStudio = () => {
         company_funding: formData.companyFunding,
         benefits: [],
         user_id: user.id,
+        skills: formData.skills.length > 0 ? formData.skills : undefined,
+        prompts: formData.prompts.length > 0 ? formData.prompts : undefined,
       });
       toast.success("产品已提交审核", { description: "我们将在1-2个工作日内完成审核" });
       setSubmitStep("choose");
@@ -789,6 +795,45 @@ const MakerStudio = () => {
                       </div>
                     </CardContent>
                   </Card>
+                  {/* Skills & Prompts Section */}
+                  <Card className="bg-card border-border">
+                    <CardContent className="p-5 space-y-5">
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <label className="text-xs font-semibold text-foreground flex items-center gap-1.5"><Zap className="h-3 w-3 text-primary" /> Agent Skills</label>
+                          <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => setEditFormData({ ...editFormData, skills: [...editFormData.skills, { name: "", description: "" }] })}><Plus className="h-3 w-3" /> 添加技能</Button>
+                        </div>
+                        {editFormData.skills.length === 0 && <p className="text-xs text-muted-foreground/60 text-center py-3">暂无技能，点击上方按钮添加</p>}
+                        {editFormData.skills.map((skill, idx) => (
+                          <div key={idx} className="flex gap-3 items-start p-3 rounded-lg bg-secondary/40 border border-border/30">
+                            <div className="flex-1 space-y-2">
+                              <Input value={skill.name} onChange={(e) => { const updated = [...editFormData.skills]; updated[idx] = { ...updated[idx], name: e.target.value }; setEditFormData({ ...editFormData, skills: updated }); }} placeholder="技能名称" className="bg-background h-8 text-sm" />
+                              <Textarea value={skill.description} onChange={(e) => { const updated = [...editFormData.skills]; updated[idx] = { ...updated[idx], description: e.target.value }; setEditFormData({ ...editFormData, skills: updated }); }} placeholder="技能描述..." className="bg-background min-h-[60px] text-sm" />
+                            </div>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => setEditFormData({ ...editFormData, skills: editFormData.skills.filter((_, i) => i !== idx) })}><X className="h-3 w-3 text-muted-foreground" /></Button>
+                          </div>
+                        ))}
+                      </div>
+                      <Separator className="bg-border/60" />
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <label className="text-xs font-semibold text-foreground flex items-center gap-1.5"><Terminal className="h-3 w-3 text-primary" /> Prompt Library</label>
+                          <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => setEditFormData({ ...editFormData, prompts: [...editFormData.prompts, { title: "", content: "" }] })}><Plus className="h-3 w-3" /> 添加提示词</Button>
+                        </div>
+                        {editFormData.prompts.length === 0 && <p className="text-xs text-muted-foreground/60 text-center py-3">暂无提示词，点击上方按钮添加</p>}
+                        {editFormData.prompts.map((prompt, idx) => (
+                          <div key={idx} className="flex gap-3 items-start p-3 rounded-lg bg-secondary/40 border border-border/30">
+                            <div className="flex-1 space-y-2">
+                              <Input value={prompt.title} onChange={(e) => { const updated = [...editFormData.prompts]; updated[idx] = { ...updated[idx], title: e.target.value }; setEditFormData({ ...editFormData, prompts: updated }); }} placeholder="提示词标题" className="bg-background h-8 text-sm" />
+                              <Textarea value={prompt.content} onChange={(e) => { const updated = [...editFormData.prompts]; updated[idx] = { ...updated[idx], content: e.target.value }; setEditFormData({ ...editFormData, prompts: updated }); }} placeholder="提示词内容..." className="bg-background min-h-[80px] text-sm font-mono" />
+                            </div>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => setEditFormData({ ...editFormData, prompts: editFormData.prompts.filter((_, i) => i !== idx) })}><X className="h-3 w-3 text-muted-foreground" /></Button>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+
                   <div className="flex justify-end gap-3 pt-2 pb-8">
                     <Button variant="outline" onClick={() => { setEditingProjectId(null); setActiveTab("projects"); }}>取消</Button>
                     <Button className="bg-primary gap-2" onClick={handleSaveEdit}><Send className="h-4 w-4" /> 保存修改</Button>
