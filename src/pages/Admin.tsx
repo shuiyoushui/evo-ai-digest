@@ -38,7 +38,7 @@ const sidebarItems = [
   { id: "config", label: "系统配置", icon: Settings },
 ];
 
-const statusMap: Record<string, string> = { pending: "待审核", approved: "已通过", rejected: "已拒绝" };
+const statusMap: Record<string, string> = { pending: "待审核", approved: "已通过", rejected: "已拒绝", offline: "已下线" };
 
 
 const AI_MODELS = [
