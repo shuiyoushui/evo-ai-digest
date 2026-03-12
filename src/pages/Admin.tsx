@@ -172,8 +172,84 @@ const Admin = () => {
     } catch (e: any) {
       toast.error("保存失败", { description: e.message });
     } finally {
-      setSavingCatOrder(false);
+    setSavingCatOrder(false);
     }
+  };
+
+  // Category rename
+  const handleSaveCatEdit = async () => {
+    if (!catEditLabel.trim()) { toast.error("请填写分类名称"); return; }
+    if (catEditId) {
+      // Rename mode
+      const { error } = await supabase.from("categories").update({ label: catEditLabel, icon: catEditIcon }).eq("id", catEditId);
+      if (error) { toast.error("重命名失败", { description: error.message }); return; }
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      toast.success("分类已重命名");
+    } else {
+      // Create mode
+      if (!catEditNewId.trim()) { toast.error("请填写分类ID"); return; }
+      if (catOrderList.some(c => c.id === catEditNewId.trim())) { toast.error("分类ID已存在"); return; }
+      const { error } = await supabase.from("categories").insert({ id: catEditNewId.trim(), label: catEditLabel, icon: catEditIcon || "📁", sort_order: catEditOrder });
+      if (error) { toast.error("新增失败", { description: error.message }); return; }
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      toast.success("分类已新增");
+      // Open product assignment dialog
+      setCatAssignId(catEditNewId.trim());
+      setCatAssignSelected(new Set());
+      setCatAssignOpen(true);
+    }
+    setCatEditOpen(false);
+  };
+
+  // Category delete
+  const handleOpenCatDelete = (catId: string) => {
+    const count = allProducts.filter(p => p.category_id === catId).length;
+    setCatDeleteId(catId);
+    setCatDeleteProductCount(count);
+    setCatDeleteTarget("");
+    setCatDeleteOpen(true);
+  };
+
+  const handleConfirmCatDelete = async () => {
+    if (!catDeleteId) return;
+    if (catDeleteProductCount > 0 && !catDeleteTarget) {
+      toast.error("请选择产品迁移的目标分类");
+      return;
+    }
+    try {
+      // Migrate products first
+      if (catDeleteProductCount > 0 && catDeleteTarget) {
+        const { error: moveErr } = await supabase.from("products").update({ category_id: catDeleteTarget }).eq("category_id", catDeleteId);
+        if (moveErr) throw moveErr;
+      }
+      // Delete category
+      const { error: delErr } = await supabase.from("categories").delete().eq("id", catDeleteId);
+      if (delErr) throw delErr;
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      toast.success("分类已删除");
+    } catch (e: any) {
+      toast.error("删除失败", { description: e.message });
+    }
+    setCatDeleteOpen(false);
+    setCatDeleteId(null);
+  };
+
+  // Category product assignment
+  const handleSaveCatAssign = async () => {
+    if (catAssignSelected.size === 0) { setCatAssignOpen(false); return; }
+    try {
+      const ids = Array.from(catAssignSelected);
+      for (const pid of ids) {
+        const { error } = await supabase.from("products").update({ category_id: catAssignId }).eq("id", pid);
+        if (error) throw error;
+      }
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      toast.success(`已将 ${ids.length} 个产品分配到新分类`);
+    } catch (e: any) {
+      toast.error("分配失败", { description: e.message });
+    }
+    setCatAssignOpen(false);
   };
 
   // Banner save
