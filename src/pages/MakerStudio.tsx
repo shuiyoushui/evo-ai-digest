@@ -239,6 +239,8 @@ const MakerStudio = () => {
         company_founded: editFormData.companyFounded,
         company_location: editFormData.companyLocation,
         company_funding: editFormData.companyFunding,
+        skills: editFormData.skills.length > 0 ? editFormData.skills : null,
+        prompts: editFormData.prompts.length > 0 ? editFormData.prompts : null,
       });
       setEditingProjectId(null);
       setActiveTab("projects");
