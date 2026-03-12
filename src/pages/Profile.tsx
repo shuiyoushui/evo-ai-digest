@@ -87,7 +87,21 @@ const Profile = () => {
     }
   };
 
+  const validateNickname = (value: string): string | null => {
+    if (!value.trim()) return "昵称不能为空";
+    // Count: each CJK char counts as 1 Chinese char (max 5), each ASCII char counts as 1 letter (max 20)
+    // Mixed: each CJK = 4 letters equivalent, total ≤ 20
+    let weight = 0;
+    for (const ch of value) {
+      weight += /[\u4e00-\u9fff\u3400-\u4dbf]/.test(ch) ? 4 : 1;
+    }
+    if (weight > 20) return "昵称最长5个汉字或20个英文字母";
+    return null;
+  };
+
   const handleSaveProfile = async () => {
+    const nickErr = validateNickname(profileNickname);
+    if (nickErr) { toast.error(nickErr); return; }
     setSaving(true);
     try {
       await updateProfile({ nickname: profileNickname, phone: profilePhone, email: profileEmail });
