@@ -40,27 +40,6 @@ const sidebarItems = [
 
 const statusMap: Record<string, string> = { pending: "待审核", approved: "已通过", rejected: "已拒绝" };
 
-const categoryInquiryData = [
-  { name: "开发与编程", value: 45 },
-  { name: "视觉与创意", value: 30 },
-  { name: "智能体", value: 25 },
-  { name: "效率与办公", value: 18 },
-  { name: "写作营销", value: 10 },
-];
-
-const serviceTypeData = [
-  { name: "种子用户", value: 42 },
-  { name: "体验评测", value: 31 },
-  { name: "规模增长", value: 27 },
-];
-
-const PIE_COLORS = [
-  "hsl(230, 90%, 60%)",
-  "hsl(142, 71%, 45%)",
-  "hsl(38, 92%, 50%)",
-  "hsl(262, 83%, 58%)",
-  "hsl(350, 80%, 55%)",
-];
 
 const AI_MODELS = [
   { value: "google/gemini-3-flash-preview", label: "Gemini 3 Flash (推荐)" },
