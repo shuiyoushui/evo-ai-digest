@@ -396,6 +396,10 @@ const Admin = () => {
     }
   };
 
+  if (loading) return <div className="min-h-screen bg-background flex items-center justify-center text-muted-foreground">加载中...</div>;
+  if (!isLoggedIn) return <div className="min-h-screen bg-background"><TopNav /><div className="flex items-center justify-center py-20 text-muted-foreground">请先登录</div></div>;
+  if (!isAdmin) return <div className="min-h-screen bg-background"><TopNav /><div className="flex flex-col items-center justify-center py-20 gap-3"><Lock className="h-8 w-8 text-muted-foreground" /><p className="text-muted-foreground">无访问权限，仅管理员可访问</p><a href="/" className="text-primary text-sm hover:underline">返回首页</a></div></div>;
+
   return (
     <div className="min-h-screen bg-background">
       <TopNav />
