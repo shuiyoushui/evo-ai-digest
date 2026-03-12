@@ -65,7 +65,7 @@ const getIconComponent = (iconName: string) => iconMap[iconName] || Cpu;
 
 const budgetOptions = [100, 500, 1000, 5000];
 
-const statusMap: Record<string, string> = { approved: "已上线", pending: "审核中", rejected: "已拒绝" };
+const statusMap: Record<string, string> = { approved: "已上线", pending: "审核中", rejected: "已拒绝", offline: "已下线" };
 
 const MakerStudio = () => {
   const [searchParams] = useSearchParams();
@@ -191,12 +191,12 @@ const MakerStudio = () => {
     toast.success("咨询请求已发送给管理员", { description: "我们将在1-2个工作日内联系您" });
   };
 
-  const handleDeleteProject = async (id: string) => {
+  const handleOfflineProject = async (id: string) => {
     try {
-      await deleteProduct.mutateAsync(id);
-      toast.success("项目已删除");
+      await updateProduct.mutateAsync({ id, status: "offline" });
+      toast.success("产品已下线");
     } catch {
-      toast.error("删除失败");
+      toast.error("下线失败");
     }
   };
 
@@ -241,10 +241,11 @@ const MakerStudio = () => {
         company_funding: editFormData.companyFunding,
         skills: editFormData.skills.length > 0 ? editFormData.skills : null,
         prompts: editFormData.prompts.length > 0 ? editFormData.prompts : null,
+        status: "pending",
       });
       setEditingProjectId(null);
       setActiveTab("projects");
-      toast.success("产品信息已更新");
+      toast.success("产品信息已更新，需重新审核后展示");
     } catch {
       toast.error("更新失败");
     }
@@ -710,21 +711,23 @@ const MakerStudio = () => {
                       <Badge variant={proj.status === "approved" ? "default" : "secondary"} className="text-[10px] shrink-0">{statusMap[proj.status] || proj.status}</Badge>
                       <div className="flex items-center gap-1 shrink-0">
                         <Button variant="ghost" size="icon" className="h-8 w-8" title="编辑" onClick={() => handleEditProject(proj)}><Pencil className="h-3.5 w-3.5 text-muted-foreground" /></Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8" title="删除"><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent className="bg-card border-border">
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>确认删除</AlertDialogTitle>
-                              <AlertDialogDescription>确定要删除「{proj.name}」吗？此操作不可恢复。</AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>取消</AlertDialogCancel>
-                              <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => handleDeleteProject(proj.id)}>删除</AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                        {proj.status !== "offline" && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8" title="下线"><ArrowRight className="h-3.5 w-3.5 text-muted-foreground rotate-90" /></Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent className="bg-card border-border">
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>确认下线</AlertDialogTitle>
+                                <AlertDialogDescription>确定要将「{proj.name}」下线吗？下线后产品将不在首页展示。</AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>取消</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleOfflineProject(proj.id)}>确认下线</AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -791,6 +794,44 @@ const MakerStudio = () => {
                         <div className="space-y-1.5">
                           <label className="text-xs font-medium text-muted-foreground">GitHub</label>
                           <Input value={editFormData.github} onChange={(e) => setEditFormData({ ...editFormData, github: e.target.value })} placeholder="https://github.com/..." className="bg-secondary font-mono text-sm" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  {/* Team & Company Section */}
+                  <Card className="bg-card border-border">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm flex items-center gap-2"><Building2 className="h-4 w-4 text-primary" /> 团队与公司</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-5 pt-0 space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium text-muted-foreground">创始人/负责人</label>
+                          <Input value={editFormData.founderName} onChange={(e) => setEditFormData({ ...editFormData, founderName: e.target.value })} placeholder="姓名" className="bg-secondary" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium text-muted-foreground">职位</label>
+                          <Input value={editFormData.founderTitle} onChange={(e) => setEditFormData({ ...editFormData, founderTitle: e.target.value })} placeholder="CEO / CTO / 产品负责人" className="bg-secondary" />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium text-muted-foreground">公司名称</label>
+                          <Input value={editFormData.companyName} onChange={(e) => setEditFormData({ ...editFormData, companyName: e.target.value })} placeholder="公司名称" className="bg-secondary" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium text-muted-foreground">成立年份</label>
+                          <Input value={editFormData.companyFounded} onChange={(e) => setEditFormData({ ...editFormData, companyFounded: e.target.value })} placeholder="如 2023" className="bg-secondary" />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium text-muted-foreground">所在地</label>
+                          <Input value={editFormData.companyLocation} onChange={(e) => setEditFormData({ ...editFormData, companyLocation: e.target.value })} placeholder="如 北京" className="bg-secondary" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium text-muted-foreground">融资阶段</label>
+                          <Input value={editFormData.companyFunding} onChange={(e) => setEditFormData({ ...editFormData, companyFunding: e.target.value })} placeholder="如 Pre-A / A轮 / 自筹" className="bg-secondary" />
                         </div>
                       </div>
                     </CardContent>

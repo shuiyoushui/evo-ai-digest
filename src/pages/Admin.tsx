@@ -38,7 +38,7 @@ const sidebarItems = [
   { id: "config", label: "系统配置", icon: Settings },
 ];
 
-const statusMap: Record<string, string> = { pending: "待审核", approved: "已通过", rejected: "已拒绝" };
+const statusMap: Record<string, string> = { pending: "待审核", approved: "已通过", rejected: "已拒绝", offline: "已下线" };
 
 
 const AI_MODELS = [
@@ -50,7 +50,7 @@ const AI_MODELS = [
 ];
 
 const Admin = () => {
-  const { isAdmin, isLoggedIn } = useAuth();
+  const { isAdmin, isLoggedIn, loading } = useAuth();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("overview");
   const [weights, setWeights] = useState({ upvotes: 40, views: 25, comments: 20, decay: 15 });
@@ -396,6 +396,10 @@ const Admin = () => {
     }
   };
 
+  if (loading) return <div className="min-h-screen bg-background flex items-center justify-center text-muted-foreground">加载中...</div>;
+  if (!isLoggedIn) return <div className="min-h-screen bg-background"><TopNav /><div className="flex items-center justify-center py-20 text-muted-foreground">请先登录</div></div>;
+  if (!isAdmin) return <div className="min-h-screen bg-background"><TopNav /><div className="flex flex-col items-center justify-center py-20 gap-3"><Lock className="h-8 w-8 text-muted-foreground" /><p className="text-muted-foreground">无访问权限，仅管理员可访问</p><a href="/" className="text-primary text-sm hover:underline">返回首页</a></div></div>;
+
   return (
     <div className="min-h-screen bg-background">
       <TopNav />
@@ -459,6 +463,9 @@ const Admin = () => {
                               <Button size="sm" variant="ghost" className="text-xs h-7 text-green-500" onClick={() => updateProduct.mutate({ id: s.id, status: "approved" })}>通过</Button>
                               <Button size="sm" variant="ghost" className="text-xs h-7 text-destructive" onClick={() => updateProduct.mutate({ id: s.id, status: "rejected" })}>拒绝</Button>
                             </>
+                          )}
+                          {s.status === "offline" && (
+                            <Button size="sm" variant="ghost" className="text-xs h-7 text-green-500" onClick={() => updateProduct.mutate({ id: s.id, status: "approved" })}>重新上线</Button>
                           )}
                         </TableCell>
                       </TableRow>
