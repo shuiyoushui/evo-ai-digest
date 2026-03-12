@@ -155,6 +155,10 @@ const Admin = () => {
   const [catAssignId, setCatAssignId] = useState("");
   const [catAssignSelected, setCatAssignSelected] = useState<Set<string>>(new Set());
 
+  // Review detail dialog
+  const [reviewDetailOpen, setReviewDetailOpen] = useState(false);
+  const [reviewDetailProduct, setReviewDetailProduct] = useState<any>(null);
+
   useEffect(() => {
     if (categories.length > 0) {
       setCatOrderList(categories.map(c => ({ ...c })));
