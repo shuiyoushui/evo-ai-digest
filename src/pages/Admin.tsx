@@ -574,7 +574,7 @@ const Admin = () => {
                           <Save className="h-3 w-3" /> {savingBanners ? "保存中..." : "保存Banner"}
                         </Button>
                       </div>
-                      <CardDescription className="text-xs">管理首页轮播图的展示内容和状态</CardDescription>
+                      <CardDescription className="text-xs">管理首页轮播图的展示内容和状态。建议图片尺寸：1920×600px（宽高比约 3.2:1），格式为 JPG/PNG/WebP，文件大小不超过 500KB 以确保加载速度。</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       {bannerSlides.map((slide, i) => (
