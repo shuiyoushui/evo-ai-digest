@@ -428,8 +428,9 @@ const MakerStudio = () => {
                   <h1 className="text-2xl font-bold text-foreground mb-2">提交你的AI产品</h1>
                   <p className="text-muted-foreground text-sm">选择你偏好的提交方式</p>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-2xl mx-auto">
-                  {/* Option A: Smart AI Import */}
+                <div className={`grid grid-cols-1 ${aiEnabled ? 'md:grid-cols-2' : ''} gap-5 max-w-2xl mx-auto`}>
+                  {/* Option A: Smart AI Import — only when AI is enabled */}
+                  {aiEnabled && (
                   <Card className="bg-card border-border hover:border-primary/50 transition-all cursor-pointer group relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                     <CardHeader className="pb-3 relative">
@@ -457,6 +458,7 @@ const MakerStudio = () => {
                       </Button>
                     </CardContent>
                   </Card>
+                  )}
 
                   {/* Option B: Manual Entry */}
                   <Card
