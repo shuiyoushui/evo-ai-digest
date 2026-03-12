@@ -12,6 +12,7 @@ export interface BannerSlide {
   active: boolean;
   gradient: string;
   sort_order?: number;
+  image_url?: string;
 }
 
 // Keep as fallback only
