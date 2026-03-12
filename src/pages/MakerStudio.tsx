@@ -313,6 +313,8 @@ const MakerStudio = () => {
         company_funding: formData.companyFunding,
         benefits: [],
         user_id: user.id,
+        skills: formData.skills.length > 0 ? formData.skills : undefined,
+        prompts: formData.prompts.length > 0 ? formData.prompts : undefined,
       });
       toast.success("产品已提交审核", { description: "我们将在1-2个工作日内完成审核" });
       setSubmitStep("choose");
