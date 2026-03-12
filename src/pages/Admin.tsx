@@ -184,7 +184,13 @@ const Admin = () => {
   };
 
   // Ranking weights save
+  const totalWeight = weights.upvotes + weights.views + weights.comments + weights.decay;
+
   const handleSaveWeights = async () => {
+    if (totalWeight !== 100) {
+      toast.error(`权重总和必须等于 100%（当前: ${totalWeight}%）`);
+      return;
+    }
     setSavingWeights(true);
     try {
       const { error } = await supabase.from("ranking_weights").update({
@@ -540,7 +546,7 @@ const Admin = () => {
                           <CardTitle className="text-sm">排名算法权重</CardTitle>
                           <CardDescription className="text-xs">调整各因素在排名中的权重占比（总和需为100%）</CardDescription>
                         </div>
-                        <Button size="sm" variant="outline" className="text-xs gap-1" onClick={handleSaveWeights} disabled={savingWeights}>
+                        <Button size="sm" variant="outline" className="text-xs gap-1" onClick={handleSaveWeights} disabled={savingWeights || totalWeight !== 100}>
                           <Save className="h-3 w-3" /> {savingWeights ? "保存中..." : "保存权重"}
                         </Button>
                       </div>
@@ -560,6 +566,10 @@ const Admin = () => {
                           <Slider value={[weights[w.key]]} onValueChange={([v]) => setWeights({ ...weights, [w.key]: v })} max={100} step={5} className="[&_[role=slider]]:bg-primary" />
                         </div>
                       ))}
+                      <div className={`flex items-center justify-between pt-2 border-t border-border text-xs font-medium ${totalWeight === 100 ? "text-green-500" : "text-destructive"}`}>
+                        <span>权重总和</span>
+                        <span className="font-mono">{totalWeight} / 100%</span>
+                      </div>
                     </CardContent>
                   </Card>
 
