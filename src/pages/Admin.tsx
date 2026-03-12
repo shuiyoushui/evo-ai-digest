@@ -479,9 +479,18 @@ const Admin = () => {
                     <CardContent className="space-y-4">
                       {bannerSlides.map((slide, i) => (
                         <div key={slide.id} className="flex items-start gap-4 p-3 rounded-lg bg-secondary/40 border border-border/30">
-                          <div className={`h-20 w-28 rounded-lg border-2 border-dashed border-border/60 bg-gradient-to-br ${slide.gradient} flex flex-col items-center justify-center shrink-0 cursor-pointer hover:border-primary/50 transition-colors group`}>
-                            <Upload className="h-4 w-4 text-white/60 group-hover:text-white/90 transition-colors" />
-                            <span className="text-[9px] text-white/60 mt-1 group-hover:text-white/90">点击上传图片</span>
+                          <div
+                            className={`h-20 w-28 rounded-lg border-2 border-dashed border-border/60 ${(slide as any).image_url ? '' : `bg-gradient-to-br ${slide.gradient}`} flex flex-col items-center justify-center shrink-0 cursor-pointer hover:border-primary/50 transition-colors group overflow-hidden relative`}
+                            onClick={() => handleBannerImageUpload(i)}
+                          >
+                            {(slide as any).image_url ? (
+                              <img src={(slide as any).image_url} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                            ) : (
+                              <>
+                                <Upload className="h-4 w-4 text-white/60 group-hover:text-white/90 transition-colors" />
+                                <span className="text-[9px] text-white/60 mt-1 group-hover:text-white/90">点击上传图片</span>
+                              </>
+                            )}
                           </div>
                           <div className="flex-1 space-y-2 min-w-0">
                             <div className="space-y-1">
